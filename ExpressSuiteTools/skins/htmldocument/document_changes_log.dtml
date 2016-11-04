@@ -1,0 +1,19 @@
+<dtml-in changes_log mapping reverse>
+ <dtml-if sequence-start>
+  <table>
+   <tr>
+    <td class="smallHeader"><dtml-var "msg('Changes log')"></td>
+   </tr>
+ </dtml-if>
+  <tr>
+   <td class="small">
+     <dtml-var "ZopeTime(_.int(date))" fmt="%Y-%m-%d %H:%M">
+      <a OnClick="return OpenUserInfoWnd('&dtml-member;','')" style="cursor: hand">
+         <b><dtml-var "portal_membership.getMemberName(member)"></b>
+      </a>
+     <dtml-var comment>
+   </td>
+ <dtml-if sequence-end>
+  </table>
+ </dtml-if>
+</dtml-in>

@@ -1,0 +1,448 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-if message>
+<p>&dtml-message;</p>
+<hr>
+</dtml-if>
+
+<div class="Metadata">
+
+<dtml-let type_info="portal_types.getTypeInfo(type_name)"
+          IsCategorial="type_info.typeImplements('isCategorial')"
+          allowed_categories="listAllowedCategories(type_name)"
+          language_category_ids="portal_metadata.listLanguageCategoryIds(allowed_categories)"
+          id="_.has_key('use_default_values') and id or ''"
+          title="_.has_key('use_default_values') and title or REQUEST.get('title','')"
+          description="_.has_key('use_default_values') and description or REQUEST.get('description','')"
+          default_category="_.has_key('default_category') and default_category or None"
+          relation="_.has_key('relation') and relation"
+          default_values="REQUEST.get('default_values', {})"
+          params="''.join( [ '&%s=%s' % ( id, value ) for id, value in default_values.items() ] )"
+          IsHTMLBased="type_name in ('HTMLDocument', 'HTMLCard',) and 1 or 0"
+          isDebug="0"
+>
+<dtml-if isDebug>
+( <dtml-var type_name> : <dtml-var type_info> : <dtml-var params> )<br>
+</dtml-if>
+
+<script type="text/javascript">
+<!--
+var isSubmitted = false;
+
+function Validate( frm ) {
+    if( isSubmitted ) return false;
+    if( !validateIdentifier(frm.elements['id'], '<dtml-var "msg('Object id is invalid')">', true) )
+        return false;
+    if( !frm.title.value ) {
+        alert('<dtml-var "msg('Specify the document title')">');
+        frm.title.focus();
+        return false;
+    }
+
+  <dtml-if IsHTMLBased>
+    <dtml-if IsCategorial>
+    var title = frm.title.value;
+    var description = frm.description.value;
+
+    if ( description && check_unique_subject( title, description ) ) {
+        alert('<dtml-var "msg('Unique title and description.')">');
+        frm.description.focus();
+        return false;
+    }
+    </dtml-if>
+
+    if ( frm.upload.value && !validateIdentifier( frm.elements['upload_id'], '<dtml-var "msg('Object id is invalid')">', true ) )
+	return false;
+  </dtml-if>
+
+  <dtml-if "IsCategorial and listAllowedCategories(type_name)">
+    var IsIFrame = true;
+
+    if( typeof(category_data) == 'object' ) {
+        var form=category_data.document.category_metadata_form;
+    } else { 
+        var form=document.all.invoke_factory_form;
+        IsIFrame = false;
+    }
+
+    //validate format of all data
+    if( typeof(form) != 'object' || !validateForm(form, 1) )
+        return false;
+    
+    //validate mandatory data
+    for ( var i = 0; i < form.elements.length; i++ ) {
+        var elem = form.elements[ i ];
+        if (elem.name && elem.getAttribute('mandatory') && elem.type != 'checkbox' && elem.type != 'hidden') {
+            if (!elem.value || elem.value == 'неопределено' || elem.value == 'не определено' || elem.value == 'nonselected') {
+              alert('<dtml-var "msg('Please specify mandatory attribute')"> '+elem.title+'.');
+              elem.focus();
+              return false;
+            }
+       }
+    }
+
+    // copy all data from iframe to form
+    if( IsIFrame ) {
+      for ( var i = 0; i < form.elements.length; i++ ) {
+        var elem = form.elements[ i ];
+        if (elem.name) {
+          var value='';
+          if (elem.type=='textarea') {
+            var newTextArea = document.createElement('<TEXTAREA name="'+elem.name+'"></TEXTAREA>');
+            newTextArea.setAttribute('id', elem.id);
+            newTextArea.style.visibility = 'hidden';
+            newTextArea.innerText = elem.innerText;
+            frm.appendChild(newTextArea);
+          } else {
+            if ((elem.type=='checkbox' || elem.type=='radio') && !elem.checked) {
+              //pass
+            } else {
+              var eType = elem.type;
+              var newInput = document.createElement('<INPUT type="hidden" name="'+elem.name+'">');
+              newInput.setAttribute('id', elem.id);
+
+              if (eType=='select-multiple') {
+                  if( elem.id.search('_selected_users') > -1 ) {
+                      for(var m = 0; m < elem.options.length; m++)
+                        elem.options[m].selected = true;
+                  }
+                  var count = elem.options.length;
+                  var value = '';
+                  for (j=0; j<count; j++) {
+                      var x=elem.options(j);
+                      if( x.selected ) { value = value + x.value + ':'; }
+                  }
+                  if( value.length > 1 ) { value = value.substring( 0,value.length-1 ); }
+                  value = 'x:'+value;
+                  newInput.setAttribute('value', value);
+              } else if (eType=='select' || eType=='select-one') {
+                  newInput.setAttribute('value', elem.options[elem.selectedIndex].value);
+              } else {
+                  newInput.setAttribute('value', elem.value);
+              }
+              frm.appendChild(newInput);
+            }
+          }
+        }
+      }
+    }
+  </dtml-if>
+    isSubmitted = true;
+    return true;
+}
+
+var isSelected = false;
+
+function toggleSelect( form ) {
+    isSelected = ! isSelected;
+
+    for ( var i = 0; i < form.elements.length; i++ ) {
+    var elem = form.elements[ i ];
+       if ( elem.name.substr( 0, 8 ) == 'links_to' )
+       elem.checked = isSelected;
+    }
+
+    form.selectAll.value = isSelected ? '<dtml-var "msg('Deselect All')">'
+                  : '<dtml-var "msg('Select All')">';
+
+    return isSelected;
+}
+
+function DoImgClick() {
+    if(typeof(document.all.URL) != 'object') return;
+    var s=(document.all.URL.style.display == 'none' ? 'block' : 'none');
+    document.all.URL.style.display=s;
+    document.all.TYPE.style.display=s;
+    document.all.ID.style.display=s;
+    document.all.INDENT.style.display=s;
+}
+
+function loadIFrame( cat_id ){
+    var ids=<dtml-var language_category_ids>;
+    var s='none';
+    for ( var i = 0; i < ids.length; i++ ) {
+      if( ids[i]==cat_id ) s='block';
+    }
+    document.all.LANGUAGE.style.display=s;
+    category_data.location.replace('default_category_metadata?category_id='+escape(cat_id)+'&type_name=&dtml.url_quote-type_name;'+'&dtml-params;');
+}
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.invoke_factory_form;
+    if( Validate(frm) ) {
+        DisableForm(frm);
+        return true; //frm.submit();
+    } else return false;
+}
+//-->
+</script>
+		  
+<form name="invoke_factory_form" action="<dtml-var "relative_url(action='invoke_factory')">" method="post" enctype="multipart/form-data" onsubmit="return SubmitForm();">
+<input type="hidden" name="type_name" value="&dtml-type_name;">
+  <dtml-if type_args>
+<input type="hidden" name="type_args:tokens" value="<dtml-var "' '.join( type_args )" html_quote>">
+  </dtml-if>
+
+<table class="FormLayout" width="100%" border="0">
+<tr valign="top">
+  <td colspan=2 nowrap><h3><dtml-var "msg('New %s metadata' % type_name)"></h3><br></td>
+</tr>
+
+<tr valign="top">
+  <th align="right" width="10%" nowrap><dtml-var "msg('Title')"></th>
+  <td><input type="text" name="title" value="&dtml-title;" size="121" style="width:100%;"></td>
+  <td>&nbsp;</td>
+</tr>
+
+<tr valign="top">
+  <th align="right" nowrap><dtml-var "msg('Description')"></th>
+  <td><textarea id="description" name="description:text" rows="5" cols="120" style="width:100%;">&dtml-description;</textarea></td>
+</tr>
+
+  <dtml-let allowedCategories="IsCategorial and allowed_categories or None">
+    <dtml-if allowedCategories>
+      <dtml-let sel_cat="type_name in ('HTMLDocument','HTMLCard','DTMLDocument') and default_category or allowedCategories[0].getId()"
+                language_display="sel_cat in language_category_ids and 'block' or 'none'">
+<tr>
+  <th class="TextField"> <dtml-var "msg('Category')"></th>
+  <td class="TextField">
+    <select id="cat_id" name="cat_id" onChange="loadIFrame(this.options[this.selectedIndex].value);">
+        <dtml-in allowedCategories>
+          <dtml-if sequence-item>
+      <option value="&dtml-getId;" <dtml-var "getId()==sel_cat and 'selected' or ''"> > <dtml-var "msg(Title(), add=None)"> </option>
+          </dtml-if>
+        </dtml-in>
+    </select>
+    <br>
+  </td>
+</tr>
+
+<tr id="LANGUAGE" valign="top" style="display:<dtml-var language_display>;">
+  <th class="TextField"> <dtml-var "msg('Language')"> </th>
+  <td class="TextField">
+    <select name="language">
+        <dtml-let language="msg.get_default_language()">
+	      <dtml-in "msg.get_languages_map()" mapping>
+      <option value="&dtml-id;" <dtml-var "id==language and 'selected' or ''"> ><dtml-var "msg(title)"></option>
+          </dtml-in>
+        </dtml-let>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <th class="TextField"></th>
+  <td class="TextField" style="padding-top:0px;">
+    <iframe style="margin-top: 5px;margin-left: -5px;" name="category_data" scrolling="no" frameborder="0"
+            height="220" width="450" style="display:none"
+            src="default_category_metadata?category_id=&dtml.url_quote-sel_cat;&type_name=&dtml.url_quote-type_name;&dtml-params;"></iframe>
+  </td>
+</tr>
+      </dtml-let>
+    </dtml-if>
+  </dtml-let>
+
+  <dtml-if "type_name=='Mail Folder'">
+<tr>
+  <th class="TextField">&nbsp;</th>
+  <td class="TextField">
+    <input type="radio" id="mail_fax" name="mail_type" value="fax" checked="1">
+	<label for="mail_fax"><dtml-var "msg('Fax Incoming Folder')"></label>
+    <br>
+    <input type="radio" id="mail_in" name="mail_type" value="in">
+	<label for="mail_in"><dtml-var "msg('Incoming Mail Folder')"></label>
+    <br>
+    <input type="radio" id="mail_out" name="mail_type" value="out">
+	<label for="mail_out"><dtml-var "msg('Outgoing Mail Folder')"></label>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if "type_name == 'Heading'">
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Nomenclative number')"></th>
+  <td><input type="text" name="nomencl_num" value="<dtml-var getNomenclativeNumber>" size="65"></td>
+</tr>
+
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Postfix')"></th>
+  <td>
+    <input type="text" name="postfix" value="<dtml-var getPostfix>" size="65">
+    <br><dtml-var "msg('Note: values of these fields are used at formation of nomenclative numbers in registries.')">
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if "type_name == 'Registry'">
+    <dtml-let registries="portal_catalog.searchRegistries(REQUEST)">
+      <dtml-if registries>
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Create a copy of the registry')"></th>
+  <td>
+    <table cellpadding="0" cellspacing="3" border="0">
+    <tr>
+      <td><input type="radio" id="r_none" name="source_registry" value="" checked></td>
+      <td style="padding-top:3px"><label for="r_none"><dtml-var "msg('nonselected')"></label></td>
+    </tr>
+        <dtml-in registries>
+          <dtml-let obj=getObject uid="obj.getUid()" title="obj.Description() or obj.Title()">
+    <tr>
+      <td><input type="radio" id="r_&dtml-uid;" name="source_registry" value="&dtml-uid;"></td>
+      <td style="padding-top:3px"><label for="r_&dtml-uid;">&dtml-title;</label></td>
+    </tr>
+          </dtml-let>
+        </dtml-in>
+    </table>
+  </td>
+</tr>
+      </dtml-if>
+    </dtml-let>
+  </dtml-if>
+
+  <dtml-if IsHTMLBased>
+    <dtml-comment>
+<tr>
+  <td></td>
+  <td width="100%" style="padding-top:20px;">
+    <span style="color:black;">
+    <dtml-var "msg('You can save a file in the document and associate the text of the document with this file')">.<br>
+    <dtml-let attachmentSearchEnabled="portal_catalog.attachmentSearchEnabled()">
+      <dtml-var "msg('Supported formats are')">:
+      <dtml-in attachmentSearchEnabled prefix="att">
+        <dtml-if "att_item not in ['PDF']">
+         '<dtml-var "att_item">'
+          <dtml-var "not att_end and ',' or '.'">
+        </dtml-if>
+      </dtml-in>
+    </dtml-let>
+    </span>
+  </td>
+</tr>
+    </dtml-comment>
+
+<tr><td colspan="2" nowarp><h3><dtml-var "msg('File-Attachment')"></h3></td></tr>
+
+<tr>
+  <th align="right"><dtml-var "msg('File')"></th>
+  <td width="100%"><input type="file" name="upload" size="120" style="width:100%;"></td>
+</tr>
+<tr>
+  <th align="right"><dtml-var "msg('Id')"></th>
+  <td width="100%"><input type="text" name="upload_id" value="" size="35" style="width:200px;"> (<dtml-var "msg('optional')">)</td>
+</tr>
+<tr>
+  <td></td>
+  <td align=left style="padding-top:10px;">
+    <dtml-comment>
+    <span style="color:black;">
+    <dtml-var "msg('Note: if a file is being attached, category template will not be used')"> (<dtml-var "msg('if not specified flag \'User can edit only additional fields values\'')">).
+    </span>
+    </dtml-comment>
+  </td>
+</tr>
+  </dtml-if>
+
+<tr><td colspan="2"><hr width="100%" size="+1"></td></tr>
+<tr>
+  <td colspan="2" align="left">
+    <img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="DoImgClick();" 
+     onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'">
+  </td>
+</tr>   
+
+<tr id="URL" valign="top" style="display:none;">
+  <th align="right"> <dtml-var "msg('URL')"> </th>
+  <td class="ViewField"> <dtml-var Identifier> </td>
+</tr>
+
+<tr id="TYPE" valign="top" style="display:none;">
+  <th align="right"> <dtml-var "msg('Object type')"> </th>
+  <td class="ViewField"> <dtml-var "msg(type_name)"> </td>
+</tr>
+
+<tr id="ID" valign="top" style="display:none;">
+  <th align="right"> <dtml-var "msg('Id')"> </th>
+  <td>
+    <input type="text" name="id" value="&dtml-id;" size="35" style="width:200px;">
+  </td>
+</tr>
+
+<tr id="INDENT" valign="top" style="display:none;"><td height="10px">&nbsp;</td></tr>
+
+<tr valign="top">
+  <td>&nbsp;</td>
+  <td align=left>
+    <input type="submit" name="OK" value="<dtml-var "msg('Apply')">" style="width:110px;">
+    <input type="button" name="cancel" value="<dtml-var "msg('Cancel')">" onclick="JavaScript:location.href='&dtml-absolute_url;'" style="width:110px;">
+  </td>
+</tr>
+</table>
+
+  <dtml-let cb_objects="portal_links.listClipboardObjects(permission=None)">
+    <dtml-if "cb_objects and IsHTMLBased">
+      <dtml-in cb_objects sort=Title skip_unauthorized>
+        <dtml-if sequence-start>
+<hr>
+<h3><dtml-var "msg('Create link to a document in the clipboard')">:</h3>
+
+<table class="SearchResults" border="0">
+<tr class="row_title">
+  <td>&nbsp;</td>
+  <td width="16"><br></td>
+  <td><dtml-var "msg('Title')"></td>
+  <td><dtml-var "msg('Type')"></td>
+  <td><dtml-var "msg('Date')"></td>
+  <td><dtml-var "msg('Relation type')"></td>
+</tr>
+        </dtml-if>
+<tr>
+  <td>
+    <input type="checkbox" name="links_to.uid:records" value="&dtml-getUid;" <dtml-if "relation is not None">checked</dtml-if> />
+  </td>
+  <td>
+        <dtml-if getIcon>
+    <a href="&dtml-absolute_url;" target="_blank"><img src="&dtml-portal_url;/&dtml-getIcon;" border="0" alt="[<dtml-var "msg( Type() )" missing="">]" title="[<dtml-var "msg( Type() )" missing="">]"></a>
+        </dtml-if>
+  </td>
+  <td>
+    <a href="&dtml-absolute_url;" target="_blank"><dtml-var Title size="75" html_quote></a>
+  </td>
+  <td><dtml-var "msg( Type() )"></td>
+  <td><dtml-var Date></td>
+  <td>
+    <select name="links_to.relation:records">
+        <dtml-in "portal_links.listRelations()">
+    <option value="&dtml-sequence-index;" <dtml-var "_['sequence-index']==relation and 'selected' or ''">><dtml-var "msg(_['sequence-item'])"></option>
+        </dtml-in>
+    </select>
+  </td>
+</tr>
+        <dtml-if sequence-end>
+</table>
+   <input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelect(this.form)" style="width:130px">
+        </dtml-if>
+      </dtml-in>
+    </dtml-if>
+  </dtml-let>
+</form>
+
+<script type="text/javascript">
+<!--
+  focusForm(document.forms['invoke_factory_form']);
+//-->
+</script>
+
+</dtml-let>
+
+</div>
+
+</div>
+
+<dtml-var simple_html_footer>

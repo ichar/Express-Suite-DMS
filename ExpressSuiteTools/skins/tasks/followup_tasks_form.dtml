@@ -1,0 +1,72 @@
+<dtml-call "REQUEST.set('editMode', 1)">
+
+<dtml-if expr="not _.hasattr(this(), 'followup') and this().meta_type != 'Task Item'">
+  <dtml-call expr="portal_followup.getTasksFor(this())">
+</dtml-if>
+
+<script type="text/javascript">
+<!--
+var commonImages = ['taskitem_icon.gif','task_expired.gif','task_inprogress.gif','task_user_committed.gif','task_user_rejected.gif','task_user_accepted.gif'];
+//-->
+</script>
+
+<dtml-var simple_html_header>
+  
+<div class="Desktop">
+
+<h1><dtml-var task_icon.gif>&nbsp;<a href="&dtml-absolute_url;/view" target="workspace">&dtml-title_or_id;</a></h1>
+
+<dtml-var task_factory_form>
+
+<br><h3><dtml-var "msg('Follow-up tasks')">:</h3>
+
+<dtml-let context=this
+          qs="_.int(REQUEST.get('qs', 1))"
+          batch_size="_.int(REQUEST.get('batch_size', portal_membership.getInterfacePreferences('viewing_document_number')))"
+          user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          sort_on="'effective_date' # portal_membership.getCurrFolderViewParam('sort_by')"
+          sort_order="'reverse' # portal_membership.getCurrFolderViewParam('reverse')"
+>
+<dtml-call "REQUEST.set('sort_on', sort_on)">
+<dtml-call "REQUEST.set('sort_order', sort_order)">
+
+<dtml-call "REQUEST.set('batch_start', qs)">
+<dtml-call "REQUEST.set('batch_size', batch_size)">
+
+<dtml-let res="followup.getBoundTasks(REQUEST=REQUEST, count_only=1)"
+          results_count="res[0]"
+          qs_old="qs"
+          qs="results_count < qs_old and 1 or qs_old - qs_old%batch_size + 1"
+          spec_url_add="'/followup_tasks_form'"
+          ext_params="'qs=%s&batch_size=%s' % (qs, batch_size)"
+          indent="39"
+>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td>
+    <dtml-var table_pages_list>
+  </td>
+</tr>
+<tr>
+  <td>
+    <dtml-var viewTasksTreeRoot>
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+<table cellspacing="3" cellpadding="0" bgcolor="#E5E5E5" border="0">
+<tr>
+  <td><input type="image" src="&dtml-portal_url;/task_report.gif" name="task_reportwizard_form:method" alt="<dtml-var "msg('Report wizard')">"></td>
+  <td class="row_button"><a class="tabs" href="&dtml-absolute_url;/task_reportwizard_form"><dtml-var "msg('Report wizard')"></a></td>
+</tr>
+</table>
+
+</dtml-let>
+
+</div>
+
+<dtml-var simple_html_footer>

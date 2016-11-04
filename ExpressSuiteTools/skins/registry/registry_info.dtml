@@ -1,0 +1,34 @@
+<dtml-let registry_data="_.hasattr(this(), 'registry_data') and registry_data or this().registry_data"
+          user_storage_type="portal_properties.storage_type()"
+          IsArchive="user_storage_type=='archive' and 1 or 0"
+          mode="_.has_key('mode') and mode or _.has_key('with_date') and with_date and 4"
+          r_info="mode and getInfoForLink( mode=mode )"
+>
+
+<dtml-if r_info>
+  <span style="color:blue;cursor:default;">&dtml-r_info;</span>
+<dtml-elif registry_data>
+  <dtml-if "isAnyRegistryVisible()">
+    <a class="info" href="javascript:OpenRegistryWnd(0,<dtml-var "_.len(registry_data.keys())">)">
+      <dtml-in "registry_data.keys()" size="5" prefix="r"><dtml-var r_item><dtml-var "not r_end and ';' or ''"><dtml-if "r_end and r_index+1<_.len(registry_data.keys())">,...</dtml-if></dtml-in>
+    </a>
+  <dtml-else>
+    <span style="font-size:11px;font-weight:normal;color:blue;">
+    <dtml-in "registry_data.keys()" size="5" prefix="r">
+      <dtml-var r_item><dtml-var "not r_end and ';' or ''"> <dtml-if "r_end and r_index+1<_.len(registry_data.keys())">,...</dtml-if>
+    </dtml-in>
+    </span>
+  </dtml-if>
+<dtml-elif "this().getVersion().registry_data">
+  <dtml-if "isAnyRegistryVisible() and not IsArchive">
+    <a class="info" href="javascript:OpenRegistryWnd(1,<dtml-var "_.len(vrd.keys())">)">
+    <dtml-let vrd="this().getVersion().registry_data">
+      <dtml-in "vrd.keys()" size="5" prefix="r"><dtml-var r_item><dtml-var "not r_end and ';' or ''"> <dtml-if "r_end and r_index+1<_.len(vrd.keys())">,...</dtml-if></dtml-in>
+    </dtml-let>
+    </a>
+  </dtml-if>
+<dtml-else>
+  <span style="color:blue;"><dtml-var "msg('Is not registered')"></span>
+</dtml-if>
+
+</dtml-let>

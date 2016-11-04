@@ -1,0 +1,64 @@
+<dtml-var simple_html_header>
+
+<form action="action_template_task_definition" method="POST" name="taskDefinitionForm" onSubmit="return taskDefinitionFormScriptOnSubmit(this);">
+<table bgcolor="#cccccc" cellpadding="5" cellspacing="1" border="0">
+<tr>
+<td bgcolor="ffffff">
+  <table>
+  <tr class="row_title">
+    <td colspan="2" class="smallHeader"><dtml-var "msg('Adding included action template')"></td>
+  </tr>
+  <tr class="row_even">
+    <td><dtml-var "msg('Template title')">:</td>
+    <td><input type="text" name="name" size="40" value=""></td>
+  </tr>
+  <tr class="row_even">
+    <td><dtml-var "msg('Action type')">:</td>
+    <td>
+      <b>
+        <dtml-var "task_definition_get_type_title(this(), task_definition_type_title=this().taskDefinitionFactory.getTaskDefinitionTypeTitle(task_definition_type))">
+      </b>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong><dtml-var "msg('Template fields')">:</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <table bgcolor="#cccccc" cellpadding="5" cellspacing="1" border="0">
+      <tr>
+        <td bgcolor="ffffff">
+          <table>
+            <dtml-var "this().taskDefinitionFactory.getTaskDefinitionFormByTaskType( task_definition_type, mode='add' )">
+          </table>
+        </td>
+      </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <input type="submit" value="<dtml-var "msg('Add')">">
+      <input type="button" onClick="history.go(-1)" value="<dtml-var "msg('Cancel')">">
+    </td>
+  </tr>
+  </table>
+  <input type="hidden" name="template_id" value="<dtml-var template_id>">
+  <input type="hidden" name="parent_id" value="<dtml-var parent_id>">
+  <input type="hidden" name="task_definition_type" value="<dtml-var task_definition_type>">
+  <input type="hidden" name="action" value="add_task_definition">
+  </td>
+</tr>
+</table>
+</form>
+  <script>
+    function taskDefinitionFormScriptOnSubmit( form ){
+<dtml-var "this().taskDefinitionFactory.getTaskDefinitionFormScriptOnSubmit( task_definition_type )">
+    }
+    function taskDefinitionFormScriptOnLoad( form ){
+<dtml-var "this().taskDefinitionFactory.getTaskDefinitionFormScriptOnLoad( task_definition_type )">
+    }
+    taskDefinitionFormScriptOnLoad( this.taskDefinitionForm )
+  </script>
+
+<dtml-var simple_html_footer>

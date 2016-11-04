@@ -1,0 +1,71 @@
+<dtml-let responses_in_turn="_.has_key('responses_in_turn') and responses_in_turn or searchResponsesInTurn()"
+          user="portal_membership.getAuthenticatedMember().getUserName()"
+          IsInProgress="isEnabled and responses_in_turn"
+          can_send_notifications="canSendNotifications()"
+>
+  <dtml-if IsInProgress>
+
+<script type="text/javascript">
+<!--
+function validateForm( frm, allowEmpty ) {
+	var isChecked = false;
+	var n = -1;
+
+	while ( n >= -1 ) {
+		var obj = frm.getElementsByTagName("input")[++n];
+		if( typeof(obj) != "object" ) break;
+		if( obj.checked ) { 
+			isChecked = true;
+			break;
+		}
+	}
+
+	if( !isChecked && !allowEmpty ) {
+		alert( '<dtml-var "msg('Select notificated responses.')">' );
+		return false;
+	} else 
+	return true;
+}
+//-->
+</script>
+
+<table width="100%" border="0">
+<form name="objectItems" method="POST" action="&dtml-absolute_url;" onSubmit="return validateForm(this, false);">
+
+    <dtml-in responses_in_turn sort=date reverse mapping>
+      <dtml-if sequence-start>
+<tr>
+  <td>
+    <table cellpadding=2 width="100%">
+      </dtml-if>
+    <tr>
+      <td>
+      <dtml-with "getTask(task_id).searchResponses()[response_id]">
+        <dtml-let response_status=status>
+          <dtml-var task_progress_entry>
+        </dtml-let>
+      </dtml-with>
+      </td>
+    </tr>
+      <dtml-if sequence-end>
+    </table>
+  </td>
+</tr>
+      </dtml-if>
+    </dtml-in>
+
+    <dtml-if canBePublished>
+<tr>
+  <td>
+      <dtml-if can_send_notifications>
+    <input type="submit" value="<dtml-var "msg('Notify in turn')"> &gt;&gt;" name="task_notify_in_turn_form:method">
+      </dtml-if>
+  </td>
+</tr>
+    </dtml-if>
+
+</form>
+</table>
+
+  </dtml-if>
+</dtml-let>

@@ -1,0 +1,268 @@
+<script type="text/javascript">
+<!--
+    var commonImages = ['file.gif','del.gif','del_assoc.gif','assoc.gif','paste.gif'];
+    var image = new Image();
+    image.src = '/misc_/Photo/photo.gif';
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<dtml-let container="this()"
+          category_id="_['category'] or container.Category()"
+          c_object="portal_metadata.getCategoryById(category_id)"
+          doc_locked="_.has_key('isLocked') and isLocked() or 0"
+          can_modify_all="_.SecurityCheckPermission('Modify portal content', container)"
+          can_modify_attachment_only="_.SecurityCheckPermission('Add Documents, Images, and Files', container)"
+          can_modify="(can_modify_all or can_modify_attachment_only) and not doc_locked"
+          custom_incoming_fax="getCustomDefinitions('custom_incoming_fax')"
+          c_fax="custom_incoming_fax[0]"
+          a_fax="custom_incoming_fax[1]"
+          user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+>
+
+<script type="text/javascript">
+<!--
+function validateAttachments(frm) {
+    if( ! validateIdentifier(frm.id, '<dtml-var "msg('Object id is invalid')">', 1) )
+        return false;
+    return true;
+}
+
+function DisableForm(form) {
+    form.attach.disabled=true;
+}
+
+function SubmitForm(mode) {
+    var form = document.attachments;
+    if( mode=='attach' ) {
+        if( form.upload.value && validateAttachments(form) ) {
+            form.attachfile.value=1;
+            DisableForm(form);
+        } else return;
+    }
+    form.submit();
+}
+//-->
+</script>
+
+<form name="attachments" action="<dtml-var "relative_url(action='document_edit')">"  method="post" enctype="multipart/form-data" target="workfield">
+<input type="hidden" name="attachfile">
+<input type="hidden" name="pastefile">
+<input type="hidden" name="deletefile">
+<input type="hidden" name="associatefile">
+<input type="hidden" name="rm_associate">
+<input type="hidden" name="unlockfile">
+<input type="hidden" name="lockfile">
+
+  <dtml-in listAttachments>
+    <dtml-if sequence-start>
+<table width="100%" cellpadding="0" cellspacing="1" bgcolor="#000000" border="0">
+<tr>
+  <td>
+    <table cellpadding="2" cellspacing="0" width="100%" class="List" border="0">
+    <tr class="row_title">
+      <td colspan="8">&nbsp;<b><dtml-var "msg('Attached files')"></b></td>
+    </tr>
+    </dtml-if>
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td>
+    <dtml-if "implements('isAttachment')">
+        <a href="&dtml-relative_url;" target="_blank">
+    <dtml-else>
+        <a href="<dtml-var "relative_url(action=getId())"><dtml-var "_.hasattr(this(),'wasTIFF') and '?display=tiff' or ''">" target="_blank">
+    </dtml-if>
+    <dtml-if icon>
+        <img src="&dtml-portal_url;/<dtml-var "getIcon( icon )">" alt="<dtml-msg expr=meta_type>" title="<dtml-msg expr=meta_type>" border="0" />
+    <dtml-else>
+        &gt;&gt;&gt;
+    </dtml-if>
+        </a>
+      </td>
+
+      <td align="left" width="90%" style="width:100%;">
+    <dtml-if "implements('isAttachment')">
+        <a href="&dtml-relative_url;" target="_blank" class="navigate">
+    <dtml-else>
+        <a href="<dtml-var "relative_url(action=getId())"><dtml-var "_.hasattr(this(),'wasTIFF') and '?display=tiff' or ''">" target="_blank" class="navigate">
+    </dtml-if>
+        &dtml-title_or_id;
+        </a> (<dtml-var "'%.1f' % (get_size() / 1024.0)"> Kb)
+      </td>
+
+    <dtml-if "can_modify and c_object is not None">
+      <td nowrap>
+      <dtml-if "associated_with_attach==_['sequence-key']">
+        <input type="image" name="removeassociate"
+         onClick="javascript: document.attachments.rm_associate.value='&dtml-getId;'"
+         alt="<dtml-var "msg('Remove association')">" src="&dtml-portal_url;/del_assoc.gif" hspace=2 border=0>
+      <dtml-elif "not associated_with_attach and _.hasattr(this(), 'isTextual') and this().isTextual() and c_object.getEditMode()==''">
+        <input type="image" name="associate"
+         onclick="javascript:document.attachments.associatefile.value='&dtml-getId;'<dtml-var "text and '; document.attachments.action=\''+relative_url(action='document_confirm_association')+'\'; document.attachments.submit();'">"
+         alt="<dtml-var "msg('Set association')">" src="&dtml-portal_url;/assoc.gif" hspace=2 border=0>
+      <dtml-else>
+        &nbsp;
+      </dtml-if>
+      </td>
+
+      <td align="right" valign="middle" nowrap>
+      <dtml-if "meta_type=='Image Attachment'">
+        <dtml-comment>
+        <select name="&dtml-id;_size">
+        <option value=''><dtml-var "msg('normal')"></option>
+        <dtml-in displayIds>
+        <option value='&dtml-sequence-item;'><dtml-var "msg(_['sequence-item'], add=0)"></option>
+        </dtml-in>
+        </select>
+        </dtml-comment>
+
+        <dtml-let rec_action="portal_actions.getAction('recognize')">
+          <dtml-if rec_action>
+            <dtml-with rec_action mapping>
+        <a class="toolbar-button" href="&dtml-url;"><img src="&dtml-portal_url;/&dtml-icon;" alt="<dtml-msg expr=name>" width="16" height="16"></a>
+            </dtml-with>
+          </dtml-if>
+        </dtml-let>
+      </dtml-if>
+
+      <dtml-if "not REQUEST.get('HTTPS') and _.hasattr(this(),'externalEditLink_')">
+        <dtml-if doc_locked>
+          <dtml-let locks="wl_lockValues(killinvalids=1)" creator_id="_.len(locks) and getLockCreator(locks[0])">
+        <span class="resolution"><dtml-var "msg('Editing by')">&nbsp;<dtml-var "member_name(this(), member=creator_id)"></span>
+          </dtml-let>
+        <dtml-elif "can_modify_all or (portal_workflow.getStateFor(this())=='group' and _.SecurityCheckPermission('Create object versions', this()))">
+          <dtml-try>
+            <dtml-var "portal_actions.getActionIcon('external_edit')">
+          <dtml-except></dtml-try>
+        </dtml-if>
+      </dtml-if>
+      </td>
+
+      <td align="right" valign="middle" nowrap>
+      <dtml-if "not associated_with_attach and can_modify_all">
+        <input type="image" name="paste" onclick="javascript:{document.attachments.pastefile.value='&dtml-getId;';this.disabled=true;SubmitForm('paste');}" alt="<dtml-var "msg('Paste/Cut into text')">" src="&dtml-portal_url;/paste.gif" hspace=2 border=0>
+      </dtml-if>
+      </td>
+      <td align="right" valign="middle" nowrap>
+        <input type="image" name="delete" onclick="javascript:{document.attachments.deletefile.value='&dtml-getId;';this.disabled=true;SubmitForm('delete');}" alt="<dtml-var "msg('Remove')">" src="&dtml-portal_url;/del.gif" hspace=2 border=0>
+      </td>
+    </dtml-if>
+      <td align="right" valign="middle" nowrap>
+    <dtml-if "c_object.getLockAttachments()">
+      <dtml-if IsLockAllowed>
+        <dtml-if IsLocked>
+        <input type="image" name="unlock" onclick="javascript:{document.attachments.unlockfile.value='&dtml-getId;';this.disabled=true;SubmitForm('unlock');}" alt="<dtml-var "msg('Unlock attachment')">" src="&dtml-portal_url;/view_unlock.gif" hspace=2 border=0>
+        <dtml-else>
+        <input type="image" name="lock" onclick="javascript:{document.attachments.lockfile.value='&dtml-getId;';this.disabled=true;SubmitForm('lock');}" alt="<dtml-var "msg('Lock attachment')">" src="&dtml-portal_url;/view_lock.gif" hspace=2 border=0>
+        </dtml-if>
+      <dtml-elif IsManager>
+        <dtml-if IsLocked>
+        <img alt="<dtml-var "msg('Attachment is locked')">" src="&dtml-portal_url;/view_unlock.gif" hspace=2 border=0>
+        <dtml-else>
+        <img alt="<dtml-var "msg('Attachment is unlocked')">" src="&dtml-portal_url;/view_lock.gif" hspace=2 border=0>
+        </dtml-if>
+      </dtml-if>
+    </dtml-if>
+      </td>
+      <td align="right" valign="middle" nowrap style="padding-right:0px">&nbsp;</td>
+    </tr>
+    <dtml-if sequence-end>
+    </table>
+  </td>
+</tr>
+</table>
+    </dtml-if>
+
+  <dtml-else>
+<h1><dtml-var "msg('No files attached')"></h1>
+  </dtml-in>
+
+<table class="FormLayout" width="100%" cellpadding="0" cellspacing="0" border="0">
+<COLGROUP>
+<COL style="WIDTH:15%">
+<COL style="WIDTH:85%">
+
+  <dtml-if "can_modify and c_object is not None">
+<tr><td colspan="2"><br><h3><dtml-var "msg('Add an attachment')">:</h3></td></tr>
+<tr>
+  <th align="right"><dtml-var "msg('File')">:&nbsp;</th>
+  <td style="padding-left:3px;"><input style="width:90%;" type="file" name="upload" size="100"></td>
+</tr>
+<tr>
+  <th align="right"><dtml-var "msg('Id')">:&nbsp;</th>
+  <td style="padding-left:3px;"><input type="text" name="id" value="" size="35"> (<dtml-var "msg('optional')">)</td>
+</tr>
+
+    <dtml-unless "listAttachments() or container.text">
+      <dtml-if "c_object.getEditMode()==''">
+<tr>
+  <th align="right">&nbsp;</th>
+        <dtml-let attachmentSearchEnabled="portal_catalog.attachmentSearchEnabled()">
+  <td style="padding: 2px 0 3px 0;" valign="top">
+    <input type="checkbox" name="try_to_associate" value="1" checked>
+    <dtml-var "msg('Associate version with the file text')">. <br>
+    <dtml-var "msg('Supported formats are')">:
+          <dtml-in attachmentSearchEnabled prefix="att">
+            <dtml-if "att_item not in ['PDF']">
+   '<dtml-var "att_item">'
+    <dtml-var "not att_end and ',' or '.'">
+            </dtml-if>
+          </dtml-in>
+  </td>
+        </dtml-let>
+</tr>
+      </dtml-if>
+    </dtml-unless>
+
+    <dtml-if can_modify_all>
+<tr>
+  <th align="right">&nbsp;</th>
+  <td width="100%" style="padding: 2px 0 0 0;" valign="top">
+    <input type="checkbox" id="paste_checkbox" name="paste" value="1">
+    <label for="paste_checkbox"><dtml-msg "Paste into text"></label>
+  </td>
+</tr>
+    </dtml-if>
+<tr>
+  <td>&nbsp;</td>
+  <td width="100%" style="padding: 10px 0 0 3px;">
+    <input type="button" name="attach" value="<dtml-var "msg('Insert file')">" onclick="javascript:SubmitForm('attach');">
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if "category_id==c_fax">
+    <dtml-let value="container.getCategoryAttribute(a_fax)">
+      <dtml-if "value">
+<tr>
+  <td height="20px" colspan="2">
+    <hr style="border:thin dotted White;" noshade width="100%" size="1"><br>
+    <h3><dtml-var "msg('Incoming fax reporting')">:</h3>
+  </td>
+</tr>
+<tr><td colspan="2" style="padding-top:10px;"></td></tr>
+<tr valign="bottom"">
+  <th align="left" style="padding: 1px 3px 0 0;"><dtml-var "msg(a_fax, add=0)"></th>
+  <td class="ViewField" align="left" style="margin-left:-5px;">
+    <textarea readonly rows="20" cols="100" title="" style="width:75%;"><dtml-var "value"></textarea>
+  </td>
+</tr>
+      </dtml-if>
+    </dtml-let>
+  </dtml-if>
+
+  <dtml-if wl_isLocked>
+<tr valign="bottom"><td colspan="2"><br><dtml-var "msg('This document has been locked because it is editing by another user')">.</td></tr>
+  </dtml-if>
+
+<tr><td height="20px" colspan="2"><br><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+</table>
+</form>
+
+<dtml-var document_links_embedded>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

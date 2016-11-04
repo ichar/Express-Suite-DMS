@@ -1,0 +1,42 @@
+<dtml-let favorites_url="portal_membership.getPersonalFolderUrl(action='favorites')"
+          res="portal_catalog.getMyShortcuts(query_items=[], sort_limit=size)"
+          total_objects="res[0]"
+          my_favorites="res[1]"
+>
+  <dtml-in my_favorites size="size">
+    <dtml-let view_url="getURL()+'/inFrame?link=view'">
+      <dtml-if sequence-start>
+        <dtml-var "msg('Total')">: <dtml-var total_objects>
+<table width="100%" border="0" cellspacing="1" cellpadding="3">
+<tr class="row_title">
+  <td colspan="2"><strong><dtml-var "msg('Title')"></strong></td>
+</tr>
+      </dtml-if>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center" style="padding: 0 5px 0 5px">
+    <a class="navigate" target="workspace" href="&dtml-view_url;"><dtml-var content_icon></a>
+  </td>
+  <td width="99%" style="padding-left:4px">
+      <dtml-let source="getObject().getObject()"
+                description="source is not None and source.Description().strip() or ''">
+    <a href="&dtml-view_url;" target="workspace" title="&dtml-description;"><font class="top"><dtml-var Title size="120">&nbsp;</font></a>
+      </dtml-let>
+  </td>
+</tr>
+      <dtml-if sequence-end>
+        <dtml-if favorites_url>
+<tr>
+  <td colspan="2" align="left">
+    <a target="workspace" class="nav" href="<dtml-var favorites_url>/folder_contents"><dtml-var "msg('more')"> &gt;&gt; </a>
+  </td>
+</tr>
+        </dtml-if>
+      </dtml-if>
+    </dtml-let>
+  <dtml-else>
+    <dtml-var "msg('No favorites were found')">
+    <dtml-if sequence-end>
+</table>
+    </dtml-if>
+  </dtml-in>
+</dtml-let>

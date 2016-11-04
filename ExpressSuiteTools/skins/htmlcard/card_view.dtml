@@ -1,0 +1,86 @@
+<dtml-var card_html_header>
+
+<dtml-let category="portal_metadata.getCategoryById(Category())"
+          version="getVersion()"
+          wf_id="version.getVersionWorkflowId()"
+          status="version.getStatus()"
+          state="portal_workflow.getInfoFor(this(), 'state', None) #, wf_id=wf_id)"
+>
+<table width="100%" height="100%" cellspacing="0" cellpadding="0" bgcolor="#F2F2F2" border="0">
+<tr>
+  <td>
+  <dtml-if "REQUEST.get('pending', 0)">
+    <p class="DesktopStatusBar"><dtml-var "msg('Your confirmation required')"></p>
+  </dtml-if>
+ </td>
+</tr>
+
+<tr>
+  <td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="2"></td>
+</tr>
+
+<tr>
+  <td valign="top" colspan="2">
+    <table cellspacing="1" cellpadding="0" width="100%" cols="3" border="0">
+  <dtml-if Subject>
+    <tr>
+      <td class="smallHeader" align="right" nowrap>&nbsp;&nbsp;<dtml-var "msg('Type')">:</td>
+      <td style="padding-left:5px;" width="100%" class="small"><dtml-var expr="_.string.join(Subject, ', ')"></td>
+    </tr>
+  </dtml-if>
+  <dtml-if "category and wf_id">
+    <tr>
+      <td class="smallHeader" align="right" nowrap>&nbsp;&nbsp;<dtml-var "msg('Category')">:</td>
+      <td style="padding-left:5px;" class="small" nowrap><dtml-var "msg(category.Title(), add=None)"></td>
+      <td align="right" valign="top" rowspan="3" style="width:60%;"><dtml-var content_byline></td>
+    </tr>
+    <tr>
+      <td class="smallHeader" align="right" nowrap>&nbsp;&nbsp;<dtml-var "msg('Current state')">:</td>
+      <td style="padding-left:5px;" class="small" nowrap>
+    <dtml-if "not state or state != status">
+        <font color=red>&dtml-status; [<dtml-var "msg('Workflow should be checked!')">]</font>
+    <dtml-else>
+      <dtml-if "state in ['annuled']"><strong style="color:#EC0076"></dtml-if>
+      <dtml-var "msg(portal_workflow.getStateTitle(wf_id, state), add=None)">
+      <dtml-if "state in ['annuled']"></strong></dtml-if>
+    </dtml-if>
+      </td>
+    </tr>
+  <dtml-else>
+    <tr>
+      <td class="smallHeader" align="right" nowrap>&nbsp;&nbsp;<dtml-var "msg('Category')">:</td>
+      <td style="padding-left:5px;" class="small" nowrap><font color=red><dtml-var "msg(Category() or 'Is not definied!')"></font></td>
+      <td align="right" valign="top" rowspan="3" style="width:60%;"><dtml-var content_byline></td>
+    </tr>
+  </dtml-if>
+    </table>
+  </td>
+</tr>
+
+<tr>
+ <td height="100%" colspan="2">
+  <table cellpadding="0" cellspacing="5" width="100%" height="100%" border="1">
+   <tr>
+    <td valign="bottom" bgcolor="white">
+     <iframe name="workfield" src="<dtml-var "relative_url( action='FormattedBody' )">"
+	 scrolling="auto" width="100%" height="100%" frameborder="0"></iframe>
+    </td>
+   </tr>
+  </table>
+ </td>
+</tr>
+
+</table>
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.display = 'block';
+    };
+//-->
+</script>
+
+<dtml-var card_html_footer>

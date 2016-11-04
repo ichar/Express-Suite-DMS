@@ -1,0 +1,4 @@
+<dtml-call "REQUEST.set('BackgroundColor', '#E7E7E7')">
+<dtml-call "REQUEST.set('PageTitle', 'My Documents In Progress')">
+
+<dtml-var my_documents_in_progress>

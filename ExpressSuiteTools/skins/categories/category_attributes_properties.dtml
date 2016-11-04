@@ -1,0 +1,70 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<script type="text/javascript">
+<!--
+function selectType(id) {
+  document.getElementById(id).checked=true;
+}
+/*
+function callbackFunctionTemplate( formId, uid, title, version_id, uid_field, title_field ) {
+  document.forms[formId][uid_field].value = uid;
+  document.forms[formId][title_field].value = title;
+}
+*/
+//-->
+</script>
+
+<p><strong><a href="&dtml-absolute_url;/category_metadata_form">&lt;&lt; &dtml-Title;:&nbsp;<dtml-var "msg('Document category attributes')"></a></strong></p>
+
+<h3><dtml-var "msg('Attribute properties')"></h3>
+
+<dtml-let category="this()" attribute="category.getAttributeDefinition(attr)"
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+  <dtml-if "attribute is not None">
+    <dtml-with attribute>
+      <dtml-let local_attr="isInCategory(category)">
+
+<table width="100%" border="0">
+<form id="category_metadata_form" name="category_metadata_form" action="category_metadata" method="post" onSubmit="return validateForm(this,true);">
+<tr>
+  <td>
+<input type="hidden" name="fields:list" value="&dtml-getId;">
+
+<dtml-var "category_field_edit( this(),
+           id=getId(),
+           title=Title,
+           sortkey=getSortkey(),
+           width=getWidth(),
+           isMandatory=isMandatory() and 'checked' or '',
+           isReadOnly=isReadOnly() and 'checked' or '',
+           isEditable=isEditable() and 'checked' or '',
+           isHidden=isHidden() and 'checked' or '',
+           isDisabled=not local_attr and 'disabled' or '',
+           get_default=getComputedDefault(),
+           type=Type(),
+           value=getDefaultValue(translit=1),
+           options=getOptions(),
+           context=category,
+           mode=1 
+           )"
+>
+
+        <dtml-if IsAdmin>
+<input type="submit" name="saveField" value="<dtml-var "msg('Save changes')">" onClick="javascript:return validateIdentifier(category_metadata_form.fName, '<dtml-var "msg('Field is invalid')">')">
+        </dtml-if>
+
+<input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/category_metadata_form'" value="<dtml-var "msg('Cancel')">"/>
+  </td>
+</tr>
+</form>
+</table>
+
+      </dtml-let>
+    </dtml-with>
+  </dtml-if>
+</dtml-let>
+
+<dtml-var simple_html_footer>

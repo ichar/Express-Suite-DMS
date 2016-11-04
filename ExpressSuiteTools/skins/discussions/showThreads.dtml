@@ -1,0 +1,33 @@
+<!-- showThreads -->
+
+<dtml-unless sort><dtml-call expr="REQUEST.set('sort', 'date')"></dtml-unless>
+
+<dtml-if "REQUEST.has_key('show')==0">
+  <dtml-if "REQUEST.has_key('ShowTopics')">
+    <dtml-call expr="REQUEST.set('show', ShowTopics)">
+  <dtml-else>
+    <dtml-call expr="REQUEST.set('show', 'all')"> 
+  </dtml-if> 
+</dtml-if>
+
+<dtml-tree branches_expr="branches(REQUEST.get('show',''),REQUEST.get('discussions_filter',''),REQUEST.get('discussions_filter_ver',''))" 
+           mi_icon="/mi.gif"
+           pl_icon="/pl.gif"
+           sort="modification_date">
+  <small>
+  <a href="&dtml-absolute_url;"><dtml-var discussionitem_icon.gif></a>
+  <dtml-var "msg('From user')">:&nbsp;<dtml-var "member_name(this(), member=_['Creator'])">,&nbsp;
+
+  <dtml-if comment_type>
+    <dtml-if "_.len(parentsInThread())==1">
+      <b>¹ <dtml-var number></b>
+    </dtml-if>
+  </dtml-if>
+  <a href="&dtml-absolute_url;">&dtml-Description;</a>,&nbsp;
+
+  <dtml-var CreationDate>
+  <dtml-if doc_ver>
+    (<dtml-var "msg('for document version')">&nbsp;<dtml-var doc_ver html_quote>)
+  </dtml-if>
+  </small>
+</dtml-tree>

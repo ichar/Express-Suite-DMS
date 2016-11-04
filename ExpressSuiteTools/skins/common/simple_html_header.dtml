@@ -1,0 +1,87 @@
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+
+<dtml-if "_.has_key('view_only') and view_only or REQUEST.get('view_only', 0)">
+  <dtml-call "REQUEST.set('OpenInFrame', '')">
+  <dtml-call "REQUEST.set('BackgroundColor', '#E5E5E5')">
+<dtml-else>
+  <dtml-call "REQUEST.has_key('OpenInFrame') or REQUEST.set('OpenInFrame', 'workfield')">
+  <dtml-call "REQUEST.get('BackgroundColor','') or REQUEST.set('BackgroundColor', 
+              REQUEST.get('OpenInFrame','') not in [
+				'',
+				'menuTree',
+				'menuFollowup',
+				'menuActions',
+				'menuSearch',
+				'menuFavorites',
+				'home',
+				'registry',
+				] and '#E5E5E5' or '')">
+</dtml-if>
+<html>
+<head>
+
+<meta http-equiv="content-type" content="<dtml-var "_.has_key('RESPONSE') and RESPONSE.headers.get('content-type') or 'text/html'">">
+
+<title>
+<dtml-if expr="REQUEST.has_key('PageTitle')">
+  <dtml-var "msg(REQUEST.get('PageTitle'), add=0)" html_quote>,&nbsp;
+</dtml-if>
+<dtml-var "portal_properties.title()" html_quote>&nbsp;:&nbsp;
+[<dtml-var "portal_membership.getMemberName()" html_quote>]
+</title>
+
+<script type="text/javascript">
+<!--
+    var portalRootURL    = '<dtml-var portal_url>';
+    var instance_name    = '<dtml-var "portal_properties.instance_name()">';
+    var server_url       = portalRootURL.replace( '/'+instance_name,'' );
+    var objectBaseURL    = '<dtml-var absolute_url>';
+    var objectPath       = '<dtml-var physical_path>';
+    var openInFrame      = '<dtml-var "REQUEST.get('OpenInFrame')" null="">';
+    var updateSections   = '<dtml-var "' '.join( REQUEST.get('_UpdateSections',[]) )">';
+    var expand_workplace = <dtml-var "REQUEST.get('expand', 0)">;
+//-->
+</script>
+
+<script type="text/javascript" src="&dtml-portal_url;/scripts.js"></script>
+
+<script type="text/javascript">
+<!--
+    messageCatalog.select_user = "<dtml-var "msg('Select user')">";
+    messageCatalog.select_role = "<dtml-var "msg('Select role')">";
+    messageCatalog.enter_integer = "<dtml-var "msg('Enter integer number')">";
+    messageCatalog.enter_long = "<dtml-var "msg('Enter long integer number')">";
+    messageCatalog.enter_float = "<dtml-var "msg('Enter floating point number')">";
+    messageCatalog.invalid_date = "<dtml-var "msg('Invalid date')">";
+    messageCatalog.invalid_pattern ="<dtml-msg "Incorrect search pattern">";
+//-->
+</script>
+
+<script type="text/javascript" src="&dtml-portal_url;/callback.js"></script>
+
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+
+<dtml-var dynamic_stylesheet>
+
+</head>
+
+<dtml-let margin="REQUEST.get('margin',5)">
+<body leftmargin="&dtml-margin;" topmargin="&dtml-margin;" marginwidth="&dtml-margin;" marginheight="&dtml-margin;"
+    <dtml-if "REQUEST.get('BackgroundColor')">bgcolor="<dtml-var "REQUEST['BackgroundColor']">"</dtml-if>
+>
+</dtml-let>
+
+<script language="javascript">
+  //make the frame 'workfield' focused
+  if (this.name=='workfield') 
+    this.focus();
+</script>
+
+<dtml-if portal_status_message>
+  <dtml-call "REQUEST.set('x_committed', 1)">
+  <dtml-var portal_status_message_form>
+</dtml-if>
+
+<table width="100%" height="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+  <td height="99%" valign="top">

@@ -1,0 +1,26 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+<form method="POST" action="&dtml-absolute_url;">
+<dtml-if userids>
+<p class="DesktopStatusBar">
+<dtml-var "msg('Do you really want to delete these users?')">
+</p>
+<p>
+  <dtml-in userids>
+    <dtml-var "portal_membership.getMemberName(_['sequence-item'])"><br>
+  </dtml-in>
+</p>
+<dtml-else>
+  <dtml-return "RESPONSE.redirect( absolute_url() + '/manage_users_form?portal_status_message=Select+one+ore+more+users+first' )">
+</dtml-if>
+
+
+<input type="hidden" name="userids:tokens" value="<dtml-in userids>&dtml-sequence-item; </dtml-in>">
+<input style="width:80px" type="submit" name="manage_delUsers:method" value="<dtml-var "msg('Remove')">">
+<input style="width:80px" type="submit" name="manage_users_form:method" value="<dtml-var "msg('Cancel')">">
+
+</form>
+</div>
+
+<dtml-var simple_html_footer>

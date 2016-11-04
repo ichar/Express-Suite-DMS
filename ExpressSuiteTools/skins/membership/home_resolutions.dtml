@@ -1,0 +1,75 @@
+<style type="text/css">
+a.resolution:link, a.resolution:visited {
+    color: #500050;
+    text-decoration: none;
+    font-style: italic;
+    font-size: 13px;
+}
+a.resolution:hover {
+    color: #800080;
+    text-decoration: underline;
+    font-style: italic;
+    font-size: 13px;
+}
+p.resolution {
+    FONT-FAMILY: verdana;
+    font-size: 12px;
+    color: purple;
+    padding-bottom: 2px;
+}
+</style>
+
+<dtml-let date_style="'face=arial size=1 color=#808000'"
+          resolution_font="'face=times'"
+          resolution_style="'font-style:italic;font-size:13px;'"
+          color="portal_properties.getResolutionBackgroundColor()"
+>
+  <dtml-in member_resolutions sort="created" reverse>
+    <dtml-let resolution="getTaskResolution()"
+              title="Title(parent=1)"
+              description="Description(view=1)"
+              IsExpired="isExpired() and 1 or 0"
+              box_color="isFinalizedSuccessfully() and color['finalize'] or IsExpired and color['expired'] or color['default']"
+              base="getBase()"
+              view_url="base is not None and base.absolute_url()+'/inFrame?link=view'"
+              involved="resolution.has_key('involved_users') and resolution['involved_users']"
+              border_color="'#C02040'"
+    >
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td width="5" align="left" valign="top" background="&dtml-portal_url;/right_fr.gif">
+    <img src="&dtml-portal_url;/tr.gif" width="21">
+  </td>
+  <td valign="top" style="padding: 5px 5px 5px 5px; width:100%; font-family:verdana; border: 1pt solid purple;" bgcolor="&dtml-box_color;">
+    <table bgcolor="&dtml-box_color;" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td bgcolor="&dtml-border_color;" style="border: 1px white solid" width="6"><img src="&dtml-portal_url;/tr.gif" width="6"></td>
+      <td bgcolor="&dtml-border_color;" style="border: 1px white solid" width="3"><img src="&dtml-portal_url;/tr.gif" width="3"></td>
+      <td bgcolor="&dtml-border_color;" style="border: 1px white solid" width="1"><img src="&dtml-portal_url;/tr.gif" width="1"></td>
+      <td width="100%" style="padding: 5px 10px 5px 10px;">
+    <dtml-if view_url>
+        <span style="cursor:default;color:black;">
+        <font &dtml-date_style;><dtml-var "resolution['date'].strftime('%d.%m.%Y %H:%M')">&nbsp;
+        <strong><dtml-var "portal_membership.getGroupOrMemberName(resolution['author'])"></strong></font>
+        <dtml-if involved><br><strong>К исполнению:&nbsp;<dtml-var "', '.join([x['user_name'] for x in portal_membership.listSortedUserNames(involved, mode='LFM')])"></strong></dtml-if><br>
+        <a class="resolution" target="workspace" href="&dtml-view_url;">
+		<p class="resolution" style="margin: 3px 0 3px 0;">&dtml-title;</p>
+		</a>
+        <dtml-var description newline_to_br>
+        </span>
+    </dtml-if>
+      </td>
+      <td bgcolor="&dtml-border_color;" style="border: 1px white solid" width="1"><img src="&dtml-portal_url;/tr.gif" width="1"></td>
+      <td bgcolor="&dtml-border_color;" style="border: 1px white solid" width="3"><img src="&dtml-portal_url;/tr.gif" width="3"></td>
+      <td bgcolor="&dtml-border_color;" style="border: 1px white solid" width="6"><img src="&dtml-portal_url;/tr.gif" width="6"></td>
+    </tr>
+    </table>
+  </td>
+  <td width="5" align="left" valign="top" background="&dtml-portal_url;/right_fr.gif">
+    <img src="&dtml-portal_url;/tr.gif" width="21">
+  </td>
+</tr>
+</table><br />
+    </dtml-let>
+  </dtml-in>
+</dtml-let>

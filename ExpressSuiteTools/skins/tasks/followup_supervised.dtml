@@ -1,0 +1,42 @@
+<script type="text/javascript">
+<!-- 
+    var commonImages = ['task_finalized.gif','task_inprogress.gif','task_expired.gif','task_user_committed.gif','task_user_rejected.gif','task_user_accepted.gif'];
+//-->
+</script>
+
+<dtml-call "REQUEST.set('OpenInFrame', 'followup_supervised')">
+<dtml-call "REQUEST.set('isEnabled', 1)">
+
+<dtml-var simple_html_header>
+
+<dtml-let
+  reviewed="_.int(REQUEST.get('reviewed') or 0)"
+  modeName="reviewed==2 and 'showNew' or reviewed==1 and 'showReviewed' or 'showAll'"
+  msg_text="{
+    'showNew': 'tasks.tabs.new',
+    'showReviewed': 'Reviewed tasks',
+    'showAll': 'All tasks',
+  }"
+>
+
+<table width="100%">
+<tr><td><h1><dtml-var "msg('Supervised tasks')"> "<dtml-var "msg(msg_text[modeName])">"</h1></td></tr>
+<tr>
+  <td>
+    <dtml-var "task_list_embedded(this()
+                             , form_name='followup_supervised'
+                             , finder_method=portal_followup.listSupervisedTasks
+                             , header=msg('You are a supervisor of the following tasks:')
+                             , hide_empty=0
+                             , showTabs='supervised'
+                             , show_filter=1
+                             , params='&reviewed=%s' % reviewed
+                             )"
+    >
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

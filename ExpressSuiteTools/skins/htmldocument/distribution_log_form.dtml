@@ -1,0 +1,110 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function DisableForm( frm ) {
+    frm.OK.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.distributeLogForm;
+    if (validateForm(frm)) {
+        DisableForm(frm);
+        frm.submit();
+    }
+}
+
+function validateForm( frm ) {
+	return true;
+}
+//-->
+</script>
+
+<h2><dtml-var "msg('Distribution log')"></h2>
+
+<form name="distributeLogForm" method="POST" action="&dtml-absolute_url;/receiveMailCopyFromDistributionLog" target="workfield">
+
+<table cellspacing="3" cellpadding="3" border="0">
+  <dtml-in distribution_log mapping sort="date" reverse>
+    <dtml-if sequence-start> 
+<tr class="row_title">
+  <td>&nbsp;</td>
+  <td style="padding-left:5px"><dtml-var "msg('Send date')"></td>
+  <td style="padding-left:5px"><dtml-var "msg('Sender')"></td>
+  <td style="padding-left:5px"><dtml-var "msg('Recipients')"></td>
+  <td><dtml-var "msg('Result')"></td>
+</tr>
+    </dtml-if>
+    <dtml-if sequence-even>
+<tr class="row_even">
+    <dtml-else>
+<tr class="row_odd">
+    </dtml-if>
+  <td valign="top">
+    <dtml-let checked="_['sequence-start'] and 'checked' or ''">
+      <input type="radio" name="mail_to_receive" value="&dtml-log_id;" &dtml-checked;>
+    </dtml-let>
+  </td>
+  <td class="small" valign="top" style="padding-top:4px;">
+    <nobr><dtml-var "ZopeTime(_.int(date))" fmt="%Y-%m-%d"></nobr>
+    <nobr><dtml-var "ZopeTime(_.int(date))" fmt="%H:%M"></nobr>
+  </td>
+  <td class="small" valign="top" style="padding: 4px 5px 0 5px;">
+    <a OnClick="return OpenUserInfoWnd('&dtml-who_id;','')" style="cursor: hand; text-decoration: underline;">
+      <dtml-var "portal_membership.getMemberName(who_id)">
+    </a>
+  </td>
+  <td class="small" valign="top" style="padding: 4px 5px 2px 5px;">
+    <dtml-if "_.same_type(recipients, [], ())">
+      <dtml-in recipients>
+        <nobr>
+        <dtml-if "_['sequence-item'].find('@') > -1">
+          <dtml-let IsFax="_['sequence-item'].find('@faxmaker.com')"
+                    recipient="IsFax > 0 and _['sequence-item'][0:IsFax] or _['sequence-item']"
+          >
+            <dtml-var recipient>
+          </dtml-let>
+        <dtml-elif "_['sequence-item'][0:5]=='group'">
+          <dtml-var "msg('group:')+_['sequence-item'][6:]">
+        <dtml-else>
+          <a OnClick="return OpenUserInfoWnd('&dtml-sequence-item;','')" style="cursor: hand; text-decoration: underline;">
+            <dtml-var "portal_membership.getMemberName(_['sequence-item'])">
+          </a>
+        </dtml-if>
+        </nobr>
+        <dtml-unless sequence-end><br></dtml-unless>
+      </dtml-in>
+    <dtml-else>
+      &dtml-recipients;
+    </dtml-if>
+  </td>
+  <td valign="top" style="padding-top:6px;">
+    <dtml-if "not _.has_key('count') or count">
+      <dtml-if "_.has_key('attributes')">
+        <dtml-if "attributes.has_key('return_receipt_to')">
+          <nobr><dtml-var "msg('return_receipt_to')"></nobr><br>
+        </dtml-if>
+        <dtml-if "attributes.has_key('confirm_reading_to')">
+          <nobr><dtml-var "msg('confirm_reading_to')"></nobr><br>
+        </dtml-if>
+      </dtml-if>
+      <dtml-var "msg('sent')">
+    <dtml-else>
+      <font color="red"><dtml-var "msg('error')"></font>
+    </dtml-if>
+  </td>
+</tr> 
+<dtml-else>
+<tr>
+  <td><dtml-var "msg('Distribution log empty')"></td>
+</tr>
+</dtml-in>
+</table>
+
+<dtml-if distribution_log>
+<input name="OK" type="button" value="<dtml-var "msg('Get copy of letter')">" onclick="javascript:SubmitForm();">
+</dtml-if>
+
+</form>
+
+<dtml-var simple_html_footer>

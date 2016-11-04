@@ -1,0 +1,6 @@
+<dtml-revision $Revision: 1.0.0.0 $>
+
+<dtml-call "REQUEST.set('BackgroundColor', '#E7E7E7')">
+<dtml-call "REQUEST.set('PageTitle', 'CIO In Progress')">
+
+<dtml-var cio_in_progress>

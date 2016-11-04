@@ -1,0 +1,228 @@
+<script type="text/javascript">
+<!--
+var commonImages = ['doc_icon.gif','folder_icon.gif','fs_folder_icon.gif','fs_file.gif','registry_icon.gif'];
+//-->
+</script>
+
+<dtml-call "REQUEST.get('callback_form') and REQUEST.set('OpenInFrame', '')">
+
+<dtml-var simple_html_header>
+
+<dtml-let container="this()"
+          callback="REQUEST.get('callback_form')"
+          doc_locked="_.has_key('isLocked') and isLocked() or 0"
+          can_modify_all="_.SecurityCheckPermission('Modify portal content', container)"
+          can_modify_attachment_only="_.SecurityCheckPermission('Add Documents, Images, and Files', container)"
+          can_modify="callback or (can_modify_all or can_modify_attachment_only) and not doc_locked"
+          search_path="REQUEST.get('search_path')"
+          adv_search="1"
+>
+
+<script type="text/javascript">
+<!--
+var last_selected_uid = 0;
+var uid = 0;
+
+// Display the version selection box for the specified document
+function showVersionsBox(uid) {
+   if( !uid ) return;
+   var obj = document.getElementById(uid + '_versions_block');
+   if( typeof(obj) != 'object' || obj == null ) { 
+       last_selected_uid = 0;
+       return;
+   }
+   obj.style.display = 'block';
+   last_selected_uid = uid;
+}
+
+// Hide version selection box and reset 'ver_id' radio buttons
+function hideVersionsBox(form) {
+   if( !last_selected_uid ) return;
+   var obj = document.getElementById(last_selected_uid + '_versions_block');
+   if( typeof(obj) != 'object' ) { 
+       last_selected_uid = 0;
+       return;
+   }
+   obj.style.display = 'None';
+   version_id = form['ver_id'];
+   if (!version_id || typeof(version_id) != 'object') return;
+
+   for (var i = 0; i < version_id.length; i++) {
+       if( version_id[i].checked ) version_id[i].checked = false;
+   }
+}
+
+<dtml-if callback>
+function SaveAndReturn(destination_input, version_input) {
+    option = getCheckedRadioButton(destination_input);
+    uid = option.value;
+    title = option.title;
+
+    option = getCheckedRadioButton(version_input);
+    version_id = option ? option.value : '';
+  <dtml-if getPath>
+    redirectUrl="convert_uid_2_path?uid=" + uid + "&callback_function=&dtml-callback_function;";
+    location.href = redirectUrl;
+  <dtml-else>
+    opener.&dtml-callback_function;( '&dtml-callback_form;', uid, title || '<dtml-var "msg('Object selected')">', version_id, '<dtml-var "REQUEST.get('uid_field')">', '<dtml-var "REQUEST.get('title_field')">' );
+    window.close();
+  </dtml-if>
+}
+</dtml-if>
+
+//-->
+</script>
+
+<dtml-if "_.has_key('Category')">
+  <h3 style="color:purple"><dtml-var "msg('Current document')">: <dtml-var Title> (<dtml-var "portal_metadata.getCategoryTitle(Category())">)</h3>
+</dtml-if>
+
+<dtml-unless callback>
+  <dtml-var document_links_embedded>
+</dtml-unless>
+
+<dtml-if can_modify>
+  <dtml-let obj="(_.hasattr(container, 'getUid') and container)"
+            cb_objects="obj and portal_links.listClipboardObjects(obj) or []"
+            res="_.has_key('query_id') and portal_catalog.executeQuery(portal_catalog.getQuery(query_id, REQUEST=REQUEST), sort_on='created', sort_order='reverse', REQUEST=REQUEST) or (0,[])"
+            zc_brains="res[1]"
+            total_objects="res[0] or _.len(zc_brains)"
+            non_view_types="['Guarded Entry','Image Attachment','File Attachment']"
+  >
+<form id="link_selection_form" name="link_selection_form" action="document_link_add" method="post" target="workfield">
+    <dtml-in cb_objects sort="Title" skip_unauthorized>
+      <dtml-if sequence-start>
+<hr>
+<h3><dtml-var "msg('Create link to a document in the clipboard')">:</h3>
+      </dtml-if>
+      <dtml-let object="this()"
+                uid="object is not None and object.getUid()"
+                action="uid and object.meta_type not in non_view_types and 'view' or None"
+                view_url="absolute_url(action=action)"
+                check_first_item="1"
+      >
+        <dtml-if uid>
+          <dtml-if sequence-start>
+
+<script type="text/javascript">
+<!--
+if( !uid ) uid = '<dtml-var uid>';
+-->
+</script>
+
+          </dtml-if>
+          <dtml-var document_link_selection_item>
+        </dtml-if>
+      </dtml-let>
+    </dtml-in>
+
+    <dtml-in zc_brains size="batch_length" start="batch_start" skip_unauthorized>
+      <dtml-if sequence-start>
+
+<script type="text/javascript">
+<!--
+// preload page common images
+if( !window.openInFrame && window.commonImages ) preloadImages( window.commonImages );
+-->
+</script>
+
+<hr>
+<h1><dtml-var "msg('Search results')"></h1>
+<h4>
+<nobr><dtml-var "msg('Items found')">: <dtml-var expr="total_objects" thousands_commas>.</nobr>
+<dtml-if "REQUEST.has_key('form') and REQUEST['form'].has_key('SearchableText')">
+  <dtml-var "msg('Query')">: "<dtml-var "REQUEST['form']['SearchableText']">
+</dtml-if>
+</h4>
+      </dtml-if>
+
+      <dtml-let object=getObject
+                uid="object and object.getUid()"
+                action="uid and object.meta_type not in non_view_types and '/view' or ''"
+                view_url="getURL()+action"
+                check_first_item="not cb_objects"
+      >
+        <dtml-if uid>
+          <dtml-if sequence-start>
+
+<script type="text/javascript">
+<!--
+if( !uid ) uid = '<dtml-var uid>';
+-->
+</script>
+
+          </dtml-if>
+          <dtml-var document_link_selection_item>
+        </dtml-if>
+      </dtml-let>
+    <dtml-else>
+      <dtml-if "REQUEST.has_key('search')">
+        <p><dtml-var "msg('No items were found')"></p>
+      </dtml-if>
+    </dtml-in>
+
+    <dtml-if zc_brains>
+<table width="100%">
+<tr>
+  <td>
+      <dtml-in zc_brains size="batch_length" start="batch_start" previous>
+        <dtml-let prevURL="absolute_url(action='document_link_form', params={'uid_field':uid_field, 'title_field':title_field, 'callback_form':callback_form, 'callback_function':callback_function, 'query_id':query_id, 'batch_length':batch_length, 'batch_start':_['previous-sequence-start-number']})">
+    <p>
+    <a href="&dtml-prevURL;"> <dtml-var "msg('Previous page') + ' (%d)' % (_['previous-sequence-size'])"></a>
+    </p>
+        </dtml-let>
+      </dtml-in>
+  </td>
+  <td align="right">
+      <dtml-in zc_brains size="batch_length" start="batch_start" next>
+        <dtml-let nextURL="absolute_url(action='document_link_form', params={'uid_field':uid_field, 'title_field':title_field, 'callback_form':callback_form, 'callback_function':callback_function, 'query_id':query_id, 'batch_length':batch_length, 'batch_start':_['next-sequence-start-number']})"
+                  size="total_objects > _['next-sequence-size'] and batch_length or _['next-sequence-size']">
+    <p>
+    <a href="&dtml-nextURL;"> <dtml-var "msg('Next page') + ' (%s)' % size"></a>
+    </p>
+        </dtml-let>
+      </dtml-in>
+  </td>
+</tr>
+</table>
+    </dtml-if>
+
+    <dtml-if "zc_brains or cb_objects">
+<p>
+      <dtml-unless "search_path">
+        <dtml-var "msg('Relation type')">:
+<select name="relation" <dtml-var "callback and 'disabled' or ''"> />
+        <dtml-in "portal_links.listRelations()">
+<option value="&dtml-sequence-index;"><dtml-var "msg(_['sequence-item'], add=0)"></option>
+        </dtml-in>
+</select>
+      </dtml-unless>
+      <dtml-if callback>
+<input type="button" name="create" value="<dtml-var "msg('Select document')">" onClick="JavaScript: SaveAndReturn(this.form.destination_uid, this.form.ver_id)">
+      <dtml-else>
+<input type="submit" name="create" value="<dtml-var "msg('Create')">" />
+      </dtml-if>
+</p>
+    </dtml-if>
+
+<script type="text/javascript">
+<!--
+if( uid ) {
+    hideVersionsBox(document.forms['link_selection_form']);
+    showVersionsBox(uid);
+}
+//-->
+</script>
+
+</form>
+
+</dtml-let>
+
+<hr>
+
+<dtml-var links_search_form>
+
+</dtml-if>
+</dtml-let>
+
+<dtml-var simple_html_footer>

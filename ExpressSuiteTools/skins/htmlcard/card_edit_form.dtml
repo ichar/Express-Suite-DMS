@@ -1,0 +1,9 @@
+<dtml-let editMode="1" ppp="not isEditableBody() and '<BR>' or ''">
+
+<dtml-var card_html_header>
+
+<dtml-var document_html_editor>
+
+<dtml-var card_html_footer>
+
+</dtml-let>

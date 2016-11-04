@@ -1,0 +1,25 @@
+<dtml-let settings="portal_properties.task_finalize_settings()"
+          default_settings="_.has_key('finalize_settings') and finalize_settings or {'type': portal_membership.getInterfacePreferences('finalize_settings')}"
+          prefix="_.has_key('template_id') and template_id+'_' or ''"
+          display="_.has_key('display') and display or 'block'"
+>
+  <dtml-if default_settings>
+
+<tr class="row_even" id="&dtml-prefix;finalize_state" style="display:&dtml-display;">
+  <td style="vertical-align:middle;" nowrap>
+    <strong><dtml-msg "Finalize the task in case if will respond"></strong>
+  </td>
+  <td>
+    <dtml-in settings mapping>
+      <dtml-let checked="default_settings['type']==id"
+                pid="prefix+'finalize_type_'+id">
+    <input type="radio" name="&dtml-prefix;finalize_type" value="&dtml-id;" id="&dtml-pid;" <dtml-var checked fmt="checked"> />
+    <label for="&dtml-pid;"><dtml-var "msg(title, add=0)"></label><br>
+      </dtml-let>
+    </dtml-in>
+  </td>
+</tr>
+
+  </dtml-if>
+</dtml-let>
+

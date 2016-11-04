@@ -1,0 +1,62 @@
+<dtml-let res="portal_catalog.getMyDocuments(query_items=['implements','Description'])"
+          total_objects="res[0]"
+          my_docs="res[1]"
+          long_name="_.has_key('long_name') and 1 or 0"
+          R="msg('RegN')"
+>
+<dtml-var "msg('Total')">: <dtml-var total_objects>
+
+<table <dtml-if "long_name">width="100%"</dtml-if> cellspacing="1" cellpadding="3" border="0">
+  <dtml-in my_docs size="size">
+    <dtml-let view_url="getURL()+'/inFrame?link=view' # +'&locate=' % nd_uid"
+              category_id="'isDocument' in _['implements'] and category or None"
+              category="category_id and portal_metadata.getCategoryById(category_id) or None"
+              category_title="category is not None and msg(category.Title(), add=0) or ''"
+              IsReg="category is not None and registry_ids and 1 or 0"
+              registry_info="IsReg and ''.join(registry_ids) or '' # obj.getInfoForLink( mode=2 )"
+              obj_name="(Title or id).replace('\x22','').strip()"
+              obj_description="Description and Description.replace('\x22','').strip() or '' # obj_name"
+              obj_state="msg(state)"
+              obj_title="'%s (%s)%s' % (category_title, obj_state, (IsReg and '\n%s %s' % (R, registry_info) or ''))"
+    >
+      <dtml-if sequence-start>
+<tr class="row_title">
+  <td colspan="2"><strong><dtml-var "msg('Title')"></strong></td>
+  <td><strong><dtml-var "msg('Date')"></strong></td>
+</tr>
+      </dtml-if>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center" style="padding: 0 5px 0 5px">
+    <a class="navigate" target="workspace" href="&dtml-view_url;"><dtml-var content_icon></a>
+  </td>
+  <td <dtml-if "not long_name">nowrap</dtml-if> width="99%" style="padding-left:4px">
+    <a target="workspace" href="&dtml-view_url;" title="<dtml-var obj_title size="300" html_quote>">
+      <strong>
+      <dtml-if long_name>
+        <dtml-var obj_name>
+      <dtml-else>
+        <nobr><dtml-var obj_name size="30"></nobr>
+      </dtml-if>
+      </strong>
+      <dtml-if obj_description><br><font class=top>&dtml-obj_description;</font></dtml-if>&nbsp;
+    </a>
+  </td>
+  <td nowrap><dtml-var created fmt="%Y-%m-%d"></td>
+</tr>
+    </dtml-let>
+  <dtml-else>
+<tr>
+  <td colspan="3">
+    <dtml-var "msg('No personal documents')"> <br />
+  </td>
+</tr>
+  </dtml-in>
+  <dtml-if home_url>
+<tr>
+  <td colspan="3">
+    <a target="workspace" class="nav" href="&dtml-home_url;/folder_contents"><dtml-var "msg('personal folder')"> &gt;&gt;</a>
+  </td>
+</tr>
+  </dtml-if>
+</table>
+</dtml-let>

@@ -1,0 +1,41 @@
+<dtml-if "portal_membership.recover(REQUEST=REQUEST)">
+
+<html>
+<head>
+<meta http-equiv="content-type" content="<dtml-var "_.has_key('RESPONSE') and RESPONSE.headers.get('content-type') or 'text/html'">">
+<title><dtml-var "msg('Emergency Service Message')"></title>
+</head>
+<body>
+
+<dtml-let service_timeout="portal_properties.getProperty('service_timeout')">
+
+<table width="100%" height="100%" cellspacing="5" cellpadding="5" bgcolor="#ffffff" border="0">
+<tr>
+  <td align="center" valign="middle" style="padding: 0 100px 0 100px;">
+    <table align="center" cellspacing="5" bgcolor="#CC0000" border="0">
+    <tr>
+      <td class="smallHeader" align="center" style="padding: 40px 80px 40px 80px; border: 1pt solid white;">
+        <strong>
+        <font color="#ffffff">
+        <p><dtml-var "msg('DOCFLOW SYSTEM')"><p>
+        <p><dtml-var "msg('Sorry, emergency service is running now!')"><p>
+      <dtml-if service_timeout>
+        <p><dtml-var "msg('System will be returned during')">&nbsp;<dtml-var service_timeout>&nbsp;<dtml-var "msg('min')">.</p>
+      </dtml-if>
+        </font>
+        </strong>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+<dtml-comment><input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;"></dtml-comment>
+
+</dtml-let>
+
+</body>
+</html>
+
+</dtml-if>

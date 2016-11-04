@@ -1,0 +1,66 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-if error>
+  <div class="error">
+  <dtml-var error>
+  </div>
+</dtml-if>
+
+<table cellpadding="5" width="70%" align="center">
+<tr>
+  <td align="center">
+    <br />
+    <a href="http://www.naumen.ru" target="_blank"><img src="&dtml-portal_url;/about.gif" title="NauDoc"></a>
+  </td>
+</tr>
+
+<tr>
+  <td class="smallHeader" align="center">
+    <dtml-msg "Web Content Management System"><br />
+    <dtml-msg "Version"> &dtml-productVersion;
+  </td>
+</tr>
+
+<tr>
+  <td class="small" align="center">
+    <dtml-msgtext>
+      This program is a licensed software.
+
+      Terms and conditions of its copying, distribution and modification
+      are covered by the %(license)s license as published by %(company)s company.
+    <dtml-msgparam license>
+      NauDoc Enterprise Edition
+      <dtml-comment><a href="&dtml-portal_url;/manual/LICENSE"></a></dtml-comment>
+    <dtml-msgparam company>
+      <a href="http://www.naumen.ru" target="_blank">NAUMEN</a>
+    </dtml-msgtext>
+  </td>
+</tr>
+
+<tr>
+  <td class="small" align="center">
+    <br />
+    Copyright &copy; 2002-2004 <a href="http://www.naumen.ru" target="_blank">NAUMEN</a>
+  </td>
+</tr>
+
+<tr>
+  <td class="small" align="center">
+    <br />
+    <img src="&dtml-portal_url;/docflow-logo.gif">
+  </td>
+</tr>
+
+<tr>
+  <td class="small" align="center">
+    <br />
+    Customized by Œ¿Œ ´“Ã ª &copy; 2005-2009 <a href="http://www.tmk-group.com" target="_blank">Œ¿Œ ´“Ã ª</a>
+  </td>
+</tr>
+
+</table>
+</div>
+
+<dtml-var simple_html_footer>

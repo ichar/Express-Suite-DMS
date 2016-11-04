@@ -1,0 +1,175 @@
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+<!-- document_html_header -->
+<html>
+<head>
+
+<meta http-equiv="content-type" content="<dtml-var "REQUEST.RESPONSE.headers.get('content-type', 'text/html')">">
+
+<title>
+<dtml-if name="Title">&dtml.html_quote-Title;,&nbsp;</dtml-if>
+<dtml-var "portal_properties.title()" html_quote>&nbsp;:&nbsp;
+[<dtml-var "portal_membership.getAuthenticatedMember().getMemberName()" html_quote>]
+</title>
+
+<script type="text/javascript">
+<!--
+    var portalRootURL    = '<dtml-var "portal_url()">';
+    var instance_name    = '<dtml-var "portal_properties.instance_name()">';
+    var server_url       = portalRootURL.replace( '/'+instance_name,'' );
+    var objectBaseURL    = '<dtml-var "absolute_url()">';
+    var openInFrame      = 'workspace';
+    var updateSections   = '<dtml-var "' '.join( REQUEST.get('_UpdateSections',[]) )">';
+    var commonImages     = ['expand_over.gif'];
+    var expand_workplace = <dtml-var "REQUEST.get('expand', 0)">;
+//-->
+</script>
+
+<script type="text/javascript" src="&dtml-portal_url;/scripts.js"></script>
+
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+
+<script type="text/javascript" src="&dtml-portal_url;/callback.js"></script>
+
+<dtml-var dynamic_stylesheet>
+
+</head>
+
+<body bgcolor="#E5E5E5" leftmargin="5" topmargin="5" marginwidth="5" marginheight="5">
+
+<dtml-with "this()">
+
+<dtml-if "REQUEST.has_key('unlock')">
+  <dtml-if "wl_isLocked()">
+    <dtml-call expr="unlockDocument()">
+  </dtml-if>
+<dtml-elif "REQUEST.has_key('lock')">
+  <dtml-unless "wl_isLocked()">
+    <dtml-call expr="lockDocument()">
+  </dtml-unless>
+</dtml-if>
+
+<dtml-if portal_status_message>
+  <dtml-call "REQUEST.set('x_committed', 1)">
+  <dtml-var portal_status_message_form>
+</dtml-if>
+
+<table width="100%" height="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td align="left" valign="top" width="5"><img src="&dtml-portal_url;/tr.gif" width="5" height="5"></td>
+  <td align="left" valign="top" background="&dtml-portal_url;/right_ft.gif">
+    <dtml-var toolbox>
+  </td>
+  <td align="right" valign="top" width="5"><img src="&dtml-portal_url;/tr.gif" width="5" height="5"></td>
+</tr>
+
+<tr>
+  <td><img src="&dtml-portal_url;/tr.gif" width="5" height="5"></td>
+  <td>
+    <h1>
+    <a href="<dtml-var "this().absolute_url(no_version=1)">" title="<dtml-var "msg('Go to the principal version')">" ><dtml-var title_or_id size="200"></a>
+  / <dtml-var "msg('Current version is')">: <dtml-var "this().getVersion().getVersionNumber()">
+    <dtml-if "this().isCurrentVersionPrincipal()">(<dtml-var "msg('principal')">)</dtml-if>
+    <dtml-if wl_isLocked><img src="&dtml-portal_url;/lock.gif" width="12" height="15" alt="#" title="<dtml-var "msg('Locked by')"> <dtml-var "portal_membership.getMemberName( getLockCreator() )" html_quote>"></dtml-if>
+    </h1>
+  </td>
+  <td><img src="&dtml-portal_url;/tr.gif" width="5" height="5"></td>
+</tr>
+
+</dtml-with>
+
+<tr>
+  <td align="left" valign="top" width="5"><img src="&dtml-portal_url;/tr.gif" width="5" height="20"></td>
+  <td>
+
+<dtml-let tabs="[]" sel_tab="[]" link_string="_.has_key('link') and link or REQUEST.get('link', URL)">
+
+<dtml-if "_.string.find(link_string, 'view') >= 0">
+  <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#F2F2F2'})">
+</dtml-if>
+
+<dtml-call "tabs.append({'url' : relative_url( action='document_view', frame='document_frame' ), 'title' : msg('View')})">
+
+<dtml-let doc="this()"
+          version="doc.getVersion()"
+          has_ver_permission="_.SecurityCheckPermission('Modify portal content', version)"
+          editable="portal_workflow.getInfoFor(doc.aq_parent, 'state', '') == 'editable'"
+          system_object="this().IsSystemObject()"
+          locked="implements('isLockable') and isLocked()"
+          IsEditor="editable and not system_object and not locked"
+>
+
+<dtml-if "IsEditor and (has_ver_permission or this().getFirstEditableVersion())">
+  <dtml-if "_.string.find(link_string, 'document_edit_form') >= 0">
+    <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#F2F2F2'})">
+  </dtml-if>
+  <dtml-if has_ver_permission>
+    <dtml-comment><!-- version owner --></dtml-comment>
+    <dtml-call "tabs.append({'url' : relative_url( action='document_edit_form', frame='document_frame' ), 'title' : msg('Edit')})">
+  <dtml-elif "_.SecurityCheckPermission('Create object versions', this())">
+    <dtml-comment><!-- not version owner --></dtml-comment>
+    <dtml-call "tabs.append({'url' : this().getFirstEditableVersion().absolute_url( action='document_edit_form', frame='document_frame' ), 'title' : msg('Edit')})">
+  </dtml-if>
+</dtml-if>
+
+</dtml-let>
+
+<dtml-if "_.string.find(link_string, 'metadata') >= 0">
+  <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#FFFFFF'})">
+</dtml-if>
+
+<dtml-call "tabs.append({'url' : relative_url( action='metadata_edit_form', frame='document_frame' ), 'title' : msg('Metadata')})">
+
+<dtml-if "_.string.find(link_string, 'attaches') >= 0">
+  <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#FFFFFF'})">
+</dtml-if>
+
+<dtml-let attachCounts="_.len(listAttachments())">
+  <dtml-call "tabs.append({'url' : relative_url( action='document_attaches', frame='document_frame' ), 'title' : '<nobr>' + msg('Attachments') + ' ('+ ( msg('n/a'), _.str(attachCounts) )[attachCounts > 0] +')' + '</nobr>'})">
+</dtml-let>
+
+<dtml-if "_.string.find(link_string, 'follow_up') >= 0">
+  <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#FFFFFF'})">
+</dtml-if>
+
+<dtml-let in_stat="portal_followup.countIncomingTasks(REQUEST=REQUEST, path=physical_path())"
+          total_in="in_stat and in_stat['total'] or 0"
+          out_stat="portal_followup.countOutgoingTasks(REQUEST=REQUEST, path=physical_path())"
+          total_out="out_stat and out_stat['total'] or 0"
+          total="total_in+total_out"
+>
+  <dtml-call "tabs.append({'url' : relative_url( action='document_follow_up_form', frame='document_frame' ), 'title' : '<nobr>'+msg('Tasks')+' ('+ ( msg('n/a'), _.str(total) )[total>0] +')'+'</nobr>'})">
+</dtml-let>
+
+<dtml-if "_.string.find(link_string, 'comments') >= 0 or _.string.find(link_string, 'discussion') >= 0">
+  <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#FFFFFF'})">
+</dtml-if>
+
+<dtml-let commentsCount="_.hasattr(this(), 'talkback') and talkback.replyCount(this()) or 0">
+  <dtml-call "tabs.append({'url' : relative_url( action='document_comments', frame='document_frame' ), 'title' : '<nobr>' + msg('Comments') + ' ('+ ( msg('n/a'), _.str(commentsCount) )[commentsCount > 0] +')' + '</nobr>'})">
+</dtml-let>
+
+<dtml-if "_.SecurityCheckPermission('View', this())">
+  <dtml-if "_.string.find(link_string, 'versions')>=0">
+    <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#FFFFFF'})">
+  </dtml-if>
+
+  <dtml-let versions_count="_.len(listVersions())">
+    <dtml-call "tabs.append({'url' : relative_url( action='document_versions_form', frame='document_frame'), 'title' : '<nobr>' +msg('Versions') + ' ('+ ( msg('n/a'), _.str(versions_count) )[versions_count > 0] +')' + '</nobr>'})">
+  </dtml-let>
+</dtml-if>
+
+<dtml-if sel_tab>
+  <dtml-var "tabs_head(tabs=tabs, sel_tab=sel_tab[0], highlight_colors=('#DDDEEE',))">
+<dtml-else>
+  <dtml-var "tabs_head(tabs)">
+</dtml-if>
+
+</dtml-let>
+  </td>
+  <td align="right" valign="top" width="5"><img src="&dtml-portal_url;/tr.gif" width="5" height="20"></td>
+</tr>
+
+<tr>
+  <td align="left" valign="top" width="5" background="&dtml-portal_url;/right_fl.gif"><img src="&dtml-portal_url;/tr.gif" width="5" height="5"></td>
+  <td align="left" valign="top" height="100%">
+

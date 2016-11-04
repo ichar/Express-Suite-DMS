@@ -1,0 +1,98 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function DisableForm( frm ) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.versionCreateForm;
+    if (validateForm(frm)) {
+        DisableForm(frm);
+        frm.submit();
+    }
+}
+
+function validateForm( frm ) {
+    if ( validateIdentifier(frm.elements['id'], '<dtml-var "msg('Object id is invalid')">', true) == false)
+        return false;
+    if ( ! frm.title.value ) {
+         alert('<dtml-var "msg('Specify the version title')">');
+         frm.title.focus()
+         return false;
+    }
+    return true;
+}
+//-->
+</script>
+
+<dtml-if message>
+ <p>&dtml-message;</p><hr>
+</dtml-if>
+
+<dtml-let id="''"
+          title="_.has_key('ver_id') and getVersion(ver_id).title or ''"
+          description="_.has_key('ver_id') and getVersion(ver_id).description or ''" 
+          major="this().getMaxMajorAndMinorNumbers()[0]"
+          minor="this().getMaxMajorAndMinorNumbers()[1]"
+>
+
+<script type="text/javascript">
+<!--
+function showNewVersionId( weight ) {
+    if (weight==0){
+        document.all['new_id'].value = 'version_'+<dtml-var "major+1">+'.0';
+    } else {
+        document.all['new_id'].value = 'version_'+&dtml-major;+'.'+<dtml-var "minor+1">;
+    }
+}
+//-->
+</script>
+
+<h2><dtml-var "msg('Create new version on basis of the version')"> '&dtml-ver_id;'</h2>
+
+<form name="versionCreateForm" action="<dtml-var "this().absolute_url(no_version=1)">/createVersion" method="POST">
+<input type="hidden" name="ver_id" value="<dtml-var "_.has_key('ver_id') and ver_id or ''">">
+
+<table class="FormLayout">
+<tr valign="top">
+  <th align="right"> <dtml-var "msg('New version amount')"> </th>
+  <td colspan="3">
+    <select name="ver_weight" onChange="showNewVersionId(this.selectedIndex);">
+      <option value="major"><dtml-var "msg('Major version')"></option>
+      <option value="minor" selected><dtml-var "msg('Minor version')"></option>
+    </select>
+    <input type="text" id="new_id" disabled value="version_&dtml-major;.<dtml-var "minor+1">">
+  </td>
+</tr>
+<tr valign="top">
+  <th align="right"> <dtml-var "msg('Title')"> </th>
+  <td colspan="3">
+   <input type="text" name="title" value="&dtml-title;" size="65">
+  </td>
+</tr>
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Description')"></th>
+  <td>
+   <textarea name="description:text" rows="5" cols="65">&dtml-description;</textarea>
+  </td>
+</tr>
+<tr valign="top">
+  <td><br></td>
+  <td align=left>
+    <br>
+    <input name="OK" type="button" value="<dtml-var "msg('Apply')">" onclick="javascript:SubmitForm(this);">
+    <input name="cancel" type="button" value="<dtml-var "msg('Cancel')">" onclick="JavaScript:location.href='&dtml-absolute_url;';DisableForm();">
+  </td>
+</tr>
+</table>
+
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>
+
+

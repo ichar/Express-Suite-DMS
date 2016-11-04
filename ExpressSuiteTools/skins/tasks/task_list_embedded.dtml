@@ -1,0 +1,317 @@
+<dtml-let container=this
+          uname="portal_membership.getAuthenticatedMember().getUserName()"
+          default_sort_on="'created'"
+          selected_columns="REQUEST.get('selected_columns', REQUEST.get('cookie_selected_columns', '').split(','))"
+          chosen_columns="['Title','Creator','expires','DocumentCategory']"
+
+          sort_on="REQUEST.get('sort_on', REQUEST.get('cookie_sort_on', default_sort_on))"
+          sort_order="REQUEST.get('sort_order', REQUEST.get('cookie_sort_order', 'reverse'))"
+          batch_size="_.int(portal_membership.getInterfacePreferences('viewing_document_number'))"
+          qs="REQUEST.get('qs', 1)"
+>          
+<dtml-if sort_on>
+  <dtml-call "REQUEST.set('sort_on', sort_on)">
+  <dtml-call "REQUEST.set('sort_order', sort_order)">
+</dtml-if>
+
+<dtml-call "REQUEST.set('batch_start', qs)">
+<dtml-call "REQUEST.set('batch_size', batch_size)">
+
+<dtml-let url="REQUEST['URL']"
+          showTaskMode="REQUEST.get('showTaskMode')"
+          urlPostfix="showTaskMode and '&showTaskMode=%s' % _.str(showTaskMode) or ''"
+          filter_id="'%s' % (_.has_key('form_name') and form_name or 'default')"
+          now="_.DateTime()"
+          table_columns="[ { 'id' : 'Title',            'title'  : 'Title',             'type'   : 'string' },
+                           { 'id' : 'Creator',          'title'  : 'Assigned by',       'type'   : 'userlist' },
+                           { 'id' : 'Supervisors',      'title'  : 'Supervisor',        'type'   : 'userlist' },
+                           { 'id' : 'InvolvedUsers',    'title'  : 'Involved Users',    'type'   : 'userlist' },
+                           { 'id' : 'created',          'title'  : 'Creation date',     'type'   : 'date' },
+                           { 'id' : 'expires',          'title'  : 'Expires',           'type'   : 'date' },
+                           { 'id' : 'DocumentCategory', 'title'  : 'Document category', 'type'   : 'list',   'options' : [(c.getId(), c.Title()) for c in portal_metadata.getCategories()] },
+                           { 'id' : 'DocumentFolder',   'title'  : 'Document folder',   'type'   : 'string' } 
+                           ]"
+          default_filter="{'conditions':[], 'query':{}}"
+          x="getSession('%s_filter' % filter_id) or {}"
+          filter="x.has_key('query') and x or default_filter"
+          query="filter.get('query')"
+
+          res="finder_method(REQUEST=REQUEST, **query)"
+          results_count="res[0]"
+          results="res[1]"
+          s="_.len(res)==3 and _.int(qs) or 1"
+
+          hide_empty="_.has_key('hide_empty') and hide_empty"
+          member_id="_.has_key('member_id') and member_id or None"
+          disable_controls="1"
+          spec_url_add="_.has_key('spec_url_add') and spec_url_add or _.has_key('form_name') and '/'+form_name or ''"
+
+          params="urlPostfix+(_.has_key('params') and params or member_id and '&member_id='+member_id or '')"
+          IsDebug="0"
+>
+
+<dtml-call "REQUEST['RESPONSE'].setCookie('cookie_sort_on', sort_on, path='/' + absolute_url(1), expires='Wed, 19 Feb 2020 14:28:00 GMT')">
+<dtml-call "REQUEST['RESPONSE'].setCookie('cookie_sort_order', sort_order, path='/' + absolute_url(1), expires='Wed, 19 Feb 2020 14:28:00 GMT')">
+<dtml-call "REQUEST['RESPONSE'].setCookie('cookie_selected_columns', _.string.join(selected_columns, ','), path='/' + absolute_url(1), expires='Wed, 19 Feb 2020 14:28:00 GMT')">
+
+  <dtml-if "results or not (not results and hide_empty)">
+    <dtml-if header>
+<p>&dtml-header;</p>
+    </dtml-if>
+
+    <dtml-if results_count>
+<h3><dtml-var "msg('Total tasks found')">:&nbsp;<dtml-var results_count></h3>
+    </dtml-if>
+
+    <dtml-if "showTabs != '...'">
+<dtml-var table_pages_list>
+    </dtml-if>
+
+    <dtml-in results start=s size=batch_size>
+      <dtml-if sequence-start>
+<table cellspacing="1" cellpadding="3" border="0">
+<tr class="row_title">
+  <td width="16">&nbsp;</td>
+        <dtml-in table_columns mapping>
+          <dtml-if "not selected_columns[0] or id in selected_columns">
+  <td>
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr class="row_title">
+      <td class="small" valign="middle" align="left">
+        <a style="font-family:arial,verdana;
+            <dtml-if "id in chosen_columns">
+         font-size:90%;
+            <dtml-else>
+         font-size:85%;font-weight:normal;color:#000000;text-decoration:underline;
+            </dtml-if>"
+         class="navigate" href="&dtml-url;?sort_on=<dtml-var id><dtml-if "sort_on==id">&sort_order=<dtml-var "_.string.strip(sort_order and ' ' or 'reverse')"></dtml-if>&dtml-params;">
+            <dtml-var "msg(title, add=0)">
+        </a>
+      </td>
+      <td align="center">
+            <dtml-if "sort_on==id">&nbsp;
+              <dtml-if "sort_order == 'reverse'">
+        <dtml-var sort_up.gif>
+              <dtml-else>
+        <dtml-var sort_down.gif>
+              </dtml-if>
+            </dtml-if>
+      </td>
+    </tr> 
+    </table>
+  </td>
+          </dtml-if>
+          <dtml-if "id=='InvolvedUsers'">
+  <td class="small" width="1%"></td>
+          </dtml-if>
+        </dtml-in>
+</tr>
+      </dtml-if>
+
+      <dtml-with getObject>
+      <dtml-try>
+        <dtml-if "meta_type=='Task Item' and isViewer(uname=member_id, check_roles=1)">
+          <dtml-let expires=expires
+                    effective=effective
+                    task_state=getTaskState
+                    task_type=BrainsType
+                    task_color="task_type in ['directive','registration','inspection'] and '#CC0000' or task_type=='information' and '008000' or task_type=='request' and '0000CC' or task_type=='signature_request' and '800080'"
+                    reviewed="0 # ('review:%s' % uname) in _['StateKeys']"
+                    unread="uname not in _['SeenBy']"
+                    cell_style="not reviewed and unread and 'font-weight: bold;' or ''"
+                    base="_.hasattr(this(),'getBase') and getBase()"
+                    task_has_document="base and base.implements('isDocument')"
+                    document_title="task_has_document and base.Title().strip() or ''"
+                    category_id="task_has_document and base.Category()"
+                    category="category_id and portal_metadata.getCategoryById(category_id) or None"
+                    category_title="category is not None and msg(category.Title(), add=0) or ''"
+                    IsReg="category is not None and base.registry_ids() and 1 or 0"
+                    registry_info="IsReg and base.getInfoForLink( mode=2 ) or ''"
+          >
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center"><a href="&dtml-getURL;/view"><img src="&dtml-portal_url;/&dtml-get_icon;" alt="<dtml-var "msg(task_state, add=0)">"/></a></td>
+            <dtml-in table_columns mapping>
+              <dtml-if "not selected_columns[0] or id in selected_columns">
+                <dtml-if "this() and _['sequence-item'] != None">
+                  <dtml-if "id=='Supervisors'">
+  <td style="&dtml-cell_style;" nowrap>
+                    <dtml-in Supervisors sort>
+    <dtml-var "member_name(this(), member=_['sequence-item'])">
+    <dtml-unless sequence_end><br></dtml-unless>
+                    </dtml-in> 
+  </td>
+                  <dtml-elif "id=='Title'">
+  <td style="&dtml-cell_style;" width="30%">
+    <a class="nav" href="&dtml-getURL;/view">&dtml-Title;</a><br>
+    <img src="&dtml-portal_url;/spacer.gif" height="3"><br>
+    <nobr>
+    <img src="&dtml-portal_url;/&dtml-task_type;.gif" height="8" width="21">
+    <span style="font-weight:normal;color:#606060;"><dtml-var "msg(task_type, add=0)"></span>
+    </nobr>
+  </td>
+                  <dtml-elif "id=='Creator'">
+  <td style="&dtml-cell_style;">
+    <dtml-var "member_name(this(), member=_['Creator'], brief=1)">
+  </td>
+                  <dtml-elif "id=='DocumentCategory'">
+  <td style="&dtml-cell_style;" nowrap>
+                    <dtml-try>
+                      <dtml-let category="DocumentCategory()">
+                        <dtml-if category>
+    <dtml-var "msg(portal_metadata.getCategoryById(category).Title(), add=0)">
+    <dtml-comment><dtml-var "msg(category, add=0)"></dtml-comment>
+                        <dtml-else>
+    <dtml-var "msg('n/a')">
+                        </dtml-if>
+                      </dtml-let>
+                    <dtml-except>
+    <span style="color:red"><dtml-var "msg('error')"></span>
+                    </dtml-try>
+  </td>
+                  <dtml-elif "id=='DocumentFolder'">
+  <td style="&dtml-cell_style;">
+                    <dtml-let parent="base is not None and base.aq_parent"
+                              folder="parent is not None and parent is 'VDocument' and parent.Title() or this().DocumentFolder()">
+                      <dtml-if folder>
+    <dtml-var "msg(folder, add=0)">
+                      <dtml-else>
+    <dtml-var "msg('Portal root')">
+                      </dtml-if>
+                    </dtml-let>
+  </td>
+                  <dtml-elif "id=='InvolvedUsers'">
+  <td style="&dtml-cell_style;" nowrap>
+                    <dtml-in InvolvedUsers sort="id" size="10">
+    <dtml-var "member_name(this(), member=_['sequence-item'])">
+    <dtml-unless sequence_end><br></dtml-unless>
+                    </dtml-in> 
+  </td>
+  <td style="padding-top:7px;&dtml-cell_style;" align="center" valign="middle">
+    <table align="left" cellspacing="0" cellpadding="0" border="0" >
+                    <dtml-in InvolvedUsers sort="id" size="10">
+    <tr valign="top"><td width="1px">&nbsp;</td>
+                      <dtml-try>
+                        <dtml-in "searchResponses(member=_['sequence-item'])" sort="date" mapping>
+      <td style="padding-right:2px;">
+                          <dtml-let rti="getResponseTypeById(status)" icon="rti is not None and rti.get('icon')">
+                            <dtml-if "icon and _[icon]">
+        <img src="&dtml-icon;" alt="<dtml-var "msg('Got response')">: <dtml-var "msg(rti.get('title'), add=0)">"/>
+                            </dtml-if>
+                          </dtml-let>
+      </td>
+                        </dtml-in> 
+                      <dtml-except>
+      <td style="padding-right:2px;">
+        <img src="task_user_rejected.gif" alt="error">
+      </td>
+                      </dtml-try>
+      <td style="padding-left:1px;"></td>
+    </tr>
+                    </dtml-in> 
+    </table>
+  </td>
+                  <dtml-elif "id=='created'">
+  <td style="&dtml-cell_style;" nowrap>
+    <dtml-var "rDate(this(), time=created)">
+  </td>
+                  <dtml-elif "id=='expires'">
+  <td style="&dtml-cell_style;" nowrap>
+        <dtml-var "rDate(this(), time=expires).strip()">
+                    <dtml-try>
+                      <dtml-let before_expires="expires-now"
+                                after_expires="expires-effective"
+                                time_remaining="_.int(before_expires * 86400)"
+                                perc_remaining="_.abs(after_expires) > _.abs(before_expires) and _.int(before_expires / after_expires * 100)"
+                      >
+                        <dtml-if "time_remaining > 0">,
+    <br>
+    <dtml-var "dateperiod(time_remaining, short=1)">
+    (<dtml-var perc_remaining>%) <dtml-var "msg('time_left')">
+                        </dtml-if>
+                      </dtml-let>
+                    <dtml-except></dtml-try>
+  </td> 
+                  </dtml-if>
+                </dtml-if>
+              </dtml-if>
+            </dtml-in>
+</tr>
+            <dtml-if task_has_document>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td>&nbsp;</td>
+  <td align="left" colspan="10">
+    <em style="color:purple;font-weight:normal;font-size:110%;">&dtml-document_title;</em>
+    <dtml-if IsReg><br><span style="color:blue;font-weight:normal;">&dtml-registry_info;</span></dtml-if>
+  </td>
+</tr>
+            </dtml-if>
+          </dtml-let>
+        <dtml-else>
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="10" nowrap>
+    <span style="color:red"><dtml-var "msg('error')">:&nbsp;ID:<dtml-var "getId()">&nbsp;URL:<dtml-var "relative_url()">&nbsp;<dtml-var "meta_type">&nbsp;<dtml-var "isViewer()"></span>
+  </td>
+</tr>
+        </dtml-if>
+      <dtml-except>
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="10" nowrap>
+    <span style="color:red"><dtml-var "msg('unauthorized')">:&nbsp;UID:<dtml-var getPath></span>
+  </td>
+</tr>
+      </dtml-try>
+      </dtml-with>
+
+      <dtml-if sequence-end>
+</table>
+      </dtml-if>
+    <dtml-else>
+<br>
+<p align="center"><i><dtml-var "msg('No matching tasks found')"></i></p>
+<br>
+    </dtml-in>
+  </dtml-if>
+
+  <dtml-if show_filter>
+<br>
+<dtml-var catalog_filter_form>
+
+<form method="POST">
+<table width="100%" border="0">
+<tr>
+  <td>
+    <dtml-var "msg('Task properties to display')">:
+  </td>
+</tr>
+<tr>
+  <td>
+    <select name="selected_columns:list" size="6" multiple>
+    <dtml-in table_columns mapping>
+      <option value="&dtml-id;"
+        <dtml-var "(not selected_columns[0] or id in selected_columns) and 'selected' or ''">
+      /><dtml-var "msg(title, add=None)"></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="submit" name="update_filter" value="<dtml-var "msg('Apply')">">
+  </td>
+</tr>
+</table>
+
+    <dtml-let modeName="showTaskMode or 'showCurrent'">
+<input type="hidden" name="showTaskMode" value="<dtml-var modeName>">
+    </dtml-let>
+    <dtml-if member_id>
+<input type="hidden" name="member_id" value="<dtml-var member_id>">
+    </dtml-if>
+</form>
+  </dtml-if>
+
+</dtml-let>
+
+</dtml-let>

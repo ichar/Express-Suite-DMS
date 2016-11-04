@@ -1,0 +1,29 @@
+<dtml-revision $Revision: 1.9 $>
+
+<dtml-var simple_html_header>
+
+<table width="100%" height="100%" bgcolor="#FFFFFF" cellspacing="5" cellpadding="0">
+<tr>
+<td valign="top">
+
+<h3><dtml-msg "Thank you for choosing Express Suite DMS!"></h3>
+
+<p>
+<dtml-msgtext>
+The first thing you should do is to visit <a href="&dtml-portal_url;/reconfig_form" target="_blank">the portal configuration form</a>.
+<br />
+Then open <a href="&dtml-portal_url;/manage_users_form" target="_blank">the users management interface</a> and define portal users.
+</dtml-msgtext>
+</p>
+
+<p>
+<dtml-msgtext>
+Finally you may open <a href="&dtml-portal_url;/" target="_top">the portal main page</a>.
+</dtml-msgtext>
+</p>
+
+</td>
+</tr>
+</table>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,53 @@
+<dtml-let user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          simple_object_types="getCustomDefinitions('simple_object_types')"
+>  
+<dtml-jungle expr="this()" sort_order="['Title','id']" dynamic_item>
+<table cellpadding="0" cellspacing="0" border="0">
+<tr>
+  <td valign="top" nowrap>
+  <dtml-if "meta_type == 'Site Container'">
+    <a class="tree" href="&dtml-tree-item-url;/folder_contents" target="workspace">
+      <img src="&dtml-portal_url;/site_icon.gif" width="16" height="16">&nbsp;
+    </a>
+  </td>
+  <td>
+    <a class="tree" href="&dtml-tree-item-url;/folder_contents" target="workspace">
+  <dtml-elif "meta_type in simple_object_types">
+    <dtml-if "IsManager">
+    <a class="tree" href="&dtml-tree-item-url;/manage_access_form" target="workspace">
+    <dtml-else>
+    <a class="tree" href="&dtml-tree-item-url;/folder_contents" target="workspace">
+    </dtml-if>
+    <dtml-if tree-item-department>
+      <img src="&dtml-portal_url;/department_icon.gif" width="16" height="16">
+    <dtml-elif tree-item-expanded>
+      <img src="&dtml-portal_url;/folder_opened.gif" width="16" height="16">
+    <dtml-else>
+      <img src="&dtml-portal_url;/folder_closed.gif" width="16" height="16">
+    </dtml-if>
+    </a>
+  </td>
+  <dtml-elif "meta_type in ['FS Folder']">
+    <dtml-if "IsManager">
+    <a class="tree" href="&dtml-tree-item-url;/manage_access_form" target="workspace">
+    <dtml-else>
+    <a class="tree" href="&dtml-tree-item-url;/folder_contents" target="workspace">
+    </dtml-if>
+    <dtml-if tree-item-expanded>
+      <img src="&dtml-portal_url;/fs_folder_opened.gif" width="16" height="16">
+    <dtml-else>
+      <img src="&dtml-portal_url;/<dtml-var getIcon>" width="16" height="16">
+    </dtml-if>
+    </a>
+  </td>
+  </dtml-if>
+  <td style="padding-left:4px;">
+    <a class="tree" href="&dtml-tree-item-url;/folder_contents" target="workspace" title="<dtml-var "Description.strip()" html_quote>">
+      <dtml-var "Title or id" html_quote>
+    </a>
+  </td>
+</tr>
+</table>
+</dtml-jungle>
+</dtml-let>

@@ -1,0 +1,47 @@
+<dtml-comment>
+'date' - default date
+'date_only' - flag that prevents the time elements to be displayed in a form
+'prefix' - prefix that used in ids and names of form elements
+'disableFunc' - string representing function that receives a JS Date object and should return true if that date has to be disabled in the calendar
+</dtml-comment>
+
+<link rel="stylesheet" type="text/css" media="all" href="&dtml-portal_url;/calendar-win2k-cold-1.css" title="win2k-cold-1" />
+
+<script type="text/javascript" src="&dtml-portal_url;/calendar.js"></script>
+<script type="text/javascript" src="&dtml-portal_url;/calendar-<dtml-var "msg.get_selected_language()">.js"></script>
+<script type="text/javascript" src="&dtml-portal_url;/calendar-setup.js"></script>
+
+<dtml-let
+    is_string_date="_.same_type(date, '') and 1 or 0"
+    is_empty="is_string_date and date[0:2] == '__' and 1 or 0"
+    date="date and (not is_empty and is_string_date and ZopeTime(date) or date) or ''"
+    date_only="_.has_key('date_only') and date_only or None"
+    format="date_only and '%d.%m.%Y' or '%d.%m.%Y %H:%M'"
+    date2="date and not is_empty and _.DateTime(_.str(date)).strftime(format) or date"
+    input_size="date_only and '12' or '20'"
+    storeTime="date_only and 'false' or 'true'"
+    disabled="_.has_key('disabled') and disabled and 1 or 0"
+>
+
+<input type="text" name="&dtml-prefix;:date_" id="&dtml-prefix;" value="&dtml-date2;" size="&dtml-input_size;" 
+<dtml-var "_.has_key('str_data') and str_data or ''"> 
+<dtml-if "_.has_key('field_title')">title="<dtml-var field_title>"</dtml-if> 
+<dtml-if disabled>disabled</dtml-if> 
+style="text-align:center;" onchange="javascript:check_empty_date(this.form, '&dtml-prefix;');"
+/>&nbsp;<input type="button" id="&dtml-prefix;_button" value="..." <dtml-if "disabled or is_empty">disabled</dtml-if> />
+
+<script type="text/javascript">
+<!--
+    Calendar.setup({
+        inputField     :    "&dtml-prefix;",      // id of the input field
+        button         :    "&dtml-prefix;_button",   // trigger for the calendar (button ID)
+        singleClick    :    true,            // double-click mode
+        ifFormat       :    "dd.mm.y",   // date format that will be stored in the input field
+        daFormat       :    "dd.mm.y",   // the date format that will be used to display the date in displayArea
+        storeTime      :    &dtml-storeTime;<dtml-if disableFunc>,</dtml-if>        // parse from input field time, and store it back (space delimiter)
+<dtml-if disableFunc>disableFunc : &dtml-disableFunc;</dtml-if>
+    });
+//-->
+</script>
+
+</dtml-let>

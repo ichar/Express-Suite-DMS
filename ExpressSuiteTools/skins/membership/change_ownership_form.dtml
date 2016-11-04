@@ -1,0 +1,58 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-let user="portal_membership.getAuthenticatedMember()"
+          uname="user.getUserName()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          creator="this().Creator()"
+>
+<dtml-if "not IsManager and uname != creator">
+  <h2 style="color:red"><dtml-var "msg('You have not rights to change ownership')">!</h2>
+<dtml-else>
+
+<h2><dtml-var "msg('Document ownership')"></h2>
+<form action="change_ownership" method="post" target="workspace" onSubmit="return validateUserForm(this);">
+
+<table class="FormLayout">
+<tr valign="top">
+  <th align="right"> <dtml-var "msg('URL')"> </th>
+  <td colspan="2" style="padding-top:4px;"> <dtml-var Identifier> </td>
+</tr>
+<tr valign="top">
+  <th align="right"> <dtml-var "msg('Owner')"> </th>
+  <td>
+    <select name="userid" size="30">
+    <dtml-let userlist="portal_membership.listSortedUserNames(portal_membership.getMemberIds())">
+      <dtml-in userlist mapping>
+        <option value="<dtml-var user_id>" <dtml-if "user_id==creator">selected</dtml-if>> <dtml-var user_name> </option>
+      </dtml-in>
+    </dtml-let>
+    </select>
+  </td>
+</tr>
+<tr valign="top">
+  <th align="right">&nbsp;</th>
+  <td style="padding-top:5px">
+    <dtml-var "msg('Fast search')">: <input type="text" value="" onKeyUp="SearchStrInSelect(value, userid);" size="20">
+  </td>
+</tr>
+<tr valign="top">
+  <td><br></td>
+  <td align=left>
+    <br> <input type="submit" name="change_and_edit" value=" <dtml-var "msg('Apply')"> ">
+  </td>
+</tr>
+</table>
+
+</form>
+
+</dtml-if>
+</dtml-let>
+
+</div>
+
+</div>
+
+<dtml-var simple_html_footer>

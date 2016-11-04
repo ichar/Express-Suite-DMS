@@ -1,0 +1,474 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title><dtml-var "msg(REQUEST.get('PageTitle','CIO Disabled'))" html_quote></title>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+
+<style type="text/css">
+tr.row_expired {
+    background-color: #FFA8A8;
+}
+td.small {
+    font-family: verdana;
+    font-size: 13px;
+    font-weight: bold;
+}
+td.smallHeader {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+    border: 1px solid black;
+}
+td.smallFooter {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid black;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+.header {
+    font-family: tahoma;
+    font-size: 20px;
+    /*font-weight: bold;*/
+    cursor: default;
+    color: black;
+}
+.comment {
+    font-family: verdana;
+    font-size: 10px;
+    cursor: default;
+    color: black;
+    padding-left: 1px;
+}
+.information {
+    font-family: verdana;
+    font-size: 13px;
+    cursor: default;
+    color: black;
+}
+td.queryHeader {
+    font-size: x-small;
+    font-weight: bold;
+    padding: 0 5px 0 35px;
+}
+td.inline {
+    padding: 0 5px 0 5px;
+}
+td.workarea {
+    font-size: 10px;
+    padding: 5px 5px 5px 5px;
+}
+td.expiration {
+    background-color: #FFCECE;
+    font-size: 11px;
+    padding: 5px 5px 5px 5px;
+    color: #CC0000;
+}
+td.description {
+    font-size: 10px;
+    padding: 5px 7px 5px 7px;
+}
+td.statistics {
+    font-family: verdana;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+td.h_cell {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid gray;
+    text-align: center;
+    padding: 2px 10px 2px 10px;
+    background-color: #CBCBE8;
+}
+td.p_info {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 1px 0 0 0;
+}
+td.p_view {
+    font-family: arial;
+    font-size: 12px;
+    border: 1px solid gray;
+}
+td.p_cell {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: normal;
+    border: 1px solid gray;
+    text-align: center;
+    padding: 2px 10px 2px 10px;
+}
+span.p_member {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+}
+td.H3 {
+    font-weight: bold;
+    font-size: 13px;
+    color: #3366CC;
+}
+</style>
+</head>
+
+<script type="text/javascript">
+<!-- 
+function change_option( obj, option ) {
+    if (typeof(obj) != 'object')
+        return;
+    var value = (option == 'period' || option == 'ctype' ? obj.value : (obj.checked ? '1' : '0'));
+    document.all[option].value = value;
+}
+
+function setCookie( name, value ) {
+    var expires = new Date(2030,1,20);
+    var path = '/';
+    var newCookie = name + '=' + escape(value) + ';expires=' + expires.toGMTString() + ';path=' + path;
+    document.cookie = newCookie;
+}
+
+function save_report_settings() {
+    save_option('period', document.all.period, 'value', 0);
+    save_option('not_finalized_only', document.all.not_finalized_only, 'value', 0);
+    save_option('not_answered_only', document.all.not_answered_only, 'value', 0);
+    save_option('ctype', document.all.ctype, 'value', 1);
+    alert('<dtml-var "msg('Has been saved')">');
+}
+
+function save_option( name, obj, type, check ) {
+    if( typeof(obj) != 'object' ) return;
+    if( type == 'select' ) {
+      var value = '';
+      var n = 0;
+      for (var i = 0; i < obj.length; i++) {
+        if( obj.options[i].selected ) { 
+          if( i==0 ) break;
+          if( value ) value += ' ';
+          value += obj.options[i].value;
+          n += 1;
+        }
+      }
+	} else if( type == 'multi-select' ) {
+      var value = '';
+      for (var i = 0; i < obj.length; i++) {
+        if( value ) value += ' ';
+        value += obj.options[i].value;
+      }
+	} else value = obj.value;
+    //if( ( check && !value ) ) return;
+    setCookie('cio_in_progress_'+name, value);
+}
+
+function DoImgClick( id ) {
+    var query = document.all[id];
+    var s=(query.style.display == 'none' ? 'block' : 'none');
+    query.style.display = s;
+}
+
+function addOptionTo( list, text, value ) {
+    var len = list.length;
+    var opt = list.document.createElement("OPTION");
+    opt = list.options[len] = opt;
+    opt.text = text;
+    opt.value = value;
+    return opt;
+}
+
+function addSelectionToList( src_list, dest_list, type_of_list ) {
+    var len = dest_list.length;
+    var prefix = ( type_of_list ? type_of_list+':' : '' );
+    for(var i = 0; i < src_list.length; i++) {
+        if ((src_list.options[i] != null) && (src_list.options[i].selected)) {
+            //Check if this value already exist in the dest_list or not
+            //if not then add it otherwise do not add it.
+            var found = false;
+            for(var count = 0; count < len; count++) {
+                if (dest_list.options[count] != null) {
+                    var value = dest_list.options[count].value;
+                    value = value.replace(prefix+'');
+                    if (src_list.options[i].value == value) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found != true) {
+                addOptionTo(dest_list, src_list.options[i].text, prefix+src_list.options[i].value);
+                len++;
+            }
+        }
+    }
+}
+
+function deleteSelectionFromList( dest_list )	{
+    var len = dest_list.options.length;
+    for(var i = (len-1); i >= 0; i--) {
+        if ((dest_list.options[i] != null) && (dest_list.options[i].selected == true)) {
+            dest_list.options[i] = null;
+        }
+    }
+}
+
+function SearchStrInSelect( str, select ) {
+    var strn=0, strl=0;
+    for (var i = 0; i < select.length; i++) {
+        select.options[i].selected = false;
+        var curl = 0;
+        var inpStr = str.toUpperCase();
+        var selStr = select.options[i].text.toUpperCase();
+        for (var l = 0; l < str.length+1; l++) {
+            curl = l;
+            if (inpStr.charAt(l) != selStr.charAt(l)) break;
+        }
+        if (curl > strl) { strl=curl; strn=i; }
+    }
+    if (!select.multiple || str.length) select.options[strn].selected = true;
+}
+
+function selectAll( list ) {
+    var len = list.length;
+    for(var i = 0; i < len; i++) { list.options[i].selected=true; }
+}
+
+function PrintPreview() {
+    var frm = document.reportForm;
+    frm.print_preview.value = 1;
+    frm.target = '_blank';
+    onSubmitForm( frm );
+}
+
+function Refresh() {
+    var frm = document.reportForm;
+    frm.print_preview.value = '';
+    frm.target = '_self';
+    DisableForm( frm );
+    onSubmitForm( frm );
+}
+
+function MainMenu() {
+    var url = 'cio';
+    var params = '';
+    window.open( url, '_top', params );
+}
+
+function DisableForm( frm ) {
+    frm.refresh.disabled=true;
+    frm.save.disabled=true;
+    frm.preview.disabled=true;
+    try {
+      frm.menu.disabled=true;
+    }
+    catch (error) {}
+}
+
+function onSubmitForm( frm ) {
+    frm.submit();
+}
+
+var shown = 'block';
+
+function displayDataOfCategory( id, display ) {
+   var obj = document.getElementById(id);
+   var icon = document.getElementById(id+'_icon');
+   if( typeof(obj) != 'object' ) return;
+   if( !display ) display = ( obj.style.display == 'block' ? 'none' : 'block' );
+   obj.style.display = display;
+   if( typeof(icon) != 'object' ) return;
+   icon.src = ( display == 'block' ? 'row_e.gif' : 'row_c.gif' );
+}
+
+function showCategories() {
+   var rows = document.getElementsByTagName('div');
+   if( !rows ) return;
+   if( shown == 'block' ) shown='none'; else shown='block';
+   for (var i = 0; i < rows.length; i++) {
+     if( rows[i].name == 'row_of_category' ) displayDataOfCategory( rows[i].id, shown );
+   }
+}
+//-->
+</script>
+
+<dtml-let container="this()"
+          archive_search="_.int(REQUEST.get('archive_search') or 0)"
+          instances="[ x for x in getPortalConfiguration().getAttribute('URLs', context=container)
+              if archive_search or not x['id'].startswith('arc') ]"
+          company_logo="getPortalConfiguration().getAttribute('company_logo', context=container)"
+          categories="getPortalConfiguration().getAttribute('categories', context=container, with_base=1)"
+          states="getPortalConfiguration().getAttribute('task_states', context=container)"
+          common_url="portal_properties.common_url()"
+          member="portal_membership.getAuthenticatedMember()"
+          uname="member.getUserName()"
+
+          period="portal_followup.getOptionValue('period', 'int', 'cio_in_progress', REQUEST, 0)"
+          not_finalized_only="portal_followup.getOptionValue('not_finalized_only', 'int', 'cio_in_progress', REQUEST, 0)"
+          not_answered_only="portal_followup.getOptionValue('not_answered_only', 'int', 'cio_in_progress', REQUEST, 0)"
+          ctype="portal_followup.getOptionValue('ctype', 'string', 'cio_in_progress', REQUEST, 'supervising')"
+          print_preview="REQUEST.get('print_preview') and '1' or ''"
+
+          bgcolor="'#E7E7E7'"
+          x_p="period > 20 and period-20 or period > 10 and period-10 or period < 10 and period or 0"
+          days="x_p == 7 and 360 or x_p == 6 and 180 or x_p == 5 and 90 or x_p == 4 and 30 or x_p == 3 and 14 or x_p == 2 and 7 or 1"
+          date_till="_.DateTime()+1"
+          date_from="days and date_till-days or None"
+          enabled_only="0"
+          in_time="0"
+          with_delay="0"
+          cio="_.int(REQUEST.get('cio','0')) or 0"
+
+          report_name="msg('Disabled commissions report')"
+
+          item_color="'FFFFFF'"
+          show_color="'FFFACD'"
+>
+
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="&dtml-bgcolor;">
+
+<table width="100%" cellspacing="5" cellpadding="5" border="0">
+<form name="reportForm" method="post">
+<input type="hidden" name="BackgroundColor" value="&dtml-bgcolor;">
+<input type="hidden" id="print_preview" name="print_preview" value="&dtml-print_preview;">
+<input type="hidden" name="cio" value="&dtml-cio;">
+
+<dtml-unless print_preview>
+<tr>
+  <td align="left" valign="top">
+    <img src="&dtml-common_url;&dtml-company_logo;">
+  </td>
+  <td align="left" style="width:100%;padding-top:5px;" valign="top">
+    <dtml-var cio_report_name>
+  </td>
+  <td align="right" valign="top" style="padding-left:1px;">
+    <img src="&dtml-portal_url;/docflow-logo-ex.gif">
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding: 10px 5px 10px 5px;">
+    <input type="button" name="refresh" onClick="javascript:Refresh();" value="<dtml-var "msg('Refresh')">" style="width:95px;">
+    <input type="button" name="save" onClick="javascript:save_report_settings();" value="<dtml-var "msg('Save settings')">" style="width:165px;">
+    <input type="button" name="preview" onClick="javascript:PrintPreview();" value="<dtml-var "msg('Print preview')">" style="width:125px;">
+    <input type="button" onClick="javascript:showCategories();" value=" ... ">
+  <dtml-if cio>
+    <input type="button" name="menu" onClick="javascript:MainMenu();" value="<dtml-var "msg('Main menu')">" style="width:120px;">
+  </dtml-if>
+  </td>
+  <td align="right">
+  <dtml-if "_.len(instances) > 1">
+    <table cellspacing="0" cellpadding="1" border="0">
+    <tr>
+    <dtml-in instances mapping>
+      <td id="&dtml-id;_sign" style="display:block;">
+        <table cellspacing="2" cellpadding="1" border="0" style="border:1pt solid #000080;">
+        <tr>
+          <td bgcolor="#8080C0"><img title="&dtml-id;" src="&dtml-portal_url;/spacer.gif" height="10"></td>
+	    </tr>  
+        </table>
+      </td>
+    </dtml-in>
+    </tr>
+    </table>
+  </dtml-if>
+  </td>
+</tr>
+</table>
+</dtml-unless>
+
+<div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<dtml-if print_preview>
+  <dtml-let options="0" rtype="0">
+    <dtml-var cio_preview_options>
+  </dtml-let>
+</dtml-if>
+
+<dtml-unless print_preview>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 5px 1px;">
+    <table width="100%" cellspacing="1" cellpadding="5" border="0">
+    <tr>
+      <td class="small" width="20" align="center" valign="middle">
+        <img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="javascript:DoImgClick('query');" 
+         onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'" title="<dtml-var "msg('CIO query')">">
+      </td>
+      <td class="small" align="left" style="padding-left:7px">
+        <a target="workfield" onclick="javascript:DoImgClick('query');"><font face="arial" style="font-size:11px;cursor:hand;"><strong><dtml-var "msg('Query options in detail')"></strong></font></a>
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 0 0 5px 2px;">
+  <dtml-let finalized_and_answered_options="1" commissions_options="1" align="'left'">
+    <div id="query" style="display:none">
+    <dtml-var cio_query>
+    </div>
+  </dtml-let>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+</dtml-unless>
+
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td bgcolor="white" background="&dtml-portal_url;/right_fr.gif">&nbsp;</td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+
+<tr><td colspan="3">&nbsp;</td></tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td width="100%">
+    <div id="C" style="display:block">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_title">
+      <td class="smallHeader" width="20" align="center" valign="middle"><dtml-var "msg('#')"></td>
+      <td class="smallHeader"><dtml-var "msg('CIO Title (Brief Description)')"></td>
+      <td class="smallHeader" width="140" align="left"><dtml-var "msg('Author')"><br><dtml-var "msg('Involved members')"></td>
+      <td class="smallHeader" bgcolor="#FFA8A8" width="80" align="center"><dtml-var "msg('Expiration Date')"></td>
+      <td class="smallHeader" width="80" align="center"><dtml-var "msg('Task State')"><br><dtml-var "msg('In time (days)')"></td>
+    </tr>
+    </table>
+    <dtml-in instances mapping>
+    <div id="III_&dtml-id;_data"></div>
+    <iframe scrolling="no" frameborder="0" height="0" width="100%" style="display:none" 
+            src="&dtml-url;/cio_disabled_instance?print_preview=&dtml-print_preview;&period=&dtml-period;&ctype=&dtml-ctype;&p1=&dtml-not_finalized_only;&p2=&dtml-not_answered_only;"></iframe>
+    </dtml-in>
+    </div>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td width="100%">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_total">
+      <td class="smallFooter" width="20" align="center" valign="middle">&nbsp;</td>
+      <td class="smallFooter" style="text-align:left; padding-left:6px;" colspan="4" nowrap><b><dtml-msg "Total results">:&nbsp;&nbsp;&nbsp;<span id="III_counter">0</span></b></td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+
+</form>
+</table>
+<br></div>
+
+</dtml-let>
+
+</body>
+</html>

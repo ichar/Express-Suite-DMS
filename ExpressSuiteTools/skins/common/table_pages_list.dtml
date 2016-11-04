@@ -1,0 +1,143 @@
+<dtml-comment>
+Displays pages list according to the results count and the batch size
+
+Input parameters:
+    'results_count' - table records count
+    'batch_size' - number of records on a single page
+    'qs' - batch start position
+</dtml-comment>
+
+<dtml-let pages_limit="15"
+          results_count="_.int(results_count)"
+          batch_size="_.int(batch_size)"
+          qs_0="_.int(qs or 1)"
+          qs="qs_0 <= results_count and qs_0 or 1"
+          total_pages="_.math.ceil(results_count/(batch_size+.0)) or 1"
+          current_page="_.math.ceil(qs/(batch_size+.0))"
+          start_page_0="current_page - pages_limit/2"
+          start_page_1="(total_pages - start_page_0) < pages_limit and (total_pages - pages_limit + 1) or start_page_0"
+          start_page="_.int(start_page_1 > 0 and start_page_1 or 1)"
+          end_page_0="start_page + pages_limit - 1"
+          end_page="_.int(end_page_0 < total_pages and end_page_0 or total_pages)"
+          s_page="_.int((current_page <= 3 and 2) or (current_page > total_pages-4 and total_pages-5) or current_page-2)"
+          e_page="_.int((current_page <= 3 and 7) or (current_page > total_pages-4 and total_pages) or current_page+3)"
+          visible_pages="_.range(s_page, e_page)"
+          last_page_start="_.int(batch_size * (total_pages - 1) + 1)"
+          spec_url_add="_.has_key('spec_url_add') and spec_url_add or ''"
+
+          params="'%s&batch_size=%s%s%s%s%s' % (_.has_key('params') and params or '', batch_size, _.has_key('sort_order') and '&sort_order='+sort_order or '', _.has_key('sort_on') and '&sort_on='+sort_on or '', _.has_key('selected_state') and selected_state and '&selected_state='+selected_state or '', _.has_key('view_type') and view_type and '&view_type='+view_type or '')"
+          indent="_.has_key('indent') and indent or 40"
+          view_url="'%s%s' % (absolute_url() or portal_url(), spec_url_add)"
+>
+  <dtml-comment>
+spec_url_add - special parameter for tasks view only, may be 'followup_in' or 'followup_out' added end of the URL (absolut-url)
+params - additional params to link urls, exmp: 'showTaskMode=showNew' (analog from 3.2)
+  </dtml-comment>
+
+  <dtml-unless disable_controls>
+<form class="inline" method="post" action="&dtml-absolute_url;&dtml-spec_url_add;">
+<input type="hidden" name="sort_order" value="<dtml-var "_.has_key('sort_order') and sort_order">">
+<input type="hidden" name="sort_on" value="<dtml-var "_.has_key('sort_on') and sort_on">">
+<input type="hidden" name="batch_size" value="<dtml-var "_.has_key('batch_size') and batch_size">">
+<input type="hidden" name="qs" value="<dtml-var "_.has_key('qs') and qs">">
+<input type="hidden" name="selected_state" value="<dtml-var "_.has_key('selected_state') and selected_state">">
+<input type="hidden" name="view_type" value="<dtml-var "_.has_key('view_type') and view_type">">
+  </dtml-unless>
+
+<table cellpadding="2" cellspacing="2" border="0">
+<tr>
+  <dtml-if "total_pages > 1">
+  <td align="right" style="width:&dtml-indent;px;">
+    <dtml-if "qs > 1">
+    <a class="navigate" href="&dtml-view_url;?qs=<dtml-var "qs - batch_size">&dtml-params;" title="<dtml-var "msg('Previous page')">"><<</a>
+    <dtml-else>
+    <img src="&dtml-portal_url;/spacer.gif" width="&dtml-indent;" height="10">
+    </dtml-if>
+  </td>
+  <td nowrap>
+    <dtml-in "_.range(start_page, end_page + 1)">
+      <dtml-let page_no="_['sequence-item']"
+                target_qs="batch_size * (page_no - 1)+ 1"
+                page_start=target_qs
+                page_end="(page_no == total_pages) and results_count or target_qs + batch_size - 1"
+                p_page="_.int(batch_size*(s_page-2))+1"
+                n_page="_.int(batch_size*(e_page-1))+1">
+        <dtml-if "_['sequence-end'] and total_pages > 7 and current_page <= total_pages-4">
+    <strong><a class="navigate" href="&dtml-view_url;?qs=<dtml-var n_page>&dtml-params;">...</a></strong>
+        </dtml-if>
+        <dtml-if "_['sequence-end'] and page_no==current_page">
+          <dtml-if "last_page_start==results_count">
+    <strong><dtml-var page_start></strong>
+          <dtml-else>
+    <strong><dtml-var page_start>-<dtml-var page_end></strong>
+          </dtml-if>
+        <dtml-elif "_['sequence-end']">
+          <dtml-if "last_page_start==results_count">
+    <a class="navigate" href="&dtml-view_url;?qs=&dtml-last_page_start;&dtml-params;" title="<dtml-var "msg('Go to entries')"> <dtml-var last_page_start>"><dtml-var last_page_start></a>
+          <dtml-else>
+    <a class="navigate" href="&dtml-view_url;?qs=&dtml-last_page_start;&dtml-params;" title="<dtml-var "msg('Go to entries')"> <dtml-var last_page_start>-<dtml-var results_count>"><dtml-var last_page_start>-<dtml-var results_count></a>
+          </dtml-if>
+        </dtml-if>
+        <dtml-if "page_no in visible_pages and not (_['sequence-start'] or _['sequence-end'])">
+          <dtml-if "page_no==current_page">
+    <strong><dtml-var page_start>-<dtml-var page_end></strong>
+          <dtml-else>
+    <a class="navigate" href="&dtml-view_url;?qs=&dtml-target_qs;&dtml-params;" title="<dtml-var "msg('Go to entries')"> <dtml-var page_start>-<dtml-var page_end>"><dtml-var page_start>-<dtml-var page_end></a>
+          </dtml-if>
+        </dtml-if>
+        <dtml-if "_['sequence-start'] and page_no==current_page">
+    <strong><dtml-var page_start>-<dtml-var page_end></strong>
+        <dtml-elif "_['sequence-start']">
+    <a class="navigate" href="&dtml-view_url;?qs=1&dtml-params;" title="<dtml-var "msg('Go to entries')"> 1-<dtml-var batch_size>">1-<dtml-var batch_size></a>
+        </dtml-if>
+        <dtml-if "_['sequence-start'] and total_pages > 7 and current_page >= 5">
+    <strong><a class="navigate" href="&dtml-view_url;?qs=<dtml-var p_page>&dtml-params;">...</a></strong>
+        </dtml-if>
+      </dtml-let>
+    </dtml-in>
+  </td>
+  <td align="left" style="width:10px;">
+    <dtml-if "qs + batch_size <= results_count">
+    <a class="navigate" href="&dtml-view_url;?qs=<dtml-var "qs + batch_size">&dtml-params;" title="<dtml-var "msg('Next page')">">>></a>
+    <dtml-else>
+    <img src="&dtml-portal_url;/spacer.gif" width="10" height="10">
+    </dtml-if>
+  </td>
+  </dtml-if>
+
+  <dtml-unless disable_controls>
+    <dtml-let batch_step="10" batch_min=batch_step batch_max="100">
+      <dtml-if "results_count > 5">
+  <td align="left" style="width:&dtml-indent;px;">
+    <img src="&dtml-portal_url;/spacer.gif" width="&dtml-indent;" height="10">
+  </td>
+  <td align="left">
+    <dtml-var "msg('Results on page')">
+  </td>
+  <td align="left">
+    <select name="page_batch_size" onchange="this.form.batch_size.value=this.value;this.form.submit();">
+        <dtml-in "_.range(batch_step, _.int(results_count < batch_max and (results_count + batch_step) or batch_max + 1), batch_step)">
+          <dtml-if sequence-start>
+            <dtml-if "results_count > 5">
+    <option value="5" <dtml-var "5==batch_size and 'selected' or ''">/>5</option>
+            </dtml-if>
+          </dtml-if>
+          <dtml-if "_['sequence-item'] <= results_count + batch_step">
+            <dtml-let selected_size="results_count < batch_size and _['sequence-item'] >= results_count and _['sequence-item'] or batch_size">
+    <option value="&dtml-sequence-item;" <dtml-var "_['sequence-item']==selected_size and 'selected' or ''">/>&dtml-sequence-item;</option>
+            </dtml-let>
+          </dtml-if>
+        </dtml-in>
+    </select>
+  </td>
+      </dtml-if>
+    </dtml-let>
+  </dtml-unless>
+</tr>
+</table>
+
+  <dtml-unless disable_controls>
+</form>
+  </dtml-unless>
+
+</dtml-let>

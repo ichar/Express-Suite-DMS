@@ -1,0 +1,54 @@
+<dtml-let IsAllowed="portal_membership.listAllowedUsers(this(), check_only=1, with_access=1)">
+
+<dtml-if IsAllowed>
+  <h1><dtml-var "msg('The following users are allowed to access this object')">:</h1>
+<dtml-else>
+  <h1 style="padding-bottom:10px"><dtml-var "msg('There are no users allowed to access this object')"></h1>
+</dtml-if>
+
+<table bgcolor="#F2F2F2" cellspacing="1" cellpadding="3" border="0">
+
+<dtml-if IsAllowed>
+  <dtml-in "['Editor', 'Writer', 'Author', 'Reader']">
+    <dtml-let role=sequence-item
+              local_only="role in ['Author'] and 1 or 0"
+              users="portal_membership.listAllowedUsers(this(), [role], local_only, with_access=1)"
+    >
+      <dtml-in "portal_membership.listSortedUserNames(users)" mapping>
+        <dtml-if sequence-start>
+<tr>
+  <td class="row_title" style="padding-top:4px" valign="top"><b><dtml-var "msg(role)"></b></td>
+  <td class="col_even" valign="top">
+        </dtml-if>
+      <a href="javascript:OpenUserInfoWnd('&dtml-user_id;','')"><dtml-var user_name></a><br>
+        <dtml-if "(_['sequence-length'] > 10) and _['sequence-index'] == _['sequence-length'] / 2">
+          <dtml-comment> End of first column </dtml-comment>
+  </td>
+  <td width="1"><dtml-var spacer.gif></td>
+  <td class="col_even">
+        </dtml-if>
+        <dtml-if sequence-end>
+  </td>
+</tr>
+        </dtml-if>
+      </dtml-in>
+    </dtml-let>
+  </dtml-in>
+</dtml-if>
+
+<dtml-if "this().implements('isDocument')">
+<tr>
+  <td class="row_title" style="padding-top:5px" valign="top"><b><dtml-var "msg('Owner')">&nbsp;</b></td>
+  <td class="col_even" valign="top">
+    <dtml-let users="portal_membership.getObjectOwners(this())">
+      <dtml-in "portal_membership.listSortedUserNames(users, no_sort=1)" mapping>
+        <a href="javascript:OpenUserInfoWnd('&dtml-user_id;','')"><dtml-var user_name></a><dtml-if "_['sequence-index']+1 < _.len(users)"><br></dtml-if>
+      </dtml-in>
+    </dtml-let>
+  </td>
+</tr>
+</dtml-if>
+
+</table>
+
+</dtml-let>

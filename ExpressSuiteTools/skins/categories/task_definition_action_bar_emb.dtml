@@ -1,0 +1,29 @@
+<dtml-let category_id=getId>
+
+<table cellpadding="0" cellspacing="0" border="0">
+<form action="task_template_task_definition_add_form" method="post">
+<tr>
+  <td align="left"><dtml-var text_message>:&nbsp;</td>
+  <td>
+    <select name="task_definition_type">
+      <dtml-in "this().taskDefinitionFactory.getTaskDefinitionTypeList( category_id )">
+        <option value="<dtml-var "_['sequence-item']['id']">">
+          <dtml-var "task_definition_get_type_title( this(), task_definition_type_title=_['sequence-item']['title'] )">
+        </option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr style="padding-top:5px;">
+  <td>&nbsp;</td>
+  <td>
+    <input type="hidden" name="template_id" value="&dtml-template_id;">
+    <input type="hidden" name="parent_id" value="&dtml-id_parent;">
+    <input type="submit" value="<dtml-var "msg('Add')">">
+    <br>
+  </td>
+</tr>
+</form>
+</table>
+
+</dtml-let>

@@ -1,0 +1,136 @@
+<dtml-revision $Revision: 1.2 $>
+
+<dtml-var simple_html_header>
+
+<h2><dtml-var "msg('Resolution templates management')"></h2>
+
+<dtml-let IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+          contexts="portal_comments.listContexts()"
+>
+
+<script type="text/javascript">
+<!--
+messageCatalog.invalid_context_id = '<dtml-var "msg('Context type ID is invalid.')">';
+messageCatalog.empty_comment_text = '<dtml-var "msg('Please fill in the resolution text.')">';
+messageCatalog.unselected_context_id = '<dtml-var "msg('Select context type ID before.')">';
+
+var addContextButtonClicked = false;
+var delContextButtonClicked = false;
+var addCommentButtonClicked = false;
+
+function validateCommentsForm(frm) {
+  if( addContextButtonClicked ) {
+    if(! validateIdentifier(frm.new_context_type, 'invalid_context_id', 1 ) )
+      return false;
+  } else if( delContextButtonClicked ) {
+    if( frm.del_context_type.selectedIndex == 0 ) {
+      alert( messageCatalog.unselected_context_id );
+      return false;
+    }
+  } else if( addCommentButtonClicked ) {
+    if(! frm.title.value ) {
+      alert( messageCatalog.empty_comment_text );
+      return false;
+    }
+  }
+  return true;
+}
+//-->
+</script>
+
+<form action="&dtml-absolute_url;/manage_comments" method="post" onsubmit="return validateCommentsForm(this)">
+
+<dtml-in contexts prefix="context">
+  <dtml-if sequence-start>
+<table width="100%" cellpadding="0" cellspacing="1" bgColor="#E5E5E5" border="0">
+<tr class="row_title">
+  <td>&nbsp;</td>
+  <td><dtml-var "msg('ID')"></td>
+  <td><dtml-var "msg('Context type')"></td>
+  <td><dtml-var "msg('Title')"></td>
+  <td><dtml-var "msg('Resolution text')"></td>
+</tr>
+  </dtml-if>
+
+  <dtml-in "portal_comments.listComments(context_item, exact=1, sort=1)" prefix="comment">
+<tr class="<dtml-if "context_odd ^ comment_odd">row_odd<dtml-else>row_even</dtml-if>">
+  <td width="1%"><input type="checkbox" name="ids:list" value="&dtml-id;"></td>
+  <td style="padding-right:5px;">&dtml-id;</td>
+  <td style="padding-right:5px;">&dtml-context_item;</td>
+  <td><a href="&dtml-absolute_url;/edit_comment_form?id=&dtml-id;&context_type=&dtml-context_item;"><dtml-var title html_quote></a></td>
+  <td><dtml-var description html_quote size=60></td>
+</tr>
+  </dtml-in>
+
+  <dtml-if sequence-end>
+<tr>
+  <td colspan="3">
+    <input type="submit" name="remove" value="<dtml-var "msg('Remove')">" style="width:80px;">
+  </td>
+</tr>
+</table>
+  </dtml-if>
+</dtml-in>
+
+<br>
+
+<dtml-if IsAdmin>
+
+<table cellpadding="0" cellspacing="0" bgColor="#E5E5E5" border="0">
+<tr><td colspan="2"><h3><dtml-var "msg('New resolution context')"></h3></td></tr>
+<tr>
+  <td><dtml-var "msg('Context type')">:</td>
+  <td>
+    <input name="new_context_type" type="text" style="width:520px" value="">
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2" align="left">
+    <input type="submit" name="add_context" value="<dtml-var "msg('Add')">" onclick="window.addContextButtonClicked=true" style="width:80px;"></td>
+  </td>
+</tr>
+
+<tr><td colspan="2" style="padding-top:10px;"><h3><dtml-var "msg('Remove resolution context')"></h3></td></tr>
+<tr>
+  <td><dtml-var "msg('Context type')">:</td>
+  <td>
+    <select name="del_context_type" size="1">
+      <option value="none" selected></option>
+    <dtml-in contexts prefix="context">
+      <option value="&dtml-context_item;"><dtml-var "msg(context_item)"></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2" align="left">
+    <input type="submit" name="del_context" value="<dtml-var "msg('Remove')">" onclick="window.delContextButtonClicked=true" style="width:80px;"></td>
+  </td>
+</tr>
+
+<tr><td colspan="2" style="padding-top:20px;"><h3><dtml-var "msg('New resolution template')"></h3></td></tr>
+
+<dtml-var "comment_edit( this(),
+           id='',
+           context_type='global',
+           title='',    
+           description=''
+           )"
+>
+
+<tr>
+  <td colspan="2" align="left">
+    <input type="submit" name="add_comment" value="<dtml-var "msg('Add')">" onclick="window.addCommentButtonClicked=true" style="width:80px;"></td>
+  </td>
+</tr>
+</table>
+
+</dtml-if>
+
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

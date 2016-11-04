@@ -1,0 +1,37 @@
+<dtml-if IsEditable>
+  <dtml-if "documents and _.SecurityCheckPermission('Add portal content', this())">
+<input type="submit" name="folder_cut" value="<dtml-var "msg('Cut')">" onclick="submitForm(this);">
+  </dtml-if>
+</dtml-if>
+
+<dtml-if documents>
+<input type="button" name="folder_copy" value="<dtml-var "msg('Copy')">" onclick="submitForm(this);">
+</dtml-if>
+
+<dtml-if IsEditable>
+  <dtml-if "_.SecurityCheckPermission('Add portal content', this())">
+<input type="submit" name="folder_paste" value="<dtml-var "msg('Paste')">" <dtml-unless cb_dataValid>disabled</dtml-unless> onclick="submitForm(this);">
+  </dtml-if>
+  <dtml-if "documents and _.SecurityCheckPermission('Delete objects', this())">
+<input type="submit" name="confirm_delete" value="<dtml-var "msg('Delete')">" onclick="submitForm(this);">
+  </dtml-if>
+</dtml-if>
+
+<dtml-if "1==0">
+  <dtml-if expr="implements('isOutgoingMailFolder') and _.SecurityCheckPermission('Use mailhost services', this())">
+<input type="submit" name="confirm_dispatch:method" value="<dtml-var "msg('Send')">">
+  </dtml-if>
+  <dtml-if getSite>
+<input type="submit" name="publish_confirm:method" value="<dtml-var "msg('Publish')">">
+  </dtml-if>
+</dtml-if>
+
+<dtml-if IsEditable>
+  <dtml-if "_.SecurityCheckPermission('Modify portal content', this()) and not meta_type in getCustomDefinitions('custom_incoming_folder')">
+<input type="submit" name="export_import_form:method" value="<dtml-var "msg('Export/Import')">">
+  </dtml-if>
+</dtml-if>
+
+<dtml-if "(documents or directives)">
+<input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelect()" style="width:120px;">
+</dtml-if>

@@ -1,0 +1,166 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script language="JavaScript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.taskDefinitionForm;
+    if( taskDefinitionFormScriptOnSubmit(frm) ) {
+        DisableForm(frm);
+        CheckAndRefreshCommentFields(frm, ['description']);
+        frm.submit();
+    }
+}
+//-->
+</script>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: <dtml-var "msg(Title())"></a></strong></p>
+
+<p>
+<strong><a href="task_template_list">&lt;&lt; <dtml-var "msg('Actions templates')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/workflow_states"><dtml-var "msg('Document category states')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/workflow_transitions"><dtml-var "msg('Document category transitions')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/task_template_summary"><dtml-var "msg('Routing')"></a></strong>
+</p>
+
+<dtml-let container="this()"
+          category_id=getId
+          task_definition="container.taskTemplateContainerAdapter.getTaskDefinitionById( category_id, template_id, id_task_definition )"
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+<p><b><dtml-var "msg('Editing')"></b>: <dtml-var "msg('Action template')"> "<dtml-var "task_definition['name']">"<p>
+
+<dtml-comment>
+<dtml-in "container.taskTemplateContainerAdapter.getTaskDefinitionParents(category_id, template_id, id_task_definition)">
+  <dtml-if sequence-start>
+    <dtml-var "msg('Parents templates')">:
+  </dtml-if>
+  <a href="task_template_task_definition_info?template_id=&dtml-template_id;&id_task_definition=<dtml-var "_['sequence-item']['id']">"><dtml-var "_['sequence-item']['name']"></a>
+  <dtml-if "not _['sequence-end']"> / </dtml-if>
+<dtml-else>
+<dtml-var "msg('Main template')">
+</dtml-in>
+<p>
+</dtml-comment>
+
+<table bgcolor="#cccccc" cellpadding="5" cellspacing="1" border="0">
+<tr><td bgcolor="ffffff">
+
+<table border="0">
+<tr class="row_odd">
+  <td colspan="2" class="smallHeader"><dtml-var "msg('Action template information')"></td>
+</tr>
+
+  <dtml-let mode="REQUEST.has_key('mode') and REQUEST.get('mode') or 'info'">
+    <dtml-if "mode=='info'">
+<tr class="row_even">
+  <td><dtml-var "msg('Template title')">:</td>
+  <td>
+      <dtml-var "task_definition['name']">        
+      <dtml-if IsAdmin>
+    <a href="task_template_task_definition_info?template_id=&dtml-template_id;&mode=edit&id_task_definition=&dtml-id_task_definition;">
+    <small><dtml-var "msg('Change')"></small></a>
+    <a onClick="return confirm('<dtml-var "msg('Delete action template?')">');" href="action_template_task_definition?action=delete_task_definition&template_id=&dtml-template_id;&id_task_definition=&dtml-id_task_definition;">
+    <small><dtml-var "msg('Delete action template')"></small></a>
+      </dtml-if>
+  </td>
+</tr>
+    <dtml-else>
+
+<form action="action_template_task_definition">
+<tr class="row_even">
+  <td><dtml-var "msg('Template title')">:</td>
+  <td><input type="text" name="name" size="70" value="<dtml-var "task_definition['name']">"></td>
+</tr>
+<tr class="row_even">
+  <td colspan="2">
+      <dtml-if IsAdmin>
+    <input type="submit" value="<dtml-var "msg('Change title')">">
+      </dtml-if>
+    <input type="button" value="<dtml-var "msg('Cancel')">" onClick="location.href='task_template_task_definition_info?template_id=&dtml-template_id;&id_task_definition=&dtml-id_task_definition;'">
+    <input type="hidden" name="action" value="change_task_definition_title">
+    <input type="hidden" name="template_id" value="&dtml-template_id;">
+    <input type="hidden" name="id_task_definition" value="&dtml-id_task_definition;">
+  </td>
+</tr>
+</form>
+    </dtml-if>
+  </dtml-let>
+
+<tr class="row_even">
+  <td><dtml-var "msg('Action type')">:</td>
+  <td>
+    <b><dtml-var "task_definition_get_type_title(container, task_definition_type_title=container.taskDefinitionFactory.getTaskDefinitionTypeTitle(task_definition['type']))"></b>
+  </td>
+</tr>
+<tr>
+  <td colspan="2"><strong><dtml-var "msg('Template fields')">:</strong></td>
+</tr>
+<tr>
+  <td colspan="2">
+
+<form action="action_template_task_definition" name="taskDefinitionForm" method="post" enctype="multipart/form-data">
+  <table bgcolor="cccccc" cellpadding="5" cellspacing="1" border="0">
+  <tr>
+    <td bgcolor="ffffff">
+    <table>
+      <dtml-var "container.taskDefinitionFactory.getTaskDefinitionFormByTaskType(task_definition['type'], task_definition, mode='change')">
+    </table>
+    <br>
+  <dtml-if IsAdmin>
+    <input type="button" name="OK" value="<dtml-var "msg('Change')">" onclick="javascript:SubmitForm();">
+  </dtml-if>
+    <input type="hidden" name="action" value="change_task_definition">
+    <input type="hidden" name="template_id" value="<dtml-var template_id>">
+    <input type="hidden" name="id_task_definition" value="<dtml-var id_task_definition>">
+
+<script>
+<!--
+    function taskDefinitionFormScriptOnSubmit( form ){
+<dtml-var "container.taskDefinitionFactory.getTaskDefinitionFormScriptOnSubmit( task_definition['type'] )">
+    }
+    function taskDefinitionFormScriptOnLoad( form ){
+<dtml-var "container.taskDefinitionFactory.getTaskDefinitionFormScriptOnLoad( task_definition['type'], task_definition )">
+    }
+    taskDefinitionFormScriptOnLoad( this.taskDefinitionForm );
+-->
+</script>
+    </td>
+  </tr>
+  </table>
+</form>
+
+  </td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+<tr class="row_even">
+  <td colspan="2">
+    <dtml-var "task_definition_tree_emb(container, id_parent=id_task_definition, text_message=msg('Included templates'), REQUEST=REQUEST )">
+  </td>
+</tr>
+
+  <dtml-if IsAdmin>
+<tr class="row_even">
+  <td>
+    <dtml-var "task_definition_action_bar_emb(container, id_parent=id_task_definition, text_message=msg('Add included template'), REQUEST=REQUEST )">
+  </td>
+</tr>
+  </dtml-if>
+</table>
+
+<br>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

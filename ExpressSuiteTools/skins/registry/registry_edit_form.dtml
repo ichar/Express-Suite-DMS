@@ -1,0 +1,146 @@
+<dtml-revision $Revision: 1.7.10.2.6.1 $>
+
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<dtml-let entry="getEntryById(record_id)"
+          documents="portal_catalog.searchResults(registry_ids=entry.get('ID', ''), implements='isDocument')"
+          obj="documents and documents[0].getObject()"
+          category2="obj and portal_metadata.getCategoryById(obj.Category())"
+>
+<h1><dtml-var "msg('Registry record')">:&nbsp;<dtml-var entry></h1>
+
+<form id="entry_edit" method="post" action="editEntry" enctype="multipart/form-data">
+
+<table width="100%" cellspacing="1" cellpadding="3" border="0">
+<tr class="row_title">
+  <td class="small" colspan="2">
+    <dtml-var "msg('Document entry')">
+  </td>
+</tr>
+
+<dtml-in listVisibleColumns>
+<tr class="row_even">
+  <td class="smallHeader" style="padding-right:20px;"><dtml-var "msg(Title(), add=None)"></td>
+  <td style="width:70%">
+
+  <dtml-let field=getId type=Type>
+    <dtml-if "entry.isEditAllowed(field)">
+      <dtml-comment>Edit entry field</dtml-comment>
+      <dtml-call "REQUEST.set('show_apply_button', 1)">
+      <dtml-if "field=='Creator' and _.SecurityCheckPermission('Modify portal content', this())">
+        <select name="entry_creator" size="1" >
+          <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+            <option value="<dtml-var user_id>" <dtml-var "entry.get('Creator')==user_id and 'selected' or ''">>
+              <dtml-var user_name>
+            </option>
+          </dtml-in>
+        </select>
+      <dtml-elif "type in ['items']">
+        <dtml-if "category2 is not None">
+          <dtml-var "entry_field_edit(category2, name=field, type=type, value=entry.get(field, []), context=this())">
+        </dtml-if>
+      <dtml-else>
+        <dtml-var "entry_field_edit(this(), name=field, type=type, value=entry.get(field, ''), entry=entry)">
+      </dtml-if>
+    <dtml-elif "entry.isGetAllowed(field)">
+      <dtml-comment>View entry field</dtml-comment>
+      <dtml-if "type in ['items']">
+        <dtml-if "category2 is not None">
+          <dtml-var "entry_field_view(category2, name=field, type=type, value=entry.get(field, ''))">
+        </dtml-if>
+      <dtml-else>
+        <dtml-var "entry_field_view(this(), name=field, type=type, value=entry.get(field, ''), entry=entry)">
+      </dtml-if>
+    </dtml-if>
+  </dtml-let>
+  
+  </td>
+</tr>
+</dtml-in>
+
+<tr class="row_even">
+  <td class="smallHeader">
+    <dtml-var "msg('Document')">
+  </td>
+  <td>
+    <dtml-in documents>
+      <a target="_blank" href="<dtml-var getURL>?expand=1"><dtml-var Title></a>
+    <dtml-else>
+      <dtml-if source>
+        <a href="&dtml-absolute_url;/assign?registry_id=<dtml-var "entry.get('ID')" html_quote>&came_from=&dtml-came_from;">&lt;&lt;&lt;</a>
+      </dtml-if>
+    </dtml-in>
+  </td>
+</tr>
+<tr class="row_even">
+  <td class="smallHeader">
+    <dtml-var "msg('Follow-up action')">
+  </td>
+  <td style="padding-bottom:10px;">
+    <dtml-in documents>
+      <dtml-with getObject>
+        <dtml-if followup>
+          <dtml-in "followup.getBoundTasks()">
+            <b>&dtml-title;</b>:<br>
+            <dtml-let involved_users=listInvolvedUsers>
+              <dtml-if involved_users>
+                <dtml-in involved_users sort="id" size="5">
+                  <dtml-var "member_name(this(), member=_['sequence-item'], brief=1)">
+                  <dtml-unless sequence-end>,</dtml-unless>
+                </dtml-in>
+              </dtml-if>
+            </dtml-let>
+            <dtml-unless sequence-end><br></dtml-unless>
+          </dtml-in>
+        </dtml-if>
+      </dtml-with>
+    </dtml-in>
+  </td>
+</tr>
+
+<dtml-if "REQUEST.get('show_apply_button', 0)">
+<tr class="row_title">
+  <td class="small" colspan="2"><dtml-var "msg('Registry comment')"><br> <textarea name="comment:text" rows="4" cols="80" style="width:100%"></textarea></td>
+</tr>
+<tr>
+  <td colspan="2">
+    <input type="hidden" name="record_id" value="&dtml-record_id;"/>
+    <input type="submit" name="save" value="<dtml-var "msg('Save entry')">" />
+    <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/registry_view'" value="<dtml-var "msg('Cancel')">"/>
+  </td>
+</tr>
+<dtml-else>
+<tr>
+  <td>
+    <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/registry_view'" value="<dtml-var "msg('Back')">"/>
+  </td>
+</tr>
+</dtml-if>
+</table>
+</form>
+
+<dtml-in "entry.getHistory()" mapping reverse>
+  <dtml-if sequence-start>
+<table cellspacing="3" border="0">
+<tr>
+  <td class="smallHeader"><dtml-var "msg('Modifications log')"></td>
+</tr>
+  </dtml-if>
+<tr>
+  <td class="small">
+    <dtml-var date fmt="%Y-%m-%d %H:%M">
+    <b><dtml-var "member_name(this(), member=actor, brief=1)"></b>
+    <em><dtml-var "msg(action, add=0)"></em> : 
+    <em><dtml-var text></em>
+  </td>
+</tr>
+  <dtml-if sequence-end>
+</table>
+  </dtml-if>
+</dtml-in>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

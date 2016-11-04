@@ -1,0 +1,25 @@
+<tr class="row_even">
+  <td><dtml-var "msg('attribute_name')">:</td>
+  <td>
+    <dtml-in "listAttributeDefinitions()">
+      <dtml-if sequence-start>
+        <select name="attribute_name" size="1">
+      </dtml-if>
+      <dtml-let selected="_['sequence-item'].getId()==taskDefinitionArray['attribute_name'] and 'selected' or ''">
+      <option value="<dtml-var "_['sequence-item'].getId()">" &dtml-selected;><dtml-var "_['sequence-item'].Title()"></option>
+      </dtml-let>
+      <dtml-if sequence-end>
+        </select>
+      </dtml-if>
+    </dtml-in>
+  </td>
+</tr>
+<tr class="row_even">
+  <td><dtml-var "msg('attribute_value')">:</td>
+  <td><input type="text" name="attribute_value" value="<dtml-var "taskDefinitionArray['attribute_value']">"></td>
+</tr>
+<tr class="row_even">
+  <td colspan="2">Note: you can use '{date_now}' as value <br>
+  for filling field by DateTime() value, <br>
+  when Action Template  will be activated</td>
+</tr>

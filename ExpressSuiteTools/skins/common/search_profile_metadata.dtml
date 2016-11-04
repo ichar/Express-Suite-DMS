@@ -1,0 +1,175 @@
+<dtml-var simple_html_header>
+
+<dtml-let locked="this().implements('isLockable') and this().isLocked()"
+          user="portal_membership.getAuthenticatedMember().getUserName()"
+          context="this()"
+          modify="not locked and (_.SecurityCheckPermission('Modify portal content', this()) or
+                                  user in portal_membership.listAllowedUsers(this(), 'Editor')
+                                  )"
+          vmodify="modify"
+          rename="not locked and _.SecurityCheckPermission('Delete objects', this().parent())"
+          meta_type="this().meta_type"
+          IsBegin="1"
+          IsEditor="1"
+          IsCreator="user==this().Creator()"
+          IsWriter="(IsBegin and 'Writer' in this().user_roles()) or
+                                  user in portal_membership.listAllowedUsers(this(), 'Writer')"
+          IsAuthor="'Author' in this().user_roles()"
+          IsReaderOnly="not IsEditor and not IsCreator and not IsWriter and not IsAuthor and 'Reader' in this().user_roles() and _.SecurityCheckPermission('View', this())"
+          IsAllowedUsers="IsEditor or IsCreator or IsWriter or IsAuthor"
+          IsRun="IsEditor or IsCreator or IsWriter or rename"
+          IsDebug="0"
+>
+
+<dtml-if message>
+ <p>&dtml-message;</p>
+ <hr>
+</dtml-if>
+
+<h2><dtml-var "msg('Folder Resource Metadata')"></h2>
+
+<dtml-var "msg('Each object i.e. HTML document or image has it\'s own title, description and extended metadata so one can easily find the necessary document.')">
+<dtml-if "IsRun">
+
+<form id="metadata_edit" action="metadata_edit" method="post" onsubmit="return Validate(this);" name="metadata_edit">
+
+<script type="text/javascript">
+<!--
+function Validate( frm ){
+  if ( validateIdentifier(frm.elements['id'], '<dtml-var "msg('Object id is invalid')">', true) == false)
+    return false;
+
+  if (! frm.title.value){
+    alert('<dtml-var "msg('Specify the topic title')">');
+    return false;
+  }
+  return true;
+}
+//-->
+</script>
+<dtml-else><br><br></dtml-if>
+
+<dtml-comment> ICHAR 07/04/2004 12.45,12.175 вывод URL, ID  документа в описании. </dtml-comment>
+
+<script type="text/javascript">
+<!--
+function DoImgClick() {
+    if(typeof(document.all.URL) != 'object') return;
+    var s=(document.all.URL.style.display == 'none' ? 'block' : 'none');
+	set_display( document.all.URL,s );
+	set_display( document.all.ID,s );
+	set_display( document.all.INDENT,s );
+}
+function set_display( obj,state ) {
+	if(typeof(obj) == 'object') obj.style.display = state;
+}
+//-->
+</script>
+
+<table class="FormLayout" width="100%" border="0">
+<tr valign="top">
+  <dtml-if IsEditor>
+  <th id='Title' align="right"> <dtml-var "msg('Title')"> </th>
+  <td class="EditField" width="80%">
+    <input type="text" id="title" name="title" value="&dtml-title;" size="105" style="width:95%;">
+  <dtml-else>
+  <th id='Title' align="right" style="padding-top:3px;"> <dtml-var "msg('Title')"> </th>
+  <td class="ViewField" width="80%">
+     <font size="2" style="color:purple;font-weight:bold">&dtml-Title;</font>
+  </dtml-if>
+  </td>
+</tr>
+
+<tr valign="top">
+  <th align="right"> <dtml-var "msg('Description')"> </th>
+  <dtml-if "IsEditor">
+  <td class="EditField">
+     <textarea name="description:text" rows="5" cols="104" style="width:95%;">&dtml-description;</textarea>
+  <dtml-else>
+  <td class="ViewField">
+     <dtml-var "description" newline_to_br> 
+  </dtml-if>
+  </td>
+</tr>
+
+<dtml-let showmode="'display:none;'">
+
+<tr><td colspan="2"><hr width="100%" size="+1"></td></tr>
+<tr><td colspan="2" align="left">
+  <img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="javascript:DoImgClick();" 
+   onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'">
+</td></tr>
+
+<tr id="URL" valign="top" style="&dtml-showmode;">
+  <th align="right"> <dtml-var "msg('URL')"> </th>
+  <td class="ViewField"> <dtml-var Identifier> </td>
+</tr>
+
+<tr id="ID" valign="top" style="&dtml-showmode;">
+  <th align="right"> <dtml-var "msg('Id')"> </th>
+  <dtml-if "IsEditor and cb_isMoveable()">
+  <td class="EditField">
+    <input type="text" name="id" value="<dtml-var "this().getId()">" size="45">
+  <dtml-else>
+  <td class="ViewField">
+    <dtml-var getId>
+    <input type="hidden" name="id" value="<dtml-var "this().getId()">">
+  </dtml-if>
+  </td>
+</tr>
+
+<tr id="INDENT" valign="top" style="&dtml-showmode;"><td height="10px">&nbsp;</td></tr>
+</dtml-let>
+ 
+<dtml-if "IsRun and (IsEditor or ((IsCreator or IsWriter) and REQUEST.has_key('OpenSubmit'))) and not wl_isLocked()">
+<tr valign="top">
+  <td></td>
+  <td align="left" style="padding-left:4px;">
+    <input type="submit" name="metadata" value=" <dtml-var "msg('Apply')"> ">
+  </td>
+</tr>
+<tr><td colspan="2">&nbsp;</td></tr>
+<dtml-elif IsDebug>
+<tr valign="top">
+  <td></td>
+  <td align="left" style="padding-left:4px;">
+    <br>
+    <dtml-var "REQUEST.has_key('OpenSubmit')">
+  </td>
+</tr>
+</dtml-if>  
+
+<script type="text/javascript">
+<!--
+//if( userAgent.type != 'IE' ) { DoImgClick(); }
+//-->
+</script>
+ 
+<dtml-comment> 12.45 ******************************************************************** </dtml-comment>
+ 
+<dtml-if "IsAllowedUsers">
+<tr><td colspan="2" height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+<tr>
+  <td colspan="2">
+   <dtml-var allowed_users>
+  </td>
+</tr>
+<tr>
+  <td colspan="2">&nbsp;</td>
+</tr>
+</dtml-if>
+
+<dtml-if "IsRun">
+
+<script type="text/javascript">
+    var obj = document.metadata_edit.elements['title'];
+    if(typeof(obj) == 'object' && !obj.disabled) obj.focus();
+</script>
+
+  </form>
+</dtml-if>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

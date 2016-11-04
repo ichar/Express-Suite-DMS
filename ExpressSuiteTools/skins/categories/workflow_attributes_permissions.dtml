@@ -1,0 +1,130 @@
+<dtml-var simple_html_header>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: &dtml-Title;</a></strong></p>
+
+<p>
+<strong><a href="&dtml-absolute_url;/state_properties?state=&dtml-state;">&lt;&lt; <dtml-var "msg('State properties')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/workflow_transitions"><dtml-var "msg('Document category transitions')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/task_template_list"><dtml-var "msg('Actions templates')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/task_template_summary"><dtml-var "msg('Routing')"></a></strong>
+</p>
+
+<dtml-let wf=Workflow 
+          wf_def=getWorkflow
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+  <dtml-with "portal_workflow[wf].states[state]">
+
+<table border="0">
+<tr><td colspan="2"><h3><dtml-var "msg('State properties')"></h3></td></tr>
+<tr>
+  <td align="left"><dtml-var "msg('Id')"></td>
+  <td>&dtml-id;</td>
+</tr>
+
+<tr>
+  <td align="left"><dtml-var "msg('Title')"></td>
+  <td class="smallHeader">&dtml-title;</td>
+</tr>
+
+<tr><td colspan="2"><br><h3><dtml-var "msg('Attribute properties')"></h3></td></tr>
+
+    <dtml-with "portal_workflow[wf].getAttributeDefinition(attr)">
+      <dtml-let category="this()">
+<tr>
+  <td align="left"><dtml-var "msg('Id')"></td>
+  <td><dtml-var getId></td>
+</tr>
+<tr>
+  <td align="left"><dtml-var "msg('Title')"></td>
+  <td class="smallHeader" style="color:purple">&dtml-Title;</td>
+</tr>
+<tr>
+  <td align="left"><dtml-var "msg('Type')"></td>
+  <td><dtml-var "msg(Type(), add=None)"></td>
+</tr>
+<tr>
+  <td align="left"><dtml-var "msg('Default value')"></td>
+  <td>
+    <dtml-var "entry_field_view( this(),
+          name=getId(),
+          type=Type(),
+          value=getDefaultValue(),
+          category=category,
+          mode='state'
+		  )">
+  </td>
+</tr>
+</table>
+
+<form action="workflows" method="POST">
+
+<table width="100%" cellspacing="0" cellpadding="2" border="0" nowrap>
+<tr><td colspan="10"><br><h3><dtml-var "msg('Attribute permissions')"></h3></td></tr>
+<tr class="list-header">
+  <td>&nbsp;</td>
+  <td align="left" valign="top">
+    <div class="form-label"><strong><dtml-var "msg('Permission')"></strong></div>
+  </td>
+  <td align="left" colspan="<dtml-var expr="_.len(portal_metadata.getManagedRoles_())">">
+    <div class="form-label"><strong><dtml-var "msg('Roles')"></strong></div>
+  </td>
+</tr>
+
+<tr class="row_title">
+  <td align="left" valign="top">
+    <div class="form-label"><strong><dtml-var "msg('Use permission settings from parents')"></strong></div>
+  </td>
+  <td></td>
+        <dtml-in "portal_metadata.getManagedRoles_()" sort>
+  <td align="left">
+    <div class="list-item"><dtml-var "msg(_['sequence-item'])"></div>
+  </td>
+        </dtml-in>
+</tr>
+        <dtml-let permissions="('View', 'Modify portal content', 'Manage properties')">
+          <dtml-in permissions sort>
+            <dtml-let permission=sequence-item>
+              <dtml-with expr="wf_def.getAttributePermissionInfo(state, attr, permission)" mapping>
+                <dtml-if sequence-odd>
+<tr class="row_odd">
+                <dtml-else>
+<tr class="row-even">
+                </dtml-if>
+  <td align="left" valign="top">
+                <dtml-let checked="acquired and 'checked' or ' '">
+    <input type="checkbox" name="acquire_&dtml-permission;" &dtml-checked; />
+                </dtml-let>
+  </td>
+  <td align="left" nowrap>
+    <div class="list-item"><dtml-var "msg(_['permission'])"></div>
+  </td>
+                <dtml-in "portal_metadata.getManagedRoles_()" sort>
+  <td align="center">
+                  <dtml-let checked="_['sequence-item'] in roles and 'checked' or ' '">
+    <input type="checkbox" name="&dtml-permission;|&dtml-sequence-item;" &dtml-checked; />
+                  </dtml-let>
+  </td>
+                </dtml-in>
+</tr>
+              </dtml-with>
+            </dtml-let>
+          </dtml-in>
+        </dtml-let>
+      </dtml-let>
+</table>
+
+<br>
+      <dtml-if IsAdmin>
+<input type="submit" name="set_attr_permissions" value="<dtml-var "msg('Apply')">" />
+      </dtml-if>
+<input type="hidden" name="state" value="&dtml-state;">
+<input type="hidden" name="attribute_id" value="&dtml-attr;">
+
+</form>
+
+    </dtml-with "portal_workflow[wf].getAttributeDefinition(attr)">
+  </dtml-with>
+</dtml-let>
+
+<dtml-var simple_html_footer>

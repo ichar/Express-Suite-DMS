@@ -1,0 +1,35 @@
+<dtml-var standard_html_header>
+
+<div class="Desktop">
+
+<dtml-if message>
+ <p>&dtml-message;</p>
+ <hr>
+</dtml-if>
+
+<div class="AppBoardItem">
+
+<h2>Редактирование форума</h2>
+
+<form action="appboardcontainer_edit" method="post">
+<table class="FormLayout">
+ <tr>
+  <th> Тема
+  </th>
+  <td> <input type="text" name="title:text" size=55 value="<dtml-var Title>"> </td>
+ </tr>
+ <tr>
+  <th> <br> </td>
+  <td align=center>
+   <input type="submit" value=" Готово ">
+   <input type="button" value=" Отмена " onClick="JavaScript:location.href='./';">
+  </td>
+ </tr>
+</table>
+</form>
+
+</div>
+
+</div>
+
+<dtml-var standard_html_footer>

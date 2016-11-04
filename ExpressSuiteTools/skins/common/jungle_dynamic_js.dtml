@@ -1,0 +1,144 @@
+// Deleting old diff cookies
+/*
+path = location.href.substring(0,location.href.lastIndexOf('/'))
+document.cookie = "tree-e=''; path=" + path + "; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+document.cookie = "tree-c=''; path=" + path + "; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+*/
+
+document.cookie = "tree-e=''; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+document.cookie = "tree-c=''; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+
+_opened_div = null;
+_closed_div = null;
+
+function checkReadyState() {
+  if (externalDoc.readyState == 4) {
+    if (externalDoc.status == 200) {
+      _closed_div.style.display = 'none';
+      _opened_div.removeAttribute('empty');
+      _opened_div.innerHTML = externalDoc.responseText;
+    }
+    else if (Math.floor(externalDoc.status / 5) == 100) {
+        // When args are lost or any another server-side error occured - reload entire document and act like in static mode
+        document.location.replace(document.location);
+    }
+    else {
+      _opened_div.innerHTML = '<span style="color: red; font-weight: bold;">ERROR '+externalDoc.status+'</span>';
+    }
+    _opened_div = null;
+    _closed_div = null;
+  }
+}
+
+function loadAsyncXML(fileName) {
+  externalDoc = null;
+  
+  for (var i=0; i < 3 && !externalDoc; i++) {
+    try {
+      if (i==0) {
+        // IE MSXML2 object
+        externalDoc = new ActiveXObject('Msxml2.XMLHTTP');
+        _closed_div.style.display = 'none';
+      }
+      else if (i==1) {
+        // IE MSXML object  
+        externalDoc = new ActiveXObject('Microsoft.XMLHTTP');
+        _closed_div.style.display = 'none';
+      }
+      else if (i==2) {
+        // Mozilla object
+        externalDoc = new XMLHttpRequest();
+      }
+    }
+    catch (error) {
+      continue;
+    }
+  }
+
+  if (!externalDoc) {
+    // invalid browser alert
+    _opened_div.innerHTML = '<span style="color: red; font-weight: bold;">ERROR: <br>XMLHTTP is not supported by your browser</span>';
+    _opened_div = null;
+    _closed_div = null;
+    return;
+  }
+  
+  externalDoc.onreadystatechange = checkReadyState;
+  externalDoc.open('GET', fileName);
+  externalDoc.send(null);
+}
+
+function GetCookie(sName)
+{
+  var aCookie = document.cookie.split("; ");
+  for (var i=0; i < aCookie.length; i++)
+  {
+    var aCrumb = aCookie[i].split("=");
+    if (sName == aCrumb[0]) 
+      return unescape(aCrumb[1]);
+  }
+  return null;
+}
+
+function nodeAction(el,cookie_url,diff) {
+  nodeAction(el,cookie_url,diff,0)
+}
+
+function nodeAction(el,cookie_url,diff,dynamic_url) {
+  
+  // Do not work while another part is loading
+  if (_opened_div != null) return;
+  
+  var img = el;
+  var cell = el.parentNode.parentNode.cells[1];
+  var divs = cell.getElementsByTagName('div');
+
+  closed_div = divs[0];
+
+  // We know that first div always named 'closed' and there is somewhere 'opened', so we have to find it
+  for (i=1; i<divs.length; i++)
+    if (divs[i].getAttribute('name') == 'opened') {
+      opened_div = divs[i];
+      break; }
+
+  len = img.src.length;
+  if (img.src.substring(len-10,len-4)=='closed') {
+    img.src = img.src.substring(0,len-10) + 'opened' + img.src.substring(len-4,len);
+
+    if (dynamic_url && opened_div.getAttribute('empty') != null) {
+      opened_div.style.display = 'block';
+      opened_div.innerHTML = "<dtml-var "msg('Loading...')">";
+      _opened_div = opened_div;
+      _closed_div = closed_div;
+      loadAsyncXML(dynamic_url + '?code=' + (new Date().getTime()));
+    }
+    else {
+      closed_div.style.display = 'none';
+      opened_div.style.display = 'block';
+    }
+
+    if ( GetCookie('tree-c') == diff ) {
+      //document.cookie = "tree-c=''; path=" + cookie_url + "; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+      document.cookie = "tree-c=''; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+    }
+    else {
+      //document.cookie = "tree-e=" + diff + "; path=" + cookie_url + ";";
+      document.cookie = "tree-e=" + diff + ";";
+    }
+  }
+  else {
+    img.src = img.src.substring(0,len-10) + 'closed' + img.src.substring(len-4,len);
+
+    closed_div.style.display = 'block';
+    opened_div.style.display = 'none';
+
+    if ( GetCookie('tree-e') == diff ) {
+      //document.cookie = "tree-e=''; path=" + cookie_url + "; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+      document.cookie = "tree-e=''; expires=Fri, 31 Dec 1999 23:59:59 GMT;";
+    }
+    else {
+      //document.cookie = "tree-c=" + diff + "; path=" + cookie_url + ";";
+      document.cookie = "tree-c=" + diff + ";";
+    }
+  }
+}

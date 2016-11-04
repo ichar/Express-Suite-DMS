@@ -1,0 +1,95 @@
+<dtml-revision $Revision: 1.7.10.1 $>
+
+<dtml-var simple_html_header>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: &dtml-Title;</a></strong></p>
+
+<p>
+<strong><a href="&dtml-absolute_url;/workflow_transitions">&lt;&lt; <dtml-var "msg('Document category transitions')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/task_template_list"><dtml-var "msg('Actions templates')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/task_template_summary"><dtml-var "msg('Routing')"></a></strong>
+</p>
+
+<h2><dtml-var "msg('Document category states')"></h2>
+
+<dtml-let wf=Workflow
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+
+<dtml-with "portal_workflow[wf].getSortedStateList(wf, ret_type=1)">
+
+<form action="workflows" method="POST" onsubmit="javascript: return Validate(this);">
+
+<script type="text/javascript">
+<!--
+function Validate( frm ) {
+    if ( validateIdentifier(frm.elements['state_id'], '<dtml-var "msg('Object id is invalid')">', true) == false)
+        return false;
+    return true;
+}
+-->
+</script>
+
+<table width="100%" cellspacing="0" cellpadding="2" border="0">
+<dtml-in values sort="title">
+<tr class="row_title">
+  <td align="left" colspan="2">
+  <dtml-if IsAdmin>
+    <input type="checkbox" name="ids:list" value="&dtml-id;" <dtml-var "not isPrivateItem(_['sequence-item']) and 'disabled' or ''"> />
+  </dtml-if>
+    <dtml-if expr="id == initial_state">*</dtml-if>
+    <a href="state_properties?state=&dtml-id;"><dtml-var "msg(getStateTitle(wf, getId()), add=None)"></a>
+    <dtml-var "isPrivateItem(_['sequence-item']) and msg('private') or msg('acquired')">
+  </td>
+</tr>
+<dtml-let state_id=id>
+  <dtml-in getTransitions>
+    <dtml-try>
+<tr>
+  <td width="10%"></td>
+  <td>
+      <dtml-let ti="getTransitionInfo(wf, _['sequence-item'])">
+        <a href="transition_properties?transition=&dtml-sequence-item;"><dtml-var "msg(ti['actbox_name'])"></a>
+      </dtml-let>
+  </td>
+</tr>
+    <dtml-except>
+<tr>
+  <td></td>
+  <td><em>error</em></td>
+</tr>
+    </dtml-try>
+  <dtml-else>
+<tr>
+  <td></td>
+  <td><em><dtml-var "msg('No transitions')">.</em></td>
+</tr>
+  </dtml-in>
+</dtml-let>
+<dtml-else>
+  <tr><td><em><dtml-var "msg('No states defined')">.</em></td></tr>
+</dtml-in>
+</table>
+
+<dtml-if IsAdmin>
+  <dtml-if values>
+<input type="submit" name="manage_renameForm" value="<dtml-var "msg('Rename')">" />
+<input type="submit" name="deleteStates" value="<dtml-var "msg('Delete')">" />
+<input type="submit" name="setInitialState" value="<dtml-var "msg('Set Initial State')">" />
+  </dtml-if>
+
+<br><br>
+<h3><dtml-var "msg('Add a state')"></h3>
+<p>
+<dtml-var "msg('Id')"> <input type="text" name="state_id" size="40" value="" />
+<input type="submit" name="addState" value="<dtml-var "msg('Add')">" onclick="return validateIdentifier(this.form.state_id, '<dtml-var "msg('This identifier is not valid.')">');">
+</p>
+</dtml-if>
+
+</form>
+
+</dtml-with>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

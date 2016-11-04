@@ -1,0 +1,68 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'Group Information')">
+
+<dtml-var simple_html_header>
+
+<dtml-let title="portal_membership.getGroupTitle(_['groupid'])"
+          group_users="portal_membership.getGroupMembers(_['groupid'])"
+          group_attrs="portal_membership.getGroupAttribute(_['groupid'], mapping=1)"
+          attrs="portal_membership.getGroupKeys()"
+>
+
+<TABLE class="FormLayout" width="420px" height="100%" border="0">
+<COLGROUP>
+<COL style="WIDTH:35%">
+<COL style="WIDTH:65%">
+<TBODY>
+
+<tr>
+  <th><dtml-var "msg('Group')"></th>
+  <td class="ViewField"><dtml-var groupid></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Title')"></th>
+  <td class="smallHeader" style="padding-left:4px;"><span style="cursor:default;color:#800080;"><dtml-var title></td>
+</tr>
+
+<tr><td>&nbsp;</td></tr>
+
+  <dtml-if group_users>
+<tr>
+  <td class="smallHeader" align="right" nowrap><h3><dtml-var "msg('Group members')">:</h3></td>
+  <td class="small" style="padding-left:4px;">
+    <dtml-in group_users>
+      <dtml-var "member_name( _.None, _, member=_['sequence-item'] )"><br>
+    </dtml-in>
+  </td>
+</tr>
+  </dtml-if>
+
+<tr><td>&nbsp;</td></tr>
+
+  <dtml-if group_attrs>
+<tr>
+  <td nowrap align="right"><strong><dtml-msg "Member group attributes"></strong></td>
+  <td style="padding: 1px 0 0 4px;">
+    <span style="cursor:default;color:#004080;font-size:100%;">
+    <dtml-in group_attrs mapping>
+      <dtml-if "attr_name in attrs.keys() and attr_value">
+    <nobr><dtml-var "msg(attr_name+' '+'group', add=0)"></nobr><br>
+      </dtml-if>
+    </dtml-in>
+    </span>
+  </td>
+</tr>
+  </dtml-if>
+
+<tr>
+  <td></td>
+  <td height="100%" align="left" style="padding-left:4px; vertical-align:middle;">
+    <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+  </td>
+</tr>
+
+<TBODY></TABLE>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

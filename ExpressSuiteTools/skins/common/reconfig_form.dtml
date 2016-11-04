@@ -1,0 +1,359 @@
+<dtml-if "portal_membership.protection(context='reconfig', REQUEST=REQUEST)">
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<h1><dtml-var "msg('Configure the Portal')"></h1>
+
+<script type="text/javascript">
+<!--
+function change_disabled(form, name) {
+    if( name == 'timeout' ) {
+        if( typeof(form['use_timeout']) != 'object' || typeof(form['duration']) != 'object' )
+            return;
+        state = form.use_timeout.checked;
+        setControlState(form, 'duration', state);
+    } else if( name == 'suspended_mail' ) {
+        if( typeof(form['suspended_mail']) != 'object' )
+            return;
+        state = form.suspended_mail.checked;
+        setControlState(form, 'mail_frequency', state);
+        setControlState(form, 'mail_threshold', state);
+    }
+}
+//-->
+</script>
+
+<dtml-comment>
+<dtml-let prop="propertyItems()">
+  <dtml-var prop>
+  <br>
+  &dtml-portal_url;/reconfig<br>
+  <dtml-var "portal_properties.title()">
+</dtml-let>
+</dtml-comment>
+
+<dtml-try>
+<dtml-with portal_properties only>
+
+<form id="properties" name="portal_properties" action="&dtml.url-reconfig;" method="POST">
+
+<table class="FormLayout" cellspacing="2" cellpadding="2" border="0">
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Portal title')"></th>
+  <td colspan="2">
+    <input name="title" value="&dtml-title;" size="60"><br>
+    <dtml-var "msg('This is the title which appears at the top of every portal page.')">
+  </td>
+</tr>
+
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Portal description')"></th>
+  <td colspan="2">
+    <textarea cols="40" rows="5" name="description" style="width:100%">&dtml-description;</textarea>
+    <dtml-var "msg('Brief description of the portal.')">
+  </td>
+</tr>
+
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Default language')"></th>
+  <td colspan="2">
+    <select name="language">
+	<dtml-in "msg.get_languages_map()" mapping>
+      <option value="&dtml-id;" <dtml-var "msg.default_language(id) and 'selected' or ''"> >
+      <dtml-var "msg(title)"></option>
+	</dtml-in>
+    </select><br>
+    <dtml-var "msg('Default language for new users of the portal.')">
+  </td>
+</tr>
+
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Server address')"></th>
+  <td colspan="2">
+    <input name="server_url" value="&dtml-server_url;" size="60"><br>
+    <dtml-var "msg('This address is the canonical URL for the portal Web-server.')">
+  </td>
+</tr>
+
+<dtml-if "_.has_key('instance')">
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Instance Name')"></th>
+  <td colspan="2">
+    <input name="instance" value="&dtml-instance;" size="60"><br>
+  </td>
+</tr>
+</dtml-if>
+  
+<tr>
+  <th valign="top" align="left" nowrap> <dtml-var "msg('Portal \'From\' name')"></th>
+  <td colspan="2">
+    <input name="email_from_name" value="&dtml-email_from_name;" size="60"><br>
+    <dtml-var "msg('When the portal generates mail, it uses this name as its (apparent) sender.')">
+  </td>
+</tr>
+
+<dtml-if "_.has_key('email_antispam')">  
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('Portal Incoming address')"></th>
+  <td colspan="2">
+    <input name="email_from_address" value="&dtml-email_from_address;" size="60"><br>
+    <dtml-var "msg('Email address to execute Incoming FaxServer service.')">
+  </td>
+</tr>
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('Portal \'From\' address')"><br>(ANTISPAM)</th>
+  <td colspan="2">
+    <input name="email_antispam" value="&dtml-email_antispam;" size="60"><br>
+    <dtml-var "msg('When the portal generates mail, it uses this address as its (apparent) return address.')">
+  </td>
+</tr>
+<dtml-else>
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('Portal \'From\' address')"></th>
+  <td colspan="2">
+    <input name="email_from_address" value="&dtml-email_from_address;" size="60"><br>
+    <dtml-var "msg('When the portal generates mail, it uses this address as its (apparent) return address.')">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('email_error_address')">
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('Portal Error address')"></th>
+  <td colspan="2">
+    <input name="email_error_address" value="&dtml-email_error_address;" size="60" style="width:100%"><br>
+    <dtml-var "msg('Email address to send error traceback.')">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('send_to_support')">
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('Send error to support')"></th>
+  <td colspan="2">
+    <input type="checkbox" value="1" name="send_to_support:boolean" <dtml-var send_to_support fmt=checked> /><br>
+    <dtml-var "msg('Error traceback will be sent to support service.')">
+    <input type="hidden" value="" name="send_to_support:boolean">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('apply_threading')">
+<tr>
+  <th valign="top" align="left" style="padding-left:20px; vertical-align:middle;" nowrap><dtml-var "msg('Apply Threading')"></th>
+  <td><input type="checkbox" value="1" name="apply_threading:boolean" <dtml-var apply_threading fmt=checked> /></td>
+  <td style="width:99%;">
+  <dtml-if "_.has_key('use_timeout')">
+    <table class="FormLayout" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td style="padding: 0 5px 0 0; vertical-align:middle;" nowrap><label for="use_timeout"><dtml-var "msg('use timeout')"></label></td>
+      <td>
+        <input type="checkbox" value="1" id="use_timeout" name="use_timeout:boolean" onclick="javascript:change_disabled(this.form, 'timeout');" <dtml-var use_timeout fmt=checked> />
+        <input type="hidden" value="" name="use_timeout:boolean">
+      </td>
+    <dtml-if "_.has_key('duration')">
+      <td style="padding: 0 5px 0 5px; vertical-align:middle;" nowrap><dtml-var "msg('timeout duration')"></td>
+      <td>
+        <input id="duration" name="duration:float" style="text-align:center;" value="&dtml-duration;" size="10"  <dtml-var "not use_timeout" fmt=disabled> />
+      </td>
+    </dtml-if>
+    <dtml-if "_.has_key('p_resolve_conflict')">
+      <td style="padding: 0 5px 0 5px; vertical-align:middle;" nowrap><dtml-var "msg('resolve conflict')"></td>
+      <td>
+        <input type="checkbox" value="1" id="timeout" name="p_resolve_conflict:boolean" <dtml-var p_resolve_conflict fmt=checked> />
+        <input type="hidden" value="" name="p_resolve_conflict:boolean">
+      </td>
+    </dtml-if>
+    </tr>
+    </table>
+  </td>
+  </dtml-if>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="2">
+    <dtml-var "msg('In this mode will be applied thread waiting engine.')">
+    <dtml-var "msg('Be carefull! Only for admin.')">
+    <input type="hidden" value="" name="apply_threading:boolean">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('emergency_service')">  
+<tr>
+  <th valign="top" align="left" style="padding-left:20px; vertical-align:middle;" nowrap><dtml-var "msg('Emergency Service')"></th>
+  <td><input type="checkbox" value="1" name="emergency_service:boolean" <dtml-var emergency_service fmt=checked>></td>
+  <td style="width:99%;" colspan="2">
+  <dtml-if "_.has_key('service_timeout')">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td align="left" style="padding: 0 5px 0 0; vertical-align:middle;" nowrap><dtml-var "msg('servicing timeout')"></td>
+      <td><input name="service_timeout" style="text-align:center;" value="&dtml-service_timeout;" size="5"></td>
+      <td style="padding: 0 5px 0 5px; vertical-align:middle;" nowrap>(<dtml-var "msg('min')">)</td>
+    </tr>
+    </table>
+  </dtml-if>
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="2">
+    <dtml-var "msg('Turn on emergency servicing procedure.')">
+    <dtml-var "msg('Be carefull! Only for admin.')">
+    <input type="hidden" value="" name="emergency_service:boolean">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('max_involved_users')">
+<tr>
+  <th valign="top" align="left" rowspan="2"><dtml-var "msg('Max Involved Users')"></th>
+  <td style="width:99%;" colspan="2" align="left">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><input name="max_involved_users:int" style="text-align:center;" value="&dtml-max_involved_users;" size="5"></td>
+  <dtml-if "_.has_key('suspended_mail')">
+      <td style="padding: 0 5px 0 5px; vertical-align:middle;" nowrap><label for="suspended_mail"><dtml-var "msg('suspended mail')"></label></td>
+      <td><input id="suspended_mail" type="checkbox" value="1" name="suspended_mail:boolean" onclick="javascript:change_disabled(this.form, 'suspended_mail');" <dtml-var suspended_mail fmt=checked> /></td>
+      <td style="padding: 0 5px 0 5px; vertical-align:middle;" nowrap><dtml-var "msg('frequency')"></td>
+      <td><input name="mail_frequency" style="text-align:center;" value="&dtml-mail_frequency;" size="5" <dtml-var "not suspended_mail" fmt=disabled> /></td>
+      <td style="padding: 0 5px 0 5px; vertical-align:middle;" nowrap><dtml-var "msg('max')"></td>
+      <td><input name="mail_threshold" style="text-align:center;" value="&dtml-mail_threshold;" size="5" <dtml-var "not suspended_mail" fmt=disabled> /></td>
+  </dtml-if>
+    </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td colspan="2">
+    <dtml-var "msg('Restricred task users number.')">
+    <input type="hidden" value="" name="suspended_mail:boolean">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('created_search_interval')">
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Created Search Interval')"></th>
+  <td colspan="2">
+    <input name="created_search_interval:int" style="text-align:center;" value="&dtml-created_search_interval;" size="5"><br>
+    <dtml-var "msg('Created value for attribute search in days.')">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('member_activity')">  
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('Member Activity Statistics')"></th>
+  <td colspan="2">
+    <input type="checkbox" value="1" name="member_activity:boolean" <dtml-var member_activity fmt=checked> /><br>
+    <dtml-var "msg('In this mode will be run portal members activity audit.')">
+    <input type="hidden" value="" name="member_activity:boolean">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('remote_url')">
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Remote System address')"></th>
+  <td colspan="2">
+    <input name="remote_url" value="&dtml-remote_url;" size="60"><br>
+    <dtml-var "msg('This address is the canonical URL for remote system Web-server.')">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('common_url')">
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Common System address')"></th>
+  <td colspan="2">
+    <input name="common_url" value="&dtml-common_url;" size="60"><br>
+    <dtml-var "msg('This address is the canonical URL for common system Web-server.')">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.has_key('p_log')">
+<tr>
+  <th valign="top" align="left"><dtml-var "msg('Print log')"></th>
+  <td><input type="checkbox" id="p_log" value="1" name="p_log:boolean" <dtml-var p_log fmt=checked> /></td>
+  <td style="padding-top:5px;" colspan="2">
+    <label for="p_log"><dtml-var "msg('Print debugging log.')"></label>
+    <input type="hidden" value="" name="p_log:boolean">
+  </td>
+</tr>
+</dtml-if>
+  
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('SMTP server')"></th>
+  <td colspan="2">
+    <input name="smtp_server" value="&dtml-smtp_server;" size="60"><br>
+    <dtml-var "msg('This is the address of your local SMTP (outgoing mail) server.')">
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>    
+  <td colspan="2">
+    <input type="checkbox" name="is_smtp_auth" <dtml-var smtp_login fmt=checked> onclick="toggleSMTPAuth(this.form, this.checked);"><dtml-var "msg('Use SMTP authentication')">
+  </td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Login')"></th>
+  <td colspan="2" class="small">
+    <input type="text" name="smtp_login" value="&dtml-smtp_login;" size="25" <dtml-var "not smtp_login()" fmt=disabled> >
+    <input type="hidden" name="smtp_login:default" value="">
+  </td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Password')"></th>
+  <td colspan="2" class="small">
+    <input type="password" name="smtp_password" value="***" size="25" <dtml-var "not smtp_login()" fmt=disabled> />
+  </td>
+</tr>
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('POP3 server')"></th>
+  <td colspan="2">
+    <input name="mail_server" value="&dtml-mail_server;" size="60"><br>
+    <dtml-var "msg('This is the address of your local POP3 (incoming mail) server.')">
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="2"><input type="Submit" value="<dtml-var "msg('Apply')">"></td>
+</tr>
+</table>
+
+</form>
+
+</dtml-with>
+<dtml-except></dtml-try>
+
+</div>
+
+</body>
+<script language="javascript" type="text/javascript">
+function toggleSMTPAuth(form, checked) {
+    var objForm = form
+    if(checked) {
+        objForm.smtp_login.disabled=false;
+        objForm.smtp_login.value="";
+        objForm.smtp_password.disabled=false;
+        objForm.smtp_password.value="";
+    } else {
+        objForm.smtp_login.disabled=true;
+        objForm.smtp_password.disabled=true;
+    }
+}
+
+function setCheckbox(check, obj) {
+    if(typeof(obj) != 'object') return;
+    obj.value = ( check.checked ? '1' : '0' );
+}
+</script>
+</html>
+
+<dtml-var simple_html_footer>
+
+</dtml-if>

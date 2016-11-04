@@ -1,0 +1,5 @@
+<dtml-if "portal_actions.IsPortalAvailable()">
+  <dtml-var "inFrame(this(), link=portal_url()+'/home')">
+<dtml-else>
+  <dtml-call "RESPONSE.redirect(portal_url()+'/emergency_service_message?expand=1')">
+</dtml-if>

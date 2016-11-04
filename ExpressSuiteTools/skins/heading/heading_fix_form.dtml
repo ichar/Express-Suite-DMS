@@ -1,0 +1,32 @@
+<dtml-call "REQUEST.set('noCache',1)">
+<dtml-call "REQUEST.set('action', 'fix')">
+
+<dtml-comment>
+<dtml-var standard_html_header>
+</dtml-comment>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<h1><dtml-var "msg('Topic fixing')"></h1>
+
+<dtml-if message>
+ <h2 class="DesktopTitle">&dtml-message;</h2>
+</dtml-if>
+
+<p class="DesktopStatusBar">
+<dtml-var "msg('No changes can be applied to the fixed topic ')"><br>
+<dtml-var "msg('You won\'t be able to revert the topic to the editable state')">
+</p>
+
+<dtml-var heading_embedded_status_form>
+
+</div>
+
+</body>
+</html>
+
+<dtml-comment>
+<dtml-var standard_html_footer>
+</dtml-comment>

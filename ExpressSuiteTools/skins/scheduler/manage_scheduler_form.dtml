@@ -1,0 +1,42 @@
+<dtml-if "portal_membership.protection(context='scheduler', REQUEST=REQUEST)">
+
+<dtml-var scheduler_html_header>
+<dtml-with portal_scheduler>
+
+<form action="manage_scheduler" method="post">
+  <span class="form-help">
+  <dtml-msg scheduler.daemon.explain>
+  </span>
+
+  <br>
+
+  <span class="form-label"><dtml-msg scheduler.daemon.status>:</span>
+  <dtml-if checkDaemon>
+    <span class="form-text"><font color=blue><dtml-msg scheduler.daemon.started></font></span> <br>
+    <input type="submit" name="stop" value="<dtml-msg scheduler.daemon.stop>">
+    <input type="submit" name="restart" value="<dtml-msg scheduler.daemon.restart>">
+  <dtml-else>
+    <span class="form-text"><font color=red><dtml-msg scheduler.daemon.stopped></font></span> <br>
+    <input type="submit" name="start" value="<dtml-msg scheduler.daemon.start>">
+  </dtml-if>
+
+  <hr>
+
+  <span class="form-help"><dtml-msg scheduler.daemon.explain_autostart> </span>
+  <br>
+  <span class="form-label"><dtml-msg scheduler.daemon.autostart>:</span>
+  <dtml-if isRegistered>
+    <span class="form-text"><font color=blue><dtml-msg scheduler.daemon.autostart_enabled></font></span> <br>
+    <input type="submit" name="unregister" value="<dtml-msg scheduler.daemon.autostart_disable>">
+  <dtml-else>
+    <span class="form-text"><font color=red><dtml-msg scheduler.daemon.autostart_disabled></font></span> <br>
+    <input type="submit" name="register" value="<dtml-msg scheduler.daemon.autostart_enable>">
+  </dtml-if>
+
+  <br>
+</form>
+
+</dtml-with>
+<dtml-var simple_html_footer>
+
+</dtml-if>

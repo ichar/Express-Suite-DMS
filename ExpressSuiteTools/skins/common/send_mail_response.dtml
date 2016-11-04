@@ -1,0 +1,10 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+
+<dtml-var simple_html_header>
+
+<p>
+  <strong><dtml-if "message.lower().startswith('error')"><font color="red"><dtml-else><font color="green"></dtml-if><dtml-var "msg(message, add=0)"></font></strong>
+</p>
+
+<dtml-var simple_html_footer>
+

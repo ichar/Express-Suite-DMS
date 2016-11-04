@@ -1,0 +1,178 @@
+<dtml-var simple_html_header>
+
+<p><strong>
+  <a href="&dtml-absolute_url;">
+    &lt;&lt; <dtml-var "msg('Category')">: <dtml-var "msg(Title())">
+  </a>
+</strong></p>
+
+<b><dtml-var "msg('Result codes')"></b>
+<br><br>
+
+<dtml-let category_id=getId
+          model="this().taskTemplateContainerAdapter.callModel"
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+  <dtml-let error_id="REQUEST.get('ret')">
+    <dtml-if error_id>
+<div class="Error">
+  <dtml-var "msg('Error')">: <dtml-var "msg(model( category_id, 'getErrorStringById', error_id ))">
+</div><p>
+    </dtml-if>
+  </dtml-let>
+
+<table border="0"  cellspacing="2" cellpadding="2">
+<tr class="row_odd">
+  <td align="center" colspan="<dtml-var "_.len(model( category_id, 'getTemplateIds' ))">">
+    <b><dtml-var "msg('Actions templates')"></b>
+  </td>
+  <td align="center" rowspan="2"><b><dtml-var "msg('Transitions')"></b></td>
+  <td align="center" rowspan="2"><b>&nbsp;</td>
+</tr>
+<tr bgcolor="#cccccc">
+  <dtml-in "model( category_id, 'getTemplateIds' )">
+    <td><b><dtml-var "model( category_id, 'getTemplateTitleById', _['sequence-item'] )"></b></td>
+  </dtml-in>
+</tr>
+  
+  <dtml-in "model( category_id, 'getVariantIds' )">
+    <dtml-let id_variant_for_edit="_.int(REQUEST.get('id_variant_for_edit', 0))"
+              id_variant="_['sequence-item']"
+              edit_mode="id_variant_for_edit==id_variant and IsAdmin"
+              variant="model( category_id, 'getVariantById', id_variant )"
+    >
+      <dtml-if edit_mode>
+<form action="actionOverTable" method="POST">
+      </dtml-if>
+<input type="hidden" name="c_id" value="&dtml-getId;">
+<tr class="row_even">
+      <dtml-in "model( category_id, 'getTemplateIds' )">
+        <dtml-let id_template_cur="_['sequence-item']">
+  <td>
+          <dtml-if edit_mode>
+    <select name="resultcode_&dtml-id_template_cur;" size="1">
+      <option value=""><dtml-var "msg('None')"></option>
+            <dtml-in "model( category_id, 'getResultCodesOfTemplate', id_template_cur )">
+              <dtml-let cur_resultcode_id="variant['resultcodes'].get(id_template_cur)"
+                        selected="_['sequence-item']['id'] == cur_resultcode_id and ' selected' or ''"
+              >
+      <option value="<dtml-var "_['sequence-item']['id']">" &dtml-selected;><dtml-var "msg(_['sequence-item']['title'])"></option>
+              </dtml-let>
+            </dtml-in>
+    </select>
+          <dtml-else>
+            <dtml-if "variant['resultcodes'].has_key( id_template_cur )">
+              <dtml-var "msg(variant['resultcodes'][id_template_cur])">
+            <dtml-else>
+              &nbsp;
+            </dtml-if>
+          </dtml-if>
+  </td>
+        </dtml-let>
+      </dtml-in>
+
+  <td bgcolor="#f6f6f6">
+      <dtml-let wf=Workflow>
+        <dtml-if edit_mode>
+    <select size="1" name="transition">
+          <dtml-in "model( category_id, 'getTransitionIds' )">
+            <dtml-let selected="_['sequence-item']==variant['transition'] and ' selected' or ''"
+                      transition_title="portal_workflow[wf].transitions[_['sequence-item']].title"
+            >
+      <option value="&dtml-sequence-item;"&dtml-selected;><dtml-var "msg(transition_title)"></option>
+            </dtml-let>
+          </dtml-in>
+    </select>
+        <dtml-else>
+          <dtml-let transition_title="portal_workflow[wf].transitions[variant['transition']].title">
+            <dtml-var "msg(transition_title)">
+          </dtml-let>
+        </dtml-if>
+      </dtml-let>
+  </td>
+
+  <td>
+      <dtml-if edit_mode>
+    <input type="submit" value="<dtml-var "msg('Save')">">
+    <input type="button" onClick="location.href='edit_table_resultcodes2transition'" value="<dtml-var "msg('Cancel')">">
+    <input type="button" onClick="location.href='actionOverTable?id_variant=&dtml-id_variant;&action=delete&category_id=&dtml-category_id;'" value="<dtml-var "msg('Delete')">">
+      <dtml-else>
+    <a href="?id_variant_for_edit=<dtml-var "_['sequence-item']">">
+      <small><dtml-var "msg('edit')"></small>
+    </a>
+      </dtml-if>
+  </td>
+</tr>
+  
+      <dtml-if edit_mode>
+<input type="hidden" name="action" value="change">
+<input type="hidden" name="id_variant" value="<dtml-var id_variant>">
+</form>
+      </dtml-if>
+    </dtml-let>
+  </dtml-in>
+</table>
+
+<dtml-comment> ---------------------------[ Form add ]----------------------------- </dtml-comment>
+
+  <dtml-if IsAdmin>
+
+<br><br>
+<b><dtml-var "msg('Add')"></b>:
+
+<table border="0"  cellspacing="2" cellpadding="2">
+<tr class="row_odd">
+  <td align="center" colspan="<dtml-var "_.len(model( category_id, 'getTemplateIds' ))">">
+    <b><dtml-var "msg('Actions templates')"></b>
+  </td>
+  <td align="center" rowspan="2"><b><dtml-var "msg('Transitions')"></b></td>
+  <td align="center" rowspan="2"><b>&nbsp;</td>
+</tr>
+<tr bgcolor="#cccccc">
+    <dtml-in "model( category_id, 'getTemplateIds' )">
+  <td><b><dtml-var "model( category_id, 'getTemplateTitleById', _['sequence-item'] )"></b></td>
+    </dtml-in>
+</tr>
+  
+<form action="actionOverTable" method="POST">
+<input type="hidden" name="c_id" value="&dtml-getId;">
+
+<tr class="row_even">
+    <dtml-in "model( category_id, 'getTemplateIds' )">
+      <dtml-let id_template_cur="_['sequence-item']">
+  <td>
+    <select name="resultcode_&dtml-id_template_cur;" size="1">
+     <option value=""><dtml-var "msg('None')"></option>
+       <dtml-in "model( category_id, 'getResultCodesOfTemplate', id_template_cur )">
+     <option value="<dtml-var "_['sequence-item']['id']">"><dtml-var "msg(_['sequence-item']['title'])"></option>
+       </dtml-in>
+    </select>
+  </td>
+      </dtml-let>
+    </dtml-in>
+  <td bgcolor="#f6f6f6">
+    <dtml-let wf=Workflow>
+    <select size="1" name="transition">
+      <dtml-in "model( category_id, 'getTransitionIds' )">
+        <dtml-let transition_title="portal_workflow[wf].transitions[_['sequence-item']].title">
+       <option value="&dtml-sequence-item;"><dtml-var "msg(transition_title)"></option>
+        </dtml-let>
+      </dtml-in>
+    </select>
+    </dtml-let>
+  </td>
+  <td>
+    <input type="submit" value="<dtml-var "msg('Add')">">
+  </td>
+</tr>
+
+<input type="hidden" name="action" value="add">
+</form>
+
+</table>
+
+  </dtml-if>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

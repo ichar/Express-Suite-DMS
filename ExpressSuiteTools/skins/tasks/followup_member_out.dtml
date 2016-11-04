@@ -1,0 +1,59 @@
+<dtml-call "REQUEST.set('OpenInFrame', 'followup_member_out')">
+
+<dtml-var simple_html_header>
+
+<dtml-let user="_.has_key('user') and user or REQUEST.get('user')"
+          member_id="_.has_key('member_id') and member_id or REQUEST.get('member_id')"
+          brains_type="_.has_key('brains_type') and brains_type or REQUEST.get('brains_type')"
+          created="REQUEST.get('created')"
+          expires="REQUEST.get('expires')"
+
+          back_params="'%s%s%s' % (
+             brains_type and '&brains_type='+brains_type or '',
+             created and '&created='+created or '',
+             expires and '&expires='+expires or ''
+          )"
+>
+
+<dtml-call "REQUEST['RESPONSE'].setCookie('member_id', member_id, path=URL0)">
+<dtml-call "REQUEST['RESPONSE'].setCookie('brains_type', brains_type, path=URL0)">
+
+<dtml-call "REQUEST.set('member_id', member_id)">
+<dtml-call "REQUEST.set('brains_type', brains_type)">
+
+<dtml-call "REQUEST.set('created', {'query':created, 'range':'min'})">
+<dtml-call "REQUEST.set('expires', {'query':expires, 'range':'max'})">
+
+<p><strong><a href="&dtml-portal_url;/followup_stat?apply_filter=1&dtml-back_params;">&lt;&lt; <dtml-var "msg('Back to the summary tasks statistics page')"></a></strong></p>
+
+<table width="100%">
+<dtml-if member_id>
+<tr>
+  <td>
+    <h2 style="color:#800080"><dtml-var "portal_membership.getMemberName(member_id)"></h2>
+  </td>
+</tr>
+</dtml-if>
+<tr>
+  <td>
+    <h1><dtml-var "msg('Outgoing tasks of the user')"> <dtml-var "member_name(this(), member=user)"></h1>
+  </td>
+</tr>
+<tr>
+  <td>
+    <dtml-var "task_list_embedded( this()
+                             , form_name='followup_member_out'
+                             , finder_method=portal_followup.listOutgoingTasks
+                             , show_filter=1
+                             , REQUEST=REQUEST
+                             , showTabs='outgoing'
+                             , params='&member_id='+member_id+back_params
+                             )"
+    >
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

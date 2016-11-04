@@ -1,0 +1,40 @@
+<dtml-comment>
+$Id: workflow_properties.dtml,v 1.2 2003/09/26 08:45:37 ikuleshov Exp $
+</dtml-comment>
+<dtml-revision $Revision: 1.2 $>
+
+<dtml-var standard_html_header>
+
+<table>
+ <tr>
+  <td><strong>Properties</strong></td>
+  <td><a href="states?wf=&dtml-wf;">States</a></td>
+  <td><a href="transitions?wf=&dtml-wf;">Transitions</a></td>
+ </tr>
+</table>
+
+<dtml-with "portal_workflow[wf]">
+
+<h3><dtml-var title> properties</h3>
+
+<form action="&dtml-absolute_url;/workflows" method="POST">
+<table>
+
+<tr>
+<th align="left">Id</th>
+<td>&dtml-id;</td>
+</tr>
+
+<tr>
+<th align="left">Title</th>
+<td><input type="text" name="title" value="&dtml-title;"/></td>
+</tr>
+
+</table>
+<input type="submit" name="save_properties" value="Save changes" />
+<input type="hidden" name="wf" value="&dtml-wf;">
+</form>
+
+</dtml-with>
+
+<dtml-var standard_html_footer>

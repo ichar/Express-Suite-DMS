@@ -1,0 +1,158 @@
+<dtml-if "portal_membership.protection(context='scheduler', REQUEST=REQUEST)">
+
+<dtml-var scheduler_html_header>
+
+<script language="javascript">
+<!--
+var isSelected = false;
+
+function toggleSelect() {
+    var form = document.objectItems;
+    isSelected = ! isSelected;
+    for( var i = 0; i < form.elements.length; i++ ) {
+        var elem = form.elements[ i ];
+    	if( elem.id.search('_selected') > -1 ) elem.checked = isSelected;
+    }
+    var objSelectAll = document.all["selectAll"];
+    var txtValue = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All')">';
+    if( objSelectAll.length > 1 ) {
+        for( var i = 0; i <= 1; i++ ) {
+          var obj = objSelectAll[i];
+          if( typeof(obj) == 'object' ) { obj.value = txtValue; }
+        }
+    } else if( typeof(form.selectAll) == 'object' ) {
+        form.selectAll.value = txtValue;
+    }
+    return isSelected;
+}
+
+function Validate( frm, action ) {
+    var items = document.getElementsByTagName('input');
+    var IsChecked = 0;
+    for( var i = 0; i < items.length; i++ ) {
+        if( items[i].type == 'checkbox' && items[i].id == 'list_selected' )
+            if( items[i].checked ) {
+                IsChecked = 1;
+                break;
+            }
+    }
+    if( !IsChecked ) {
+        alert('Select item(s) for run action');
+        return false;
+    }
+    frm.action.value = action;
+    return true;
+}
+
+function DisableForm( frm ) {
+    try {
+        frm.resume.disabled=true;
+        frm.suspend.disabled=true;
+        frm.run.disabled=true;
+        frm.remove.disabled=true;
+        frm.selectAll.disabled=true;
+    }
+    catch (error) {}
+}
+
+function SubmitForm( action ) {
+    var frm = document.objectItems;
+    if( Validate( frm, action ) ) {
+        DisableForm( frm );
+        frm.submit();
+    }
+}
+//-->
+</script>
+
+<dtml-with "portal_scheduler.getSchedule()">
+
+<br>
+
+<table width="100%" cellspacing="2" cellpadding="2" border="0">
+<form name="objectItems" action="manage_schedule" method="post">
+<input type="hidden" name="action" value="">
+<tr>
+  <td><input type="submit" value="<dtml-msg "Update this page">"></td>
+  <td align="right" style="padding-top:3px;">
+    <h3><dtml-msg "Total current tasks">:&nbsp;<dtml-var "_.str(getSize())"></h3>
+  </td>
+</tr>
+</table>
+
+<hr>
+
+  <dtml-in getSortedObjectItems>
+    <dtml-if sequence-start>
+<table width="100%" cellspacing="2" cellpadding="2" border="0">
+<tr align="center">
+  <td>&nbsp;</td>
+  <td class="form-label" align="left"><dtml-msg scheduler.schedule.state></td>
+  <td class="form-label" align="left"><dtml-msg scheduler.schedule.next_occurence></td>
+  <td class="form-label" align="left"><dtml-msg Id></td>
+  <td class="form-label" align="left">&nbsp;</td>
+  <td class="form-label" align="left"><dtml-msg Title></td>
+  <td class="form-label" align="left"><dtml-msg scheduler.schedule.temporal_expression></td>
+</tr>
+    </dtml-if>
+    <dtml-let next=getNextOccurenceDate
+              x=getState
+              state="x=='active' and 'forced' or x"
+              x="title and title.split('$')"
+              url="_.len(x)>1 and x[1] or None"
+              name="x[0].strip()"
+              x="name.lower()"
+              icon_state="x.find('nac')>-1 and 'timer.gif' or x.find('expiration')>-1 and 'task_expired.gif' or x.find('finalize')>-1 and 'delete.gif' or 'task_inprogress.gif'"
+              IsTask="url and 1 or 0"
+    >
+<tr>
+  <td class="form-element">
+    <input type="checkbox" id="list_selected" name="ids:list" value="<dtml-var getId>">
+  </td>
+  <td class="form-element">
+    <font <dtml-if "state=='runnable'">color="#008000"<dtml-elif "state=='suspended'">color="#CC0000"<dtml-elif "state=='active'">color="#0000CC"<dtml-else>color="#000000"</dtml-if> />
+      <dtml-msg expr=state>
+    </font>
+  </td>
+  <td class="form-element">
+      <dtml-if next>
+    <dtml-var "next.strftime('%d.%m.%Y %H:%M')">
+      <dtml-else>
+    <dtml-msg never>
+	  </dtml-if>
+  </td>
+  <td class="form-element" nowrap><dtml-var getId></td>
+  <td>
+      <dtml-if IsTask>
+    <a href="&dtml-url;"><img src="&dtml-icon_state;" alt=""/></a>
+      </dtml-if>
+  </td>
+  <td class="form-element">
+      <dtml-if IsTask>
+    <a class="navigate" target="_blank" href="&dtml-url;">&dtml-name;</a>
+      <dtml-else>
+    <dtml-var name>
+      </dtml-if>
+   </td>
+   <td class="form-element"><dtml-var getTemporalExpression></td>
+</tr>
+    </dtml-let>
+    <dtml-if sequence-end>
+</table>
+
+<input type="button" name="resume" value="<dtml-msg scheduler.schedule.resume>" onclick="javascript:SubmitForm(this.name);">
+<input type="button" name="suspend" value="<dtml-msg scheduler.schedule.suspend>" onclick="javascript:SubmitForm(this.name);">
+<input type="button" name="run" value="<dtml-msg scheduler.schedule.run>" onclick="javascript:SubmitForm(this.name);">
+<input type="button" name="remove" value="<dtml-msg scheduler.schedule.remove>" onclick="javascript:SubmitForm(this.name);">
+<input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelect()" style="width:120px;">
+    </dtml-if>
+  <dtml-else>
+<span class="form-text"><dtml-msg scheduler.schedule.empty></span>
+  </dtml-in>
+</form>
+
+</dtml-with>
+
+<dtml-var simple_html_footer>
+
+</dtml-if>

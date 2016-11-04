@@ -1,0 +1,1 @@
+<dtml-var "REQUEST['RESPONSE'].redirect(absolute_url() + '/task_reportwizard_step1')">

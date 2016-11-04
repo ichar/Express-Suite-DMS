@@ -1,0 +1,14 @@
+<table class="FormLayout" border="0">
+<tr>
+  <td valign="middle">
+<dtml-if IsArchive>
+    <img src="&dtml-portal_url;/archive-label.gif" border="0">
+<dtml-else>
+    <img src="&dtml-portal_url;/storage-label.gif" border="0">
+</dtml-if>
+  </td>
+<dtml-if "_.has_key('change_storage_title')">
+  <th valign="top" nowrap style="width:99%"><dtml-var "msg('Select type of storage')"></th>
+</dtml-if>
+</tr>
+</table>

@@ -1,0 +1,242 @@
+<dtml-var simple_html_header>
+
+<dtml-if "not _.has_key('view_only') and not portal_membership.checkPermission('Change permissions', this())">
+  <dtml-call "RESPONSE.redirect(absolute_url())">
+</dtml-if>
+
+<h1><dtml-var "msg('Folder access list')"></h1>
+
+<h3><dtml-var groups_icon.gif> &dtml-title_or_id;</h3>
+
+<script type="text/javascript">
+<!--
+function switchDiv(div, state) {
+    div.style.display=(state ? 'block' : 'none');
+}
+
+function OnClickChecked(obj, id) {
+    var obj_id=document.all[id];
+    if( typeof(obj_id) == 'object' ) {
+        obj_id.value=(obj.checked ? '1' : '-1');
+    }
+}
+
+function GroupsSubmitForm(m) {
+    var frm = document.groups_form;
+    if( m ) frm.no_reindex.value = 1;
+    frm.save.disabled = true;
+    frm.save_without_reindex.disabled = true;
+    frm.submit();
+}
+
+function AddUsersSubmitForm() {
+    var frm = document.set_users_form;
+    if( validateUserForm(frm) ) {
+        frm.add.disabled = true;
+        frm.submit();
+    }
+}
+
+function DelUsersSubmitForm() {
+    var frm = document.del_users_form;
+    frm.remove.disabled = true;
+    frm.submit();
+}
+//-->
+</script>
+
+<table class="FormLayout" width="100%" border="0">
+<tr class="row_odd">
+  <td class="smallHeader">
+    <input type=checkbox id="group_checkbox" onClick="switchDiv(document.getElementById('group_div'), this.checked)">
+    <label for="group_checkbox"><dtml-msg "Group access list"></label>
+  </td>
+</tr>
+</table>
+
+<div id="group_div" style="display:none">
+
+<dtml-let obj="this()"
+          portal="portal_url.getPortalObject()"
+          user="portal_membership.getAuthenticatedMember()"
+          IsViewOnly="_.has_key('view_only') and _.int(view_only) or 0"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+>
+
+<table class="FormLayout" width="100%" border="0">
+<form name="groups_form" action="manage_permissions" method="POST">
+<input type="hidden" name="no_reindex" value="">
+
+<dtml-in "portal_membership.listGroups()" sort="title">
+  <dtml-if sequence-start>
+<tr>
+  <td>
+    <table class="List" width="80%" cellpadding="2">
+    <tr class="row_title">
+      <td width="15%">
+        <dtml-var "msg('Group')">
+      </td>
+      <td>
+         <dtml-var "msg('Description')">
+      </td>
+    <dtml-in "managed_roles">
+      <td align=center>
+        <dtml-var "msg(_['sequence-item'], add=0)">
+        <dtml-if "_['sequence-item'] in ['Author', 'Writer', ]"><dtml-var asterisk></dtml-if>
+      </td>
+    </dtml-in>
+    </tr>
+  </dtml-if>
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+    <dtml-let group_id=getId group_title="portal_membership.getGroupTitle(group_id)">
+      <td nowrap>
+        <a class="navigate" href="group_editor_form?group_id=&dtml-group_id;">&dtml-group_id;</a>
+      </td>
+      <td>&dtml-group_title;</td>
+    </dtml-let>
+    <dtml-in "managed_roles" prefix="role">
+      <td align=center>
+        <input type="checkbox" name="&dtml-getId;:list" value="&dtml-role_item;"
+        <dtml-if "portal_membership.isGroupInheritsRole(obj, getId(), role_item) or role_item == 'Editor' or IsViewOnly">disabled</dtml-if>
+        <dtml-var "portal_membership.isGroupInRole(obj, getId(), role_item)" fmt=checked> />
+      </td>
+    </dtml-in>
+    </tr>
+  <dtml-if sequence-end>
+    </table>
+  </td>
+</tr>
+    <dtml-if "not IsViewOnly">
+<tr>
+  <td>
+    <input type="button" name="save" style="width:100px;" value="<dtml-var "msg('Save')">" onclick="javascript:GroupsSubmitForm(0);">
+    <input type="button" name="save_without_reindex" style="width:240px;" value="<dtml-var "msg('Save without reindex')">" onclick="javascript:GroupsSubmitForm(1);">
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-if>
+
+<dtml-else>
+<tr><td><dtml-var "msg('There are no groups yet')"></td></tr>
+</dtml-in>
+</form>
+</table>
+
+<dtml-if "REQUEST.get('note', 0)">
+  <p><sup>*</sup> <dtml-var "msg('Marked roles are not active for the current state')"></p>
+</dtml-if>
+
+<br>
+
+</div>
+
+<table class="FormLayout" width="100%" border="0">
+<tr class="row_odd">
+  <td class="smallHeader">
+    <input type=checkbox id="user_checkbox" onClick="switchDiv(document.getElementById('user_div'), this.checked)" checked>
+    <label for="user_checkbox"><dtml-msg "User access list"></label>
+  </td>
+</tr>
+</table>
+
+<div id="user_div" style="display:block">
+
+<p><b><dtml-var "msg('You can grant personalized access to this object by assigning the local roles to the users.')">:</b></p>
+
+<dtml-in getSortedLocalRoles>
+  <dtml-if sequence-start>
+<table cellspacing="0" cellpadding="2" border="0">
+<form name="del_users_form" action="delLocalRoles" method="POST">
+  </dtml-if>
+<tr>
+  <td align="left">
+    <input type="checkbox" name="userids:list" value="<dtml-var sequence-key html_quote>" <dtml-if "'__inherited' in _['sequence-item'] or IsViewOnly">disabled</dtml-if> />
+  </td>
+  <td align="left" class="small">
+    <dtml-var "portal_membership.getMemberName(_['sequence-key'])">
+   (<dtml-in sequence-item>    <dtml-if "_['sequence-item'] != '__inherited'">
+    <dtml-var "msg(_['sequence-item'], add=0)"><dtml-unless sequence-end>, </dtml-unless></dtml-if></dtml-in> )
+  </td>
+</tr>
+  <dtml-if sequence-end>
+    <dtml-if "not IsViewOnly">
+<tr>
+  <td align="left" valign="top" colspan="2">
+    <div class="form-element">
+    <input class="form-element" type="button" name="remove" style="width:100px;" value="<dtml-var "msg('Remove')">" onclick="javascript:DelUsersSubmitForm();">
+    </div>
+  </td>
+</tr>
+    </dtml-if>
+</form>
+</table>
+  </dtml-if>
+</dtml-in>
+
+<dtml-if "not IsViewOnly">
+<table border="0">
+<form name="set_users_form" action="setLocalRoles" method="POST">
+<tr>
+  <td class="smallHeader"><dtml-var "msg('User')"></td>
+  <td class="smallHeader"><dtml-var "msg('Roles')"></td>
+  <td>&nbsp;&nbsp;&nbsp;</td>
+  <td></td>
+</tr>
+<tr>
+  <td valign="top">
+    <select name="userid" size="8">
+    <dtml-in "portal_membership.listSortedUserNames(portal_membership.getMemberIds())" mapping>
+      <option value="<dtml-var user_id html_quote>">
+        <dtml-var user_name>
+      </option>
+    </dtml-in>
+    </select>
+  </td>
+  <td valign="top">
+    <select name="roles:list" size="6" multiple>
+    <dtml-in "managed_roles">
+      <option value="&dtml-sequence-item;">
+        <dtml-var "msg(_['sequence-item'], add=0)">
+      </option>
+    </dtml-in>
+    </select>
+  </td>
+  <td></td>
+  <td valign="top">
+    <strong><dtml-var "msg('Note')">:</strong><br>
+    <em style="color:purple;"><dtml-var "msg('Users permissions are defined in decreased access order.')">
+    <dtml-var "msg('Check its to assign correctly.')"></em>
+  </td>
+</tr>
+<tr>
+  <td><dtml-var "msg('Fast search')">: <input type="text" value="" onKeyUp="SearchStrInSelect(value, userid);"></td>
+</tr>
+<tr>
+  <td colspan="2">
+    <input type="button" name="add" style="width:220px;" value="<dtml-var "msg('Add local role')">" onclick="javascript:AddUsersSubmitForm();">
+  </td>
+</tr>
+</form>
+</table>
+</dtml-if>
+
+</div>
+
+</dtml-let>
+
+<br>
+
+<dtml-var allowed_users>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      group_div.style.display = (group_checkbox.checked ? 'block' : 'none');
+      user_div.style.display = (user_checkbox.checked ? 'block' : 'none');
+    };
+//-->
+</script>
+
+<dtml-var simple_html_footer>

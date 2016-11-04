@@ -1,0 +1,111 @@
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<dtml-let dest_uid="taskDefinitionArray.get('dest_folder_uid') or ''"
+          dest_title="taskDefinitionArray.get('dest_folder_title') or ''"
+          dest_URL="taskDefinitionArray.get('dest_folder_URL')"
+          types="routing_type=='routing_department' and ['lines','items'] or routing_type=='routing_search_profile' and ['string','text'] or ['link']"
+>
+  <dtml-if "routing_type == 'routing_member'">
+<tr class="row_even">
+  <td><strong><dtml-var "msg('To')">:</strong></td>
+  <td>
+    <dtml-let category="getId()"
+              category_object="portal_metadata.getCategoryById(category)"
+              selected="taskDefinitionArray['to_whom']">
+    <select name="to_whom">
+    <option value=""><dtml-var "msg('n/a')"></option>
+      <dtml-in "category_object.listAttributeDefinitionsBySortkey()" >
+        <dtml-if "Type()=='userlist'">
+    <option value="<dtml-var "getId()">" <dtml-var "selected==getId() and 'selected' or ''"> ><dtml-var "msg(Title(), add=None)"></option>
+        </dtml-if>
+      </dtml-in>
+    </select>
+    </dtml-let>
+  </td>
+</tr>
+  <dtml-else>
+<tr class="row_even">
+  <td valign="top" style="padding-top:2px;">
+    <dtml-if "routing_type == 'routing_department'">
+      <dtml-var "msg('Destination data segment, such as secretary folder instance')">:
+    <dtml-elif "routing_type == 'routing_linked_folder'">
+      <dtml-var "msg('Destination data segment, such as root topic folder')">:
+    <dtml-elif "routing_type == 'routing_search_profile'">
+      <dtml-var "msg('Move document to the folder (create search profile in the folder)')">:
+    <dtml-else>
+      <dtml-var "msg('Move document to the folder (create shortcut in the folder)')">:
+    </dtml-if>
+  </td>
+  <td nowrap><dtml-var link_emb></td>
+</tr>
+    <dtml-if dest_uid>
+<tr>
+  <td class="dump" valign="top" colspan="2">
+    <nobr><strong>Destination URL:</strong></nobr>&nbsp;<span id="url">&dtml-dest_URL;</span><br>
+    <nobr><strong>UID:</strong>&nbsp;<span id="uid">&dtml-dest_uid;</span></nobr>
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-if>
+
+  <dtml-if "routing_type in ['routing_department','routing_linked_folder']">
+<tr class="row_even">
+  <td><dtml-var "msg('Department folder metadata attribute')">:</td>
+  <td>
+    <dtml-let options="[(x.getId(), x.Title(),) for x in listAttributeDefinitions() if x.Type() in types]"
+              name="'source_attribute'"
+              value="taskDefinitionArray.get(name, '')"
+              no_search="1"
+              multiple="0"
+    >
+      <dtml-var selectbox>
+    </dtml-let>
+  </td>
+</tr>
+  <dtml-elif "routing_type == 'routing_search_profile'">
+<tr class="row_even">
+  <td><dtml-var "msg('Company folder metadata attribute')">:</td>
+  <td>
+    <dtml-let options="[(x.getId(), x.Title(),) for x in listAttributeDefinitions(sort=1) if x.Type() in types]"
+              name="'source_attribute'"
+              value="taskDefinitionArray.get(name, '')"
+              no_search="1"
+              multiple="0"
+    >
+      <dtml-var selectbox>
+    </dtml-let>
+  </td>
+</tr>
+<tr class="row_even">
+  <td><dtml-var "msg('Searchable categories')">:</td>
+  <td>
+    <dtml-let options="[(x.getId(), x.Title(),) for x in listCategories(sort=1)]"
+              name="'category'"
+              value="taskDefinitionArray.get(name, [])"
+              no_search="1"
+              multiple="1"
+    >
+      <dtml-var selectbox>
+    </dtml-let>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if "routing_type in ['routing_department','routing_linked_folder','routing_object']">
+<tr class="row_even">
+  <td><dtml-var "msg('Make routing subfolders')">:</td>
+  <td>
+    <dtml-let routing_subfoldes_types="listRoutingSubfoldesTypes()"
+              make_subfolders_type="taskDefinitionArray.get('_make_subfolders_type', '')"
+    >
+    <select name="_make_subfolders_type">
+    <option value="" <dtml-var "not make_subfolders_type" fmt="selected">><dtml-var "msg('no')" ></option>
+      <dtml-in routing_subfoldes_types mapping>
+    <option value="<dtml-var key>" <dtml-var "make_subfolders_type==key" fmt="selected">><dtml-var "msg(name)" ></option>
+      </dtml-in>
+    </select>
+    </dtml-let>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>

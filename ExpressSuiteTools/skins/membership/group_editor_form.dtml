@@ -1,0 +1,170 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function Validate(frm) {
+  var group_users = frm.group_users_selected_users;
+  if( !group_users.options.length ) {
+     alert('<dtml-var "msg('Please specify group members')">');
+     return false;
+  }
+  selectAll(frm.group_users_selected_users);
+  return true;
+}
+//-->
+</script>
+
+<dtml-let group="portal_membership.getGroup(group_id)"
+          group_title="portal_membership.getGroupTitle(group_id)"
+          user="portal_membership.getAuthenticatedMember()"
+          IsViewOnly="_.has_key('view_only') and _.int(view_only) or 0"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          group_attrs="portal_membership.getGroupAttribute(group_id, mapping=1)"
+          attrs="portal_membership.getGroupKeys()"
+          callback="_.has_key('callback') and callback or None"
+          can_list_members="1 # portal_membership.canListMembers(group)"
+>
+
+<dtml-if callback>
+<script type="text/javascript">
+<!--
+function add_selected( text, value ) {
+  if( text && value ) {
+    var container = opener.document;
+    if( container != null ) {
+      var source = container.getElementById('&dtml-callback;');
+      if( typeof(source) == 'object' ) addOptionTo(source, text, 'group:'+value);
+    }
+    window.close();
+  }
+}
+// -->
+</script>
+</dtml-if>
+
+<dtml-if "not IsViewOnly and not group.isReadOnly() and _.SecurityCheckPermission('Manage users', group) and IsAdmin">
+  <dtml-let group_users="group.getUsers()">
+
+<form name="group_edit_form" action="&dtml-absolute_url;/change_group" method="POST" onSubmit="return Validate(this);">
+<input type="hidden" name="group" value="<dtml-var "group.getId()" html_quote>">
+
+<table cellpadding="3" border="0">
+<tr>
+  <td colspan="10">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td width="100%">
+        <h3>&nbsp;<dtml-msg "Group"> &quot;<dtml-var group_title html_quote>&quot;</h3>
+    <dtml-if "_.SecurityCheckPermission('Manage users', this())">
+        <p><strong><a href="&dtml-portal_url;/manage_groups_form">&lt;&lt; <dtml-msg "User groups"></a></strong></p>
+    </dtml-if>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <td class="smallHeader"><dtml-msg "Group name">:</td>
+</tr>
+
+<tr>
+  <td class="smallHeader">
+    <input type="text" name="title" size="60" style="width:100%" value="<dtml-var group_title html_quote>">
+  </td>
+</tr>
+
+  <dtml-if attrs>  
+<tr>
+  <td align=left valign="top" style="padding-top:5px;">
+    <dtml-in group_attrs mapping>
+      <dtml-if "attr_name in attrs.keys()">
+    <nobr>
+    <input id="&dtml-attr_name;" name="&dtml-attr_name;" type="checkbox" value="1" <dtml-if attr_value>checked</dtml-if> />
+    <label for="&dtml-attr_name;"><dtml-var "msg(attr_name+' '+'group', add=0)"></label></nobr><br>
+      </dtml-if>
+    </dtml-in>
+  </td>
+</tr>
+  </dtml-if>
+
+<tr>
+  <td align=left valign="top" style="padding-top:5px;">
+    <dtml-var "user_list(this(), 
+            name='group_users',
+            selected_users=group_users,
+            title_selected='Group members',
+            size=25,
+            style='width:282px',
+            IsUserAdvanced=1,
+            IsSearchStr=1
+    )">
+  </td>
+</tr>
+
+<tr>
+  <td align="center"><input type="submit" value=" <dtml-msg "Apply"> "></td>
+</tr>
+
+<tr>
+  <td class="small" colspan="2"><br><dtml-msg "Total members in group">:&nbsp;<b><dtml-var "_.len(group_users)"></b></td>
+</tr>
+</table>
+</form>
+  </dtml-let>
+
+<dtml-elif can_list_members>
+  <dtml-let group_users="portal_membership.listGroupMembers(group)"
+            has_attr="1 in [ x['attr_value'] and 1 or 0 for x in group_attrs ]">
+    <dtml-in group_users sort="getMemberName">
+      <dtml-if sequence-start>
+<table border="0">
+<tr>
+  <td class="smallHeader"><dtml-msg "Group members">:</td>
+</tr>
+      </dtml-if>
+<tr>
+  <td class="small"><dtml-var "member_name( _.None, _, member=getUserName() )"></td>
+</tr>
+      <dtml-if sequence-end>
+        <dtml-if "attrs and has_attr">
+<tr>
+  <td class="smallHeader" style="padding-top:10px;" nowrap><h3><dtml-msg "Member group attributes">:</h3></td>
+</tr>
+<tr>
+  <td align=left>
+          <dtml-in group_attrs mapping>
+            <dtml-if "attr_name in attrs.keys() and attr_value">
+    <nobr><dtml-var "msg(attr_name+' '+'group', add=0)"></nobr><br>
+            </dtml-if>
+          </dtml-in>
+  </td>
+</tr>
+        </dtml-if>
+<tr>
+  <td class="smallHeader" style="padding:10px 0 10px 0;" nowrap><dtml-msg "Total members in group">:&nbsp;<font color="purple"><dtml-var "_.len(group_users)"></font></td>
+</tr>
+        <dtml-if IsViewOnly>
+<tr>
+  <td style="padding-top:20px;">
+          <dtml-if callback>
+    <input type="button" onClick="javascript:add_selected('&dtml-group_title;', '&dtml-group_id;');" value="<dtml-var "msg('Choose')">" style="width:100px;">
+          </dtml-if>
+    <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+  </td>
+</tr>
+        </dtml-if>
+</table>
+      </dtml-if>
+    <dtml-else>
+      <dtml-msg "This group has no members.">
+    </dtml-in>
+  </dtml-let>
+<dtml-else>
+  <dtml-msg "You are not authorized to view members of this group.">
+</dtml-if>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

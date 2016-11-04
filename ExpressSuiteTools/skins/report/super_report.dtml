@@ -1,0 +1,37 @@
+<dtml-var simple_html_header>
+
+<h2>—водный отчет документооборота по √руппе —инара</h2>
+
+<form Action='ShowReport2' method="POST">
+
+<dtml-let strDate="CurrentMonth()"
+         dateCurrent="strDate[0]"
+         dateMonth="strDate[1]">
+<br>
+
+<table cellspacing="1" cellpadding="3" border="0">
+<tr>
+  <td class="small">¬ведите первую дату:</td>
+  <td>
+<dtml-var "datetime_form( this(), REQUEST, prefix='date1', date=dateMonth, date_only=1 )">
+  </td>
+</tr>
+<tr>
+  <td class="small">¬ведите вторую дату:</td>
+  <td>
+<dtml-var "datetime_form( this(), REQUEST, prefix='date2', date=dateCurrent, date_only=1 )">
+  </td>
+</tr>
+<tr><td>&nbsp;</td></tr>
+<tr>
+  <td>
+<input type="submit" name="apply_filter" value="<dtml-var "msg('Apply')">">
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+</form>
+
+<dtml-var simple_html_footer>

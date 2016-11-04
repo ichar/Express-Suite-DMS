@@ -1,0 +1,8 @@
+  </td>
+</tr>
+</table>
+<dtml-if portal_status_message>
+  <dtml-call "REQUEST.set('x_committed', 0)">
+</dtml-if>
+</body>
+</html>

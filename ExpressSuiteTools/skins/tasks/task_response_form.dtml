@@ -1,0 +1,173 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script language="JavaScript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function validatePlanTime(frm, element_id) {
+<dtml-if "getPlanTime() and BrainsType() == 'directive' and status == 'commit'">
+    if( frm[element_id + '_days'].value != '0'  ||
+        frm[element_id + '_hours'].value != '0'  ||
+        frm[element_id + '_minutes'].value != '0'  ) {
+        return true;
+    }
+    else {
+        alert('<dtml-var "msg('You have to specify actual time spent to accomplish the task')">');
+        frm[element_id + '_days'].focus();
+        return false;
+    }
+<dtml-else>
+    return true;
+</dtml-if>
+}
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.responseForm;
+    if( validatePlanTime(frm, 'actual_time') ) {
+        DisableForm(frm);
+        CheckAndRefreshCommentFields(frm, ['text']);
+        frm.submit();
+    }
+}
+//-->
+</script>
+
+<div class="Desktop" id="task_response_container">
+
+<dtml-let container="getBase()"
+          rti="getResponseTypeById(status)"
+          user="portal_membership.getAuthenticatedMember().getUserName()"
+          brains_type="BrainsType()"
+>
+
+<h1><dtml-var aboveInThread></h1>
+
+<form id="response" name="responseForm" action="&dtml-absolute_url;/Respond" method="post" enctype="multipart/form-data">
+
+<table class="FormLayout" width="100%">
+<tr>
+  <td class="smallHeader" valign=top align=left>
+<dtml-let action_description="msg(rti['description'], add=0)">
+  <dtml-if action_description>
+    <strong style="color:purple"><dtml-msg "Action">:&nbsp;"<dtml-var action_description>"</strong>
+  </dtml-if>
+</dtml-let>
+  </td>
+</tr>
+<tr>
+  <td valign=top align=left>
+    <h3 style="font-size:11px;"><em><dtml-var "msg('Comment')">:</em></h3>
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-var "comment_template(this(), form='responseForm', field='text', context=('task.respond.%s.%s' % (brains_type, status)), value='')">
+  </td>
+</tr>
+
+<dtml-if "brains_type=='directive' and status=='commit'">
+<tr>
+  <td valign=top align=left>
+    <strong><em><dtml-var "msg('Actual time spent to accomplish the task')">:</em></strong><br>
+    <dtml-var "dateperiod_form( this(), prefix='actual_time', period=getActualTimeFor(user) or 0 )">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "brains_type=='request' and status=='satisfy'">
+  <dtml-let responses_in_turn="searchResponsesInTurn(failed_only=1, current_task_only=1, member=user)"
+            task_links="portal_links.searchLinks(source_uid=getUid())">
+    <dtml-if responses_in_turn>
+<tr>
+  <td class="smallHeader" valign=top align=left>
+    <h3 style="color:#CC0000"><dtml-var "msg('Satisfy with remarks')">:</h3>
+    <dtml-in responses_in_turn sort=date reverse mapping>
+      <dtml-if sequence-start>
+    <table cellpadding=2 width="100%">
+      </dtml-if>
+    <tr>
+      <td>
+      <dtml-let response_status=status uname=member can_remark="1">
+        <dtml-var task_progress_entry>
+      </dtml-let>
+      </td>
+    </tr>
+      <dtml-if sequence-end>
+    </table>
+      </dtml-if>
+    </dtml-in>
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-let>
+</dtml-if>
+
+<dtml-if "rti.get('manual_report_close', None)">
+<tr>
+  <td>
+    <input type="checkbox" name="close_report:int" value="1"> <dtml-var "msg('Close report')">
+  </td>
+</tr>
+</dtml-if>
+
+<tr>
+  <td style="padding: 5px 0 5px 0">
+    <input type="hidden" name="status" value="&dtml-status;">
+    <input type="button" name="OK" value=" <dtml-var "msg('OK')"> " title="<dtml-var "msg('Witness a signature')">" onclick="javascript:SubmitForm();" style="width:110px;">
+    <input type="button" name="cancel" onClick="JavaScript:location.href='&dtml-absolute_url;'" value=" <dtml-var "msg('Cancel')"> " style="width:110px;">
+  </td>
+</tr>
+</table>
+
+<dtml-let no_search="1">
+  <dtml-var document_selection_box>
+</dtml-let>
+
+<table border="0">
+<tr><td><strong><dtml-var "msg('File')"></strong>:</td></tr>
+<tr>
+  <td>
+    <input type="file" name="attachment" size="120">
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="checkbox" id="baseattachment" name="make_as_baseattachment" value="1" checked>
+    <label for="baseattachment"><dtml-msg "Make an attachment"></label>
+  </td>
+</tr>
+</table>
+
+</form>
+
+</div>
+
+<dtml-if "container is not None and container.implements('isDocument')">
+<table width="100%">
+<tr class="task_title">
+  <td class="smallHeader"><dtml-var "msg('Document text')"></td>
+</tr>
+<tr>
+  <td width="100%" bgcolor="#FFFFFF"><dtml-var "this().CookedBody(view=1, resolution='none')"></td>
+</tr>
+</table>
+</dtml-if>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.top += task_response_container.offsetHeight + 80;
+      resolution_body.style.display = 'block';
+    };
+//-->
+</script>
+
+<dtml-var simple_html_footer>

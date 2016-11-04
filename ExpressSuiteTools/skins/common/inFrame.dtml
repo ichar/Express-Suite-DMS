@@ -1,0 +1,17 @@
+<dtml-if "meta_type == 'HTMLCard'">
+  <dtml-return card_frame>
+<dtml-elif "meta_type == 'HTMLDocument'">
+  <dtml-return document_frame>
+<dtml-elif "meta_type == 'Shortcut'">
+  <dtml-return "locate(REQUEST)">
+</dtml-if>
+
+<dtml-var standard_html_header>
+
+<iframe name="workfield" src="&dtml-link;" scrolling="auto" width="100%" height="100%" frameborder="0">
+
+	Unfortunately your browser does not support frames.
+
+</iframe>
+
+<dtml-var standard_html_footer>

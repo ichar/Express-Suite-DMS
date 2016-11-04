@@ -1,0 +1,633 @@
+<script type="text/javascript">
+<!--
+var commonImages = ['task_expired.gif'];
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<script type="text/javascript">
+<!--
+function DoImgClick() {
+    if( typeof(document.all.regform) != 'object' ) return;
+    var s=( document.all.regform.style.display == 'none' ? 'block' : 'none' );
+	set_display( document.all.regform,s );
+}
+
+function set_display( obj,state ) {
+	if( typeof(obj) == 'object' ) obj.style.display = state;
+}
+
+function DisableAddForm(form) {
+    form.add_entry.disabled=true;
+    form.cancel.disabled=true;
+}
+
+function DisableDelForm(form) {
+    form.delEntries.disabled=true;
+    try { form.sendExpiredNotificationTop.disabled=true; }
+    catch(error) {}
+    try { form.sendExpiredNotificationBottom.disabled=true; }
+    catch(error) {}
+    form.selectAll.disabled=true;
+}
+
+function SubmitForm() {
+    var form = document.add_entry_form;
+    if( validateForm(form, true) ) {
+        DisableAddForm(form);
+        form.submit();
+    }
+}
+
+var isSelected = false;
+
+function toggleSelected() {
+    var form = document.objectItems;
+    isSelected = ! isSelected;
+    for ( var i = 0; i < form.elements.length; i++ ) {
+		var elem = form.elements[ i ];
+    	if ( elem.name.substr( 0, 17 ) == 'selected_entries:' )
+	    	elem.checked = isSelected;
+    }
+    var objSelectAll = document.all["selectAll"];
+    var txtValue = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All')">';
+    if (objSelectAll.length > 1) {
+        for ( var i = 0; i <= 1; i++ ) {
+            var obj = objSelectAll[i];
+            if (typeof(obj) == 'object') { obj.value = txtValue; }
+        }
+    } else if (typeof(form.selectAll) == 'object') {
+        form.selectAll.value = txtValue;
+    }
+	setSubmitEnabled();
+    return isSelected;
+}
+
+function setSubmitEnabled() {
+    var form = document.objectItems;
+    var isSelected = false;
+    for ( var i = 0; i < form.elements.length; i++ ) {
+		var elem = form.elements[ i ];
+    	if ( elem.name.substr( 0, 17 ) == 'selected_entries:' ) {
+		    if( elem.checked ) { 
+				isSelected = true;
+				break;
+			}
+		}
+    }
+    form.delEntries.disabled = ! isSelected;
+    try { form.sendExpiredNotificationTop.disabled = ! isSelected; }
+    catch(error) {}
+    try { form.sendExpiredNotificationBottom.disabled = ! isSelected; }
+    catch(error) {}
+}
+
+function confirmSubmit( mode ) {
+    var form = document.objectItems;
+    if( mode == 'del' ) {
+        var message = '<dtml-var "msg('Do you really want to delete entry records?')">';
+        if( confirm(message) ) {
+            DisableDelForm(form);
+            form.action += '/delEntries';
+            form.submit();
+        }
+    } else if( mode == 'send' ) {
+        var message = '<dtml-var "msg('Do you really want to send expiration messages?')">';	
+        if( confirm(message) ) {
+            DisableDelForm(form);
+            form.action += '/sendExpiredNotification';
+            form.submit();
+        }
+    } else {
+        return true;
+    }
+}
+
+function statusSubmit( frm ) {
+    frm.qs.value = 1;
+    frm.submit();
+}
+//-->
+</script>
+
+<div class="Desktop">
+<h2><dtml-var registry_icon.gif>&nbsp;&dtml-title_or_id;</h2>
+
+<p>&dtml-description;</p>
+
+<dtml-let uid=getUid
+          user="portal_membership.getAuthenticatedMember()"  
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          IsSaveRegistryFilter="portal_membership.getInterfacePreferences('save_registry_filter') and 1 or 0"
+          container="this()"
+          category2="getRegistryDefaultCategoryObject()"
+          total_count="_.len(container)"
+          came_from="REQUEST.get('came_from', '')"
+          came_version_id="REQUEST.get('came_version_id', '')"
+          came_status="REQUEST.get('came_status', '')"
+          source_doc="came_from and (came_status and came_status[:4]=='task' and object_by_uid(came_from, base=1) or object_by_uid(came_from)) or None"
+          source="came_version_id and source_doc.getVersion(came_version_id) or source_doc"
+          source_category="source_doc is not None and _.hasattr(source_doc, 'category') and source_doc.getCategory() or category2"
+          attrs="source_category is not None and [a.getId() for a in source_category.listAttributeDefinitions()] or []"
+
+          chosen_columns="['ID','creation_date','Creator']"
+          table_columns="[{'id':x.getId(), 'title':x.Title(), 'type':x.Type(), 'nowrap':x.isNowrap()} for x in listVisibleColumns()]"
+          default_filter="{'conditions':[], 'query':{}}"
+          filter_id="absolute_url()"
+          filter_name="'%s_filter' % filter_id"
+          filter_cookies="IsSaveRegistryFilter and getRegistryFilterFromCookies(REQUEST,filter_name) or []"
+          IsUseCookies="filter_cookies and filter_cookies.get('conditions') and filter_cookies.get('columns') and 1 or 0"
+          x="getSession(filter_name, {}) or IsUseCookies and filter_cookies or {}"
+          filter="x.has_key('query') and x or default_filter"
+          query="filter.get('query')"
+
+          pre_sort_on="REQUEST.get('sort_on', None)"
+          sort_field="getColumnById(pre_sort_on) is not None and pre_sort_on or table_columns[0]['id']"
+          sort_on="sort_field=='ID' and getColumnById('SID') is not None and 'SID' or sort_field"
+          sort_order="REQUEST.get('sort_order', 'reverse')"
+          batch_size="_.int(REQUEST.get('batch_size', 5))"
+          qs_old="_.int(REQUEST.get('qs', 1))"
+          qs="qs_old - qs_old%batch_size + 1"
+
+          IsRunQuery="1"
+          IsDebug="0"
+>
+  <dtml-if IsDebug><dtml-var came_from>:<dtml-var source_doc>:<dtml-var "category2.getId()"></dtml-if>
+  <dtml-comment> New entry query form </dtml-comment>
+  <dtml-if "_.SecurityCheckPermission('Add portal content', container)">
+
+<img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="javascript:DoImgClick();" 
+ onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'" 
+ title="<dtml-msg "Document registration form">">
+
+<form name="add_entry_form" method="post" action="&dtml-absolute_url;/addEntry">
+<div id="regform" <dtml-if "source is not None">style="display:block"<dtml-else>style="display:none"</dtml-if>>
+<table cellspacing="1" cellpadding="3">
+<tr class="row_title">
+  <td class="small" colspan="2"><dtml-var "msg('Document registration form')"></td>
+</tr>
+    <dtml-if "source is not None">
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Document')"></td>
+  <td class="small">
+    <a href="<dtml-var "source.absolute_url()">"><dtml-var "source.title_or_id()"></a>
+    <a href="&dtml-absolute_url;/releaseSelectedDocument">(<dtml-var "msg('release')">)</a>
+  </td>
+</tr>
+    </dtml-if>
+
+    <dtml-if IsDebug><tr><td colspan="2"><dtml-var attrs></td></tr></dtml-if>
+  
+    <dtml-in listColumns>
+      <dtml-let field=getId ctype=Type column="getColumnById(field)">
+        <dtml-if "field not in ['SID'] and column.allowsInput() and not isComputed()">
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg(Title(), add=None)"></td>
+  <td class="smallHeader">
+          <dtml-if "field in attrs">
+            <dtml-let attr="source_category.getAttributeDefinition(field)"
+                      atype="attr.Type()"
+                      x_value="source_doc is not None and source_doc.getCategoryAttribute(field)"
+                      attr_value="x_value != msg('nonselected') and x_value or ''"
+                      ctype="atype in ['link','table'] and atype or ctype"
+                      value="
+                          (atype==ctype and attr_value) or 
+                          (atype=='lines' and ctype in ['string','text'] and (
+                             (_.same_type(attr_value, '') and attr_value) or
+                             (_.same_type(attr_value, [], ()) and '\n'.join(attr_value)))) or
+                          (atype=='link' and attr_value) or
+                          (atype=='table' and attr_value) or
+                          (atype=='userlist' and ctype in ['string','text'] and 
+                             '\n'.join([_.str(portal_membership.getMemberBriefName(user_id, 'LFM') or '') for user_id in attr_value])) or
+                          ''"
+            >
+              <dtml-try>
+                <dtml-if "column.isEditableAfterReg()">
+                  <dtml-comment> Edit entry field </dtml-comment>
+                  <dtml-var "entry_field_edit(source_category, type=ctype, name=field, value=value, context=container, mode='registry')">
+                <dtml-else>
+                  <dtml-comment> View entry field </dtml-comment>
+                  <dtml-if "ctype in ['items']">
+    <input type="hidden" name="&dtml-field;:lines" value="<dtml-var "value[0]">">
+                    <dtml-call "REQUEST.set('view_font_style', 'color:purple;')">
+                    <dtml-var "entry_field_view(source_category, type=ctype, name=field, value=value)">
+                    <dtml-call "REQUEST.set('view_font_style', '')">
+                  <dtml-elif "ctype in ['link']">
+                    <dtml-call "REQUEST.set('view_font_style', 'color:purple;')">
+                    <dtml-var "entry_field_view(source_category, type=ctype, name=field, value=value, mode='registry')">
+                    <dtml-call "REQUEST.set('view_font_style', '')">
+                  <dtml-elif "ctype in ['table']">
+                    <dtml-call "REQUEST.set('view_font_style', 'color:blue;font-size:10px')">
+                    <dtml-var "entry_field_view(source_category, type=ctype, name=field, value=value, context=container, mode='registry')">
+                    <dtml-call "REQUEST.set('view_font_style', '')">
+                  <dtml-else>
+    <input type="hidden" name="&dtml-field;:&dtml-ctype;" value="&dtml-value;">
+    <span style="font-weight:normal"><dtml-var value newline_to_br></span>
+                  </dtml-if>
+                </dtml-if>
+              <dtml-except>
+                <dtml-if "source_doc is not None">
+    <span style="font-weight:bold;color:red"><dtml-var "msg('Object is inaccessible.')"></span>
+    <dtml-if IsDebug><span style="color:red;font-weight:normal"><dtml-var field> : <dtml-var ctype> : <dtml-var value> : <dtml-var attr_value></span></dtml-if>
+                </dtml-if>
+              </dtml-try>
+            </dtml-let>
+          <dtml-else>
+            <dtml-let IsContents="field=='contents' and source_doc is not None"
+                      value="IsContents and source_doc.Description() or ''"
+                      ctype="IsContents and 'text' or ctype">
+              <dtml-if "ctype in ['items']">
+                <dtml-if "source_category is not None">
+                  <dtml-var "entry_field_edit(source_category, type=ctype, name=field, value=value, context=container, mode='registry')">
+                </dtml-if>
+              <dtml-else>
+                <dtml-var "entry_field_edit(container, type=ctype, name=field, value=value, mode='registry')">
+              </dtml-if>
+            </dtml-let>
+          </dtml-if>
+    <dtml-if IsDebug><dtml-var field></dtml-if>
+  </td>
+</tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-in>
+
+<tr>
+  <td nowrap>
+    <input type="hidden" name="came_from" value="&dtml-came_from;">
+    <input type="hidden" name="came_version_id" value="&dtml-came_version_id;">
+    <input type="hidden" name="came_status" value="&dtml-came_status;">
+    <input type="button" name="add_entry" value=" <dtml-var "msg('Add document entry')"> " onclick="javascript:SubmitForm();" style="width:150px;">
+    <dtml-if "source is not None">
+      <dtml-let came_from_url="portal_catalog.getObjectByUid(came_from).absolute_url()">
+    <input type="button" name="cancel" onClick="JavaScript:location.href='&dtml-came_from_url;'" value=" <dtml-var "msg('Cancel')"> " style="width:150px;">
+      </dtml-let>
+    </dtml-if>
+  </td>
+</tr>
+</table>
+</div>
+</form>
+  </dtml-if>
+
+  <dtml-if IsRunQuery>
+    <dtml-call "REQUEST.set('sort_on', sort_on)">
+    <dtml-call "REQUEST.set('sort_order', sort_order)">
+    <dtml-call "REQUEST.set('batch_start', qs)">
+    <dtml-call "REQUEST.set('batch_size', batch_size)">
+
+    <dtml-let states="getSelectedStates(check=1)"
+              selected_state="REQUEST.get('selected_state', None)"
+              res="searchSortedEntries(selected_state=selected_state, REQUEST=REQUEST, **query)"
+              results_count="res[0]"
+              results="res[1]"
+              tasks_max="getViewTaskCount()"
+    >
+      <dtml-if total_count>
+        <dtml-var catalog_filter_form>
+      </dtml-if>
+
+      <dtml-if IsDebug>
+        <dtml-var "category2 is not None and category2.getId() or 'undefined'"><br>
+        URL: &dtml-absolute_url; : <dtml-var "filter_cookies"><br>
+        <dtml-var results_count> : <dtml-var "_.len(results)"> : <dtml-var sort_on> : <dtml-var sort_order><br>
+        <dtml-var qs> : <dtml-var qs_old> : <dtml-var batch_size><br>
+        <dtml-var filter><br><dtml-var x>
+        <br><br>
+      </dtml-if>
+  
+      <dtml-if total_count>
+<table>
+<tr>
+  <td style="padding:10px 0 0 1px;" nowrap>
+    <dtml-var "batch_size < results_count and batch_size or results_count">
+    <dtml-var "msg('entries of')"> <dtml-var results_count><dtml-if "results_count < total_count">, <dtml-var "msg('total')"> <dtml-var total_count></dtml-if>
+  </td>
+</tr>
+</table>
+      </dtml-if>
+
+      <dtml-if IsSaveRegistryFilter>
+        <dtml-if "filter.get('conditions')">
+          <dtml-call "REQUEST.RESPONSE.setCookie(filter_name, filter, expires='Wed, 19 Feb 2020 14:28:00 GMT')">
+        <dtml-else>
+          <dtml-call "REQUEST.RESPONSE.expireCookie(filter_name)">
+        </dtml-if>
+      </dtml-if>
+
+      <dtml-if IsDebug>
+        <dtml-var sort_order> : <dtml-var sort_on>
+      </dtml-if>
+  
+<table cellpadding="0" cellspacing="0" border="0">                        
+<tr>
+  <td>
+      <dtml-if results>
+        <dtml-var "table_pages_list(container, REQUEST,
+              results_count=results_count,
+              sort_order=sort_order,
+              sort_on=sort_on,
+              batch_size=batch_size,
+              qs=qs,
+              selected_state=selected_state or '',
+              indent=20
+              )">
+      </dtml-if>
+  </td>
+  <td>
+      <dtml-if states>
+<form class="inline" method="post" action="&dtml-absolute_url;">
+<input type="hidden" name="sort_order" value="<dtml-var sort_order>">
+<input type="hidden" name="sort_on" value="<dtml-var sort_on>">
+<input type="hidden" name="batch_size" value="<dtml-var batch_size>">
+<input type="hidden" name="qs" value="<dtml-var qs>">
+
+    <select name="selected_state" onchange="javascript:statusSubmit(this.form);">
+      <option value="" <dtml-var "not selected_state and 'selected' or ''">><dtml-msg "all records"></option>
+        <dtml-in states mapping>
+      <option value="&dtml-id;" <dtml-var "id==selected_state and 'selected' or ''">><dtml-var "msg(title)"></option>
+        </dtml-in>
+    </select>
+</form>
+      </dtml-if>
+  </td>
+</tr>
+</table>
+
+      <dtml-in results>
+        <dtml-if sequence-start>
+<form class="inline" name="objectItems" method="post" action="<dtml-var "container.relative_url()" html_quote>">
+<input type="hidden" name="selected_state" value="<dtml-var selected_state>">
+          <dtml-comment>Entries table header</dtml-comment>
+          <dtml-in table_columns mapping>
+            <dtml-if sequence-start>
+              <dtml-if IsManager>
+<br>
+<input type="button" name="sendExpiredNotificationTop" onClick="confirmSubmit('send');" value="<dtml-var "msg('Send expiration message to all users')">" style="width:360px;">
+<br>
+              </dtml-if>
+<br>
+<table cellspacing="1" cellpadding="5" width="99%" border="0">
+<tr class="row_title">
+  <td>&nbsp;</td>
+            </dtml-if>
+  <td class="small" valign="middle" align="left">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr class="row_title">
+      <td class="small" valign="middle" align="left" width="99%" <dtml-if "id=='filed_to'">nowrap</dtml-if> />
+        <a style="font-family:arial,verdana;
+            <dtml-if "id in chosen_columns">
+        font-size:90%;
+            <dtml-else>
+        font-size:85%;font-weight:normal;color:#000000;text-decoration:underline;
+            </dtml-if>" 
+        class="navigate" href="<dtml-var "container.relative_url(params={'sort_on':id,'sort_order':sort_on in [id,'SID'] and not sort_order and 'reverse' or '','qs':qs,'batch_size':batch_size,'selected_state':selected_state})" html_quote>">
+            <dtml-var "id=='ID' and msg('RegN') or msg(title, add=None)">
+        </a>
+      </td>
+      <td align="center">
+            <dtml-if "sort_on==id or (sort_on=='SID' and id=='ID')">
+              <dtml-if "sort_order == 'reverse'">
+                <dtml-var sort_up.gif>
+              <dtml-else>
+                <dtml-var sort_down.gif>
+              </dtml-if>
+            </dtml-if>
+      </td>
+    </tr> 
+    </table>
+  </td>
+            <dtml-if sequence-end>
+              <dtml-comment>Add-on info fields</dtml-comment>
+  <td class="strongText" valign="middle" align="left"><dtml-var "msg('Document')"></td>
+  <td>&nbsp;</td>
+  <td class="strongText" valign="middle" align="left"><dtml-var "msg('Follow-up action')"></td>
+</tr>
+            </dtml-if>
+          </dtml-in>
+        </dtml-if>
+    
+        <dtml-with getObject>
+          <dtml-let entry=this
+                    entry_info="container.listRegisteredDocumentsForEntry(entry)"
+                    p_archive="entry_info and entry_info[0]==1"
+                    documents="entry_info and entry_info[0]==0 and _.len(entry_info) > 1 and entry_info[1] or None"
+                    obj="documents and documents[0].getObject()"
+                    sort_direction="sort_on=='SID' and not sort_order and 'up' or 'down'"
+                    gap="container.IsUnderEnumeration(entry, sort_direction)"
+                    isEntryEnabled="1 # documents and 1 or 0"
+                    expires="obj is not None and obj.hasExpiredTasks(show=IsManager)"
+                    category="obj is not None and portal_metadata.getCategoryById(obj.Category())"
+                    state="obj is not None and portal_workflow.getInfoFor(obj, 'state', '')"
+                    followup="obj is not None and obj.followup"
+                    l_archive="obj is not None and obj.archive()"
+                    IsArchive="p_archive or l_archive"
+          >
+            <dtml-if IsDebug>
+              <dtml-var "get('ID')"> : <dtml-var "get('SID')"> : <dtml-var "Title()"><br>
+            </dtml-if>
+<tr class="row_even">
+  <td align="right" nowrap>
+            <dtml-if "isEntryEnabled or IsManager">
+              <dtml-if "entry.isEntryDeleteAllowed() and not IsArchive">
+    <input type="checkbox" name="selected_entries:list" value="&dtml-RecordId;" onClick="setSubmitEnabled();">
+                <dtml-call "REQUEST.set('show_delete_button', 1)">
+              </dtml-if>
+    <a class="<dtml-var "entry.allowed() and 'nav' or 'navigate'">" href="<dtml-var "container.absolute_url(action=RecordId())">"
+    />&gt;&gt;&gt;</a>
+            <dtml-else>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            </dtml-if>
+  </td>
+
+            <dtml-in table_columns mapping>
+  <td 
+              <dtml-if "id in ['ID','SID'] or nowrap">nowrap</dtml-if>
+              <dtml-if "id in ['instructions'] and isEntryEnabled and entry.get(id)">bgcolor="#FFF8E8" align="center" style="border: 1px solid navy;"</dtml-if>
+              <dtml-if "id in ['ID']">
+                <dtml-let color="container.getStateColor(IsArchive and 'OnArchive' or state)">
+      bgcolor="<dtml-var "color[0]">" style="border: 1px solid <dtml-var "color[1]">"
+                </dtml-let>
+              </dtml-if>
+  />
+              <dtml-if "getColumnById(id).getSystemFieldType()=='Creator' or id=='Creator'">
+                <dtml-var "portal_membership.getMemberBriefName( entry.get(id) )">
+              <dtml-else>
+                <dtml-let value_size="type=='text' and id in ['contents','instructions','forwarded_to','OUT_To'] and 1 or 0"
+                          x_type="type=='date' and (id in ['receipt_date','IN_OutDate','OUT_Indate','PR_Date'] and 'date_only' or 'date_time') or type"
+                          value="entry.get(id)"
+                >
+                  <dtml-if "id in ['ID']">
+                    <dtml-call "REQUEST.set('view_font_style','color:#680088;font-size:110%;font-weight:100;')">
+                  <dtml-elif "id in ['instructions']">
+                    <dtml-call "REQUEST.set('view_font_style','color:navy;font-family:arial;font-size:11px;')">
+                  <dtml-elif "id in ['IN_Department','NOTE_ToDepartment','OUT_Department'] and value">
+                    <dtml-if "value.find('ÀÏÏÀÐÀÒ') == 0">
+                      <dtml-call "REQUEST.set('view_font_style','color:#A00000;')">
+                    <dtml-elif "value.find('Ïðèåìíàÿ') > -1">
+                      <dtml-call "REQUEST.set('view_font_style','color:#006600;font-size:110%;')">
+                    <dtml-elif "value.find('ÄÈÐÅÊÖÈß') > -1">
+                      <dtml-call "REQUEST.set('view_font_style','color:#0000A0;')">
+                    </dtml-if>
+                  <dtml-else>
+                    <dtml-call "REQUEST.set('view_font_style','')">
+                  </dtml-if>
+                
+                  <dtml-if "isEntryEnabled or id not in ['instructions']">
+                    <dtml-if "type in ['items']">
+                      <dtml-if "category2 is not None">
+                        <dtml-var "entry_field_view(category2, name=id, type=type, value=value)">
+                      </dtml-if>
+                    <dtml-else>
+                      <dtml-var "entry_field_view(container, name=id, type=x_type, value=value, value_size=value_size)">
+                    </dtml-if>
+                  </dtml-if>
+                </dtml-let>
+              </dtml-if>
+  </td>
+            </dtml-in>
+            
+            <dtml-if p_archive>
+              <dtml-let info="entry_info[1]"
+                        object_state="info['object_state']"
+                        object_title="info['object_title']"
+                        archive_url="info['archive_locate_url'] or info['archive_url']"
+                        archive_date="info['archive_date']"
+                        remote_url="portal_properties.remote_url(archive_url, {'expand':1}, validate=1)"
+              >
+  <td class="small">
+    <a target="_blank" href="<dtml-var remote_url>"><dtml-var object_title size="120"></a>
+  </td>
+  <td class="small">&nbsp;</td>
+  <td class="strongText" style="font-size:70%;">
+    <font color="purple"><nobr><dtml-var "msg(object_state, add=0)"></nobr></font><br>
+    <strong><nobr><dtml-var "msg('Object exported to archive')"></nobr></strong><br>
+    <font color="blue"><nobr><dtml-var archive_date fmt="%Y-%m-%d %H:%M"></nobr></font>
+  </td>
+              </dtml-let>
+            <dtml-else>
+  <td class="small">
+              <dtml-in documents>
+    <a target="_blank" href="<dtml-var getURL>?expand=1"><dtml-var Title size="120"></a>
+              <dtml-else>
+                <dtml-if "source is not None">
+    <a style="font-size:80%;" href="&dtml-absolute_url;/assign?registry_id=<dtml-var "entry.get('ID')" html_quote>&came_from=&dtml-came_from;&came_version_id=&dtml-came_version_id;">&lt;&lt;&lt;</a>
+                </dtml-if>
+              </dtml-in>
+  </td>
+  <td class="small" valign="middle">
+              <dtml-if expires>
+    <a target="_blank" href="&dtml-expires;?expand=1"><img width="16" height="16" src="&dtml-portal_url;/task_expired.gif" alt="<dtml-var "msg('expired')">"/></a>
+              </dtml-if>
+  </td>
+  <td class="small">
+              <dtml-if "state and category and followup">
+                <dtml-let wf="category.Workflow()"
+                          tasks_results="followup.getBoundTasks()"
+                          tasks_count="_.len(tasks_results)"
+                >
+    <span style="font-size:85%;color:purple;"><nobr><dtml-var "msg(portal_workflow.getStateTitle(wf, state), add=None)"></nobr></span><br>
+                  <dtml-in tasks_results size="tasks_max" sort="created" reverse>
+                    <dtml-if "not (title.find('Â ðàáîòó') > -1)">
+    <nobr><strong class="strongText" style="font-size:85%;"><dtml-var title size="50"></strong>:</nobr><br>
+                      <dtml-let involved_users="listInvolvedUsers() or []">
+                        <dtml-in involved_users sort="id" size="5">
+    <em style="color:blue;font-size:80%;"><dtml-var "member_name(container, member=_['sequence-item'], brief=1)"></em>
+                          <dtml-unless sequence-end><br></dtml-unless>
+                        </dtml-in>
+                      </dtml-let>
+                      <dtml-unless sequence-end><br></dtml-unless>
+                    </dtml-if>
+                    <dtml-if sequence-end>
+                      <dtml-if "tasks_count > tasks_max"><br>...</dtml-if>
+                    </dtml-if>
+                  </dtml-in>
+                </dtml-let>
+              </dtml-if>
+  </td>
+            </dtml-if>
+</tr>
+            <dtml-if gap>
+<tr class="row_even">
+  <td nowrap>&nbsp;</td>
+  <td nowrap bgcolor="#B00080" style="border: 1px solid white;">
+              <dtml-call "REQUEST.set('view_font_style','color:#FFFFFF;font-size:110%;')">
+              <dtml-var "entry_field_view(container, name='ID', type='string', value=gap)">
+  </td>
+  <td colspan="20">&nbsp;</td>
+</tr>
+            </dtml-if>
+          </dtml-let>
+        </dtml-with>
+    
+        <dtml-if sequence-end>
+</table>
+          <dtml-if "REQUEST.get('show_delete_button', 0)">
+<br>
+<input type="button" name="delEntries" disabled onClick="confirmSubmit('del');" value="<dtml-var "msg('Delete entry')">">
+<input type="button" name="sendExpiredNotificationBottom" disabled onClick="confirmSubmit('send');" value="<dtml-var "msg('Send expiration message')">" style="width:260;">
+<input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelected()" style="width:140px;">
+          </dtml-if>
+</form>
+        </dtml-if>
+      <dtml-else>
+<p>
+        <dtml-if total_count>
+          <dtml-var "msg('There are no documents matching your query')">
+        <dtml-else>
+          <dtml-var "msg('There are no documents yet')">
+        </dtml-if>
+</p>
+      </dtml-in>
+
+<br><br>
+<table cellpadding="0" cellspacing="0" border="0">                        
+<tr>
+  <td>
+      <dtml-if results>
+        <dtml-var "table_pages_list(container, REQUEST,
+              results_count=results_count,
+              sort_order=sort_order,
+              sort_on=sort_on,
+              batch_size=batch_size,
+              qs=qs,
+              selected_state=selected_state or '',
+              indent=20
+              )">
+      </dtml-if>
+  </td>
+  <td>
+      <dtml-if "states and results">
+<form class="inline" method="post" action="&dtml-absolute_url;">
+<input type="hidden" name="sort_order" value="<dtml-var sort_order>">
+<input type="hidden" name="sort_on" value="<dtml-var sort_on>">
+<input type="hidden" name="batch_size" value="<dtml-var batch_size>">
+<input type="hidden" name="qs" value="<dtml-var qs>">
+
+    <select name="selected_state" onchange="javascript:statusSubmit(this.form);">
+      <option value="" <dtml-var "not selected_state and 'selected' or ''">><dtml-msg "all records"></option>
+        <dtml-in states mapping>
+      <option value="&dtml-id;" <dtml-var "id==selected_state and 'selected' or ''">><dtml-var "msg(title)"></option>
+        </dtml-in>
+    </select>
+</form>
+      </dtml-if>
+  </td>
+</tr>
+</table>
+
+    </dtml-let>
+  </dtml-if>
+</dtml-let>
+
+<div class="Discussion">
+  <dtml-var viewThreadsAtBottom>
+</div>
+
+</div>
+
+<dtml-var simple_html_footer>

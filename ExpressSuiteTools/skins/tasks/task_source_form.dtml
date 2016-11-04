@@ -1,0 +1,29 @@
+<html>
+<dtml-var css_inline_or_link>
+
+<dtml-with "getReply( taskid )">
+<dtml-let orig_text="comment( userid )">
+<head>
+ <title><dtml-var "msg('Original report text')"> - <dtml-var "portal_membership.getMemberName(userid)"></title>
+<script language="javascript"><!--
+function update()
+{
+    window.opener.report.r_&dtml-taskid;_&dtml-userid;.value='<dtml-var "orig_text.replace('\n', '\\n\\\n')">'
+    window.opener.focus();
+    window.close()
+}
+
+//--></script>
+</head>
+<body>
+   <h1> &dtml-title; </h1>
+   <form>
+    <b><dtml-var "portal_membership.getMemberName(userid.replace('_inspector', Inspector()))"></b>
+    <p>&dtml-orig_text;</p>
+    <input type="button" onClick="update()" value="<dtml-var "msg('Paste to report')">"/>
+    <input type="button" onClick="JavaScript:window.opener.focus();window.close()" value="<dtml-var "msg('Cancel')">"/>
+   </form>
+</body>
+</dtml-let>
+</dtml-with>
+</html>

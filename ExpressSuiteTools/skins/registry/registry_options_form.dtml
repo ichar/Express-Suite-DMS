@@ -1,0 +1,286 @@
+<script type="text/javascript">
+<!--
+    var commonImages = ['sort_up.gif','sort_down.gif'];
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<script language="javascript">
+<!--
+function Validate(frm) {
+    var last_id_value = frm.last_id.value;
+    if( !last_id_value || isNaN(last_id_value) ) {
+         alert('<dtml-var "msg('Please specify valid registry counter value')">');
+		 frm.last_id.focus();
+         return false;
+    }
+    return true;
+}
+
+function showHint(){
+    window.open('<dtml-var absolute_url>/registry_options_help', 'wnd_popup_menu', 'toolbar=no,scrollbars=yes,width=635,height=475,resizable=yes');
+}
+
+function setType(value) {
+    type = 4; //string
+    if( value=='CreationDate' || value=='ModificationDate' ) {
+        type=1; //date
+    }
+    if( value ) {
+        document.forms['registry'].ftype.options.selectedIndex = type;
+        document.forms['registry'].fedit.disabled = true;
+    } else {
+        document.forms['registry'].fedit.disabled = false;
+    }
+}
+
+function DisableForm(form) {
+    form.apply.disabled=true;
+}
+
+function SubmitForm() {
+    var form = document.registry;
+    if( Validate(form) ) {
+        DisableForm(form);
+        form.submit();
+    }
+}
+//-->
+</script>
+
+<h1><dtml-var title_or_id></h1>
+
+<dtml-let IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+          default_category="getDefaultCategory()"
+          default_states="getDefaultStates()"
+          states="portal_metadata.getCategoryStatesList(default_category)"
+          tasks_max="getViewTaskCount()"
+>
+
+<form name="registry" method="post" action="&dtml-absolute_url;/registry_options">
+<input type="hidden" name="changed" value="">
+
+<table cellspacing="0" cellpadding="1" border="0">
+<tr class="row_title">
+  <td class="small" colspan="2">
+    <dtml-var "msg('Registry options')">
+  </td>
+</tr>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Title')"></td>
+  <td><input name="title" size="50" style="width:419px;" value="&dtml-title;" onchange="javascript:changed.value+=this.name+':';" /></td>
+</tr>
+<tr class="row_even">
+  <td class="small"><dtml-var "msg('Description')"></td>
+  <td><textarea name="description" rows="5" cols="80" onchange="javascript:changed.value+=this.name+':';">&dtml-description;</textarea></td>
+</tr>
+<tr class="row_even">
+  <td class="small"><dtml-var "msg('Department')"></td>
+  <td><input name="department" size="50" style="width:419px;" value="&dtml-department;" onchange="javascript:changed.value+=this.name+':';" /></td>
+</tr>
+<tr class="row_even">
+  <td class="small"><dtml-var "msg('Registration number forming rule')"></td>
+  <td>
+    <input name="reg_num_forming_rule" size="50" style="width:283px;" value="&dtml-reg_num_forming_rule;" onchange="javascript:changed.value+=this.name+':';" />
+    <a href="javascript:showHint()"><dtml-var "msg('Help')"></a>
+  </td>
+</tr>
+<tr class="row_even">
+  <td class="small"><dtml-var "msg('View followup tasks count')"></td>
+  <td nowrap>
+    <input name="tasks_max" value="&dtml-tasks_max;" onchange="javascript:changed.value+=this.name+':';" /> (<dtml-var "msg('total rows inside the table')">)
+  </td>
+</tr>
+
+<tr class="row_even"><td colspan="2">&nbsp;</td></tr>
+  
+<tr class="row_even">
+  <td class="smallHeader" valign="top"><dtml-var "msg('Registry default category')"></td>
+  <td>
+  <dtml-let categories="portal_metadata.getCategories()">
+    <select name="default_category:string" onchange="javascript:changed.value+='default_category:';">
+      <option value="" <dtml-var "not default_category and 'selected' or ''">><dtml-msg "n/a"></option>
+    <dtml-in categories>
+      <option value="&dtml-getId;" <dtml-var "getId()==default_category and 'selected' or ''">><dtml-var "msg(Title(), add=None)"></option>
+    </dtml-in>
+    </select>
+  </dtml-let>
+  </td>
+</tr>
+  
+<tr class="row_even">
+  <td class="small" nowrap><dtml-var "msg('Registry entry states')">:</td>
+  <td>&nbsp;<td>
+</tr>  
+  
+  <dtml-in default_states mapping>
+<tr class="row_even">
+  <td align="right" nowrap style="padding-right:5px">
+    <table><tr><td><dtml-var "msg(title)"></td><td bgcolor="<dtml-var "color[0]">" style="border:1pt solid <dtml-var "color[1]">">&nbsp;</td></tr></table>
+  </td>
+  <td>
+    <select name="rs_&dtml-id;_selected" onchange="javascript:changed.value+='default_states:';">
+      <option value="" <dtml-var "not selected and 'selected' or ''">><dtml-msg "n/a"></option>
+    <dtml-in states mapping>
+      <option value="&dtml-id;" <dtml-var "id in selected and 'selected' or ''">><dtml-var "msg(title)"></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>  
+  </dtml-in>  
+
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Current period registry')">&nbsp;</td>
+  <td>
+    <input type="checkbox" value="1" name="current_registry" <dtml-var "isCurrentRegistry() and 'checked' or ''"> onchange="javascript:changed.value+=this.name+':';" />
+  </td>
+</tr>  
+  
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Permit the author of entry to delete it')">&nbsp;</td>
+  <td>
+    <input type="checkbox" value="1" name="author_can_delete_entry" <dtml-var "isDelEntryAuthorAllowed() and 'checked' or ''"> onchange="javascript:changed.value+=this.name+':';" />
+  </td>
+</tr>  
+  
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Do not check gaps')">&nbsp;</td>
+  <td>
+    <input type="checkbox" value="1" name="no_gaps" <dtml-var "isNoGaps() and 'checked' or ''"> onchange="javascript:changed.value+=this.name+':';" />
+  </td>
+</tr>  
+
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Internal counter')"></td>
+  <td>
+    <input type="text" id="last_id" name="last_id:int" value="&dtml-getLastSequenceNumber;" onchange="javascript:changed.value+='last_id:';" />
+  </td>
+</tr>  
+
+<tr class="row_even">
+  <td colspan="2" style="padding: 10px 1px 10px 1px;">
+    <input type="button" name="apply" value="<dtml-var "msg('Save')">" onclick="javascript:SubmitForm();" style="width:110px;">
+  </td>
+</tr>
+
+<tr><td colspan="2">&nbsp;</td></tr>
+
+<tr class="row_title">
+  <td colspan="2" class="smallHeader"><dtml-var "msg('Registry fields')"></td>
+</tr>
+
+<dtml-comment> Fields list with 'Delete' button </dtml-comment>
+
+<tr class="row_even">
+  <td colspan="2">
+<dtml-in listColumns>
+  <dtml-if sequence-start>
+    <table border="0">
+  </dtml-if>
+  <dtml-let cell_style="(not allowsInput() and 'font-style: italic;' or '')">
+    <tr style="&dtml-cell_style;">
+      <dtml-if IsAdmin>
+      <td>
+        <dtml-if "isMandatory()">&nbsp;<dtml-else>
+          <input type="checkbox" name="selected_fields:list" value="&dtml-getId;">
+        </dtml-if>
+      </td>
+      </dtml-if>
+      <td>
+        <dtml-unless sequence-start>
+          <a href="<dtml-var "relative_url(action='moveColumn', params={'column_id':getId(), 'direction':1})">"><dtml-var sort_up.gif></a>
+        </dtml-unless>
+        <dtml-unless sequence-end>
+          <a href="<dtml-var "relative_url(action='moveColumn', params={'column_id':getId(), 'direction':-1})">"><dtml-var sort_down.gif></a>
+        </dtml-unless sequence-end>
+      </td>
+      <td>
+        <dtml-var "isEditableAfterReg() and '<B>' or ''">
+        <dtml-var "msg(Title(), add=None)">, <dtml-var "msg('id')">: <dtml-var "getId()"> (<dtml-var "msg(Type(), add=0)">)
+        <dtml-var "isEditableAfterReg() and '</B>' or ''">
+        <a href="<dtml-var absolute_url>/registry_columns_form?column_id=&dtml.url_quote-getId;">[<dtml-var "msg('edit')">]</a>
+      </td>
+    </tr>
+  </dtml-let>
+  <dtml-if sequence-end>
+    <tr>
+      <td colspan="3">
+        <dtml-var "msg('Note: columns in italic do not allow input, columns in bold allow edit entries')">.
+      </td>
+    </tr>
+    <dtml-if IsAdmin>
+    <tr>
+      <td colspan="3">
+        <input type="submit" name="del_fields" value="<dtml-var "msg('Delete')">">
+      </td>
+    </tr>
+    </dtml-if>
+    </table>
+    <br>
+  </dtml-if>
+</dtml-in>
+  </td>
+</tr>
+
+<dtml-comment> Add field form </dtml-comment>
+
+<dtml-if IsAdmin>
+<tr class="row_even">
+  <td colspan="2" class="small"> 
+    <table cols="4" width="100%" border="0">
+    <tr>
+      <td><dtml-var "msg('Id')">:&nbsp;</td>
+      <td style="padding-left:4px;"><input name="fname" type="text" size="20" style="width:200px;"></td>
+      <td style="padding-left:20px;"><dtml-var "msg('Title')">:</td>
+      <td style="width:90%;"><input name="ftitle" type="text" size="30" style="width:200px;"></td>
+    </tr>
+    <tr>
+      <td><dtml-var "msg('System field')">:&nbsp;</td>
+      <td style="padding-left:4px;">
+        <select name="system_field" onchange="setType(this.options[this.selectedIndex].value);" style="width:200px;">
+          <option value="" selected><dtml-var "msg('None')"></option>
+          <option value="Creator"><dtml-var "msg('Document owner')"></option>
+          <option value="CreationDate"><dtml-var "msg('Creation date')"></option>
+          <option value="ModificationDate"><dtml-var "msg('Modification date')"></option>
+          <option value="state"><dtml-var "msg('Status')"></option>
+          <option value="category"><dtml-var "msg('Category')"></option>
+          <option value="Title"><dtml-var "msg('Title')"></option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td><dtml-var "msg('Type')">:</td>
+      <td style="padding-left:4px;">
+        <select name="ftype">
+          <option value="boolean"><dtml-var "msg('boolean')"></option>
+          <option value="date"><dtml-var "msg('date')"></option>
+          <option value="float"><dtml-var "msg('float')"></option>
+          <option value="int"><dtml-var "msg('int')"></option>
+          <option value="string" selected><dtml-var "msg('string')"></option>
+          <option value="text"><dtml-var "msg('text')"></option>
+          <option value="listitem"><dtml-var "msg('list')"></option>
+          <option value="items"><dtml-var "msg('items')"></option>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td style="padding: 5 0 10 0;">
+        <input type="checkbox" id="fedit" name="fedit">
+        <label for="fedit"><dtml-var "msg('Allows modification')"></label>
+      </td>
+    </tr>
+    </table>
+    <input type="submit" name="add_field" value="<dtml-var "msg('Add field')">">    
+  </td>
+</tr>
+</dtml-if>
+
+</table>
+
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

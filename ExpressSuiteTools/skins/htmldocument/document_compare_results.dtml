@@ -1,0 +1,59 @@
+<dtml-comment>
+Displays results of two versions comparison.
+
+$Id: document_compare_results.dtml,v 1.1.2.1.12.1 2004/11/19 09:51:06 spinagin Exp $
+</dtml-comment>
+<dtml-revision $Revision: 1.1.2.1.12.1 $>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<h2><dtml-msg "Result of document versions comparison"></h2>
+
+<form name="compare_form"
+      action="<dtml-var "relative_url( action='document_versions_handler' )" html_quote>">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+
+<dtml-with "original">
+<tr>
+  <td nowrap="1"><dtml-msg "Original version">:&nbsp;</td>
+  <td width="100%">
+    <a href="<dtml-var "relative_url( action='document_view' )" html_quote>"
+       target="workspace">&dtml-getVersionTitle; [&dtml-getVersionNumber;]</a>
+  </td>
+</tr>
+</dtml-with>
+
+<dtml-with "revised">
+<tr>
+  <td nowrap="1"><dtml-msg "Revised version">:&nbsp;</td>
+  <td width="100%">
+    <a href="<dtml-var "relative_url( action='document_view' )" html_quote>"
+       target="workspace">&dtml-getVersionTitle; [&dtml-getVersionNumber;]</a>
+  </td>
+</tr>
+</dtml-with>
+
+<tr>
+  <td>&nbsp;</td>
+</tr>
+
+<tr>
+<td colspan="2" align="left" valign="top" class="document_body" width="100%" 
+  style="padding:5 5 5 5;">
+  <dtml-var result>
+</td>
+</tr>
+
+</table>
+
+<br />
+<input type="submit" name="back" style="width:80px;" value=" <dtml-msg "Back"> " />
+
+</form>
+
+</div>
+
+<dtml-var simple_html_footer>

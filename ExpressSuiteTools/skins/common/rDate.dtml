@@ -1,0 +1,15 @@
+<dtml-let months="('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')">
+<dtml-let d=time
+          now="ZopeTime()"
+>
+  <dtml-if "d.lessThan(_.DateTime(2099, 1, 1))">
+      <dtml-if "d.dd()!=now.dd() or d.mm()!=now.mm()">
+      <dtml-var "d.day()"> <dtml-var "msg(months[_.int(d.mm())-1])"> 
+      <dtml-if "d.year()!=now.year()">
+        <dtml-var "d.year()">
+      </dtml-if>
+      </dtml-if>
+      <dtml-var d fmt="%H:%M">
+  </dtml-if>
+</dtml-let>
+</dtml-let>

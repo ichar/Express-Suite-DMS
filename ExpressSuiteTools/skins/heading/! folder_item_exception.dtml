@@ -1,0 +1,10 @@
+  <dtml-try>
+  <dtml-except>
+<tr style="padding-top:2px">
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+  <td width="95%" colspan="3">
+    <font color=red>error: &dtml-id; (&dtml-base_url;)</font>
+  </td>
+</tr>
+  </dtml-try>

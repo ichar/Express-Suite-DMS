@@ -1,0 +1,38 @@
+<dtml-comment>
+$Id: dateperiod_form.dtml,v 1.6 2003/07/21 10:49:54 ikuleshov Exp $
+</dtml-comment>
+<dtml-revision $Revision: 1.6 $>
+
+<nobr>
+
+<dtml-if "period is not None">
+<dtml-let days="period / 86400"
+          hours="(period - days * 86400) / 3600"
+          minutes="(period - days * 86400 - hours * 3600) / 60"
+>
+  <select id="&dtml-prefix;_days" name="&dtml-prefix;.days:int:record">
+  <dtml-in "_.range( 0, 31 )" prefix="day">
+    <option value="&dtml-day_item;" <dtml-var "_['sequence-item'] == days and 'selected' or ''"> />&dtml-day_item;</option>
+  </dtml-in>
+  </select>
+  <dtml-var "msg('day(s)')">
+
+  <select id="&dtml-prefix;_hours" name="&dtml-prefix;.hours:int:record">
+  <dtml-in "_.range( 0, 24 )" prefix="hour">
+    <option value="&dtml-hour_item;" <dtml-var "_['sequence-item'] == hours and 'selected' or ''"> />&dtml-hour_item;</option>
+  </dtml-in>
+  </select>
+  <dtml-var "msg('hour(s)')">
+
+  <select id="&dtml-prefix;_minutes" name="&dtml-prefix;.minutes:int:record">
+  <dtml-in "_.range( 0, 60 )" prefix="minute">
+    <option value="&dtml-minute_item;" <dtml-var "_['sequence-item'] == minutes and 'selected' or ''"> />&dtml-minute_item;</option>
+  </dtml-in>
+  </select>
+  <dtml-var "msg('minute(s)')">
+</dtml-let>
+<dtml-else>
+  <dtml-var "msg('n/a')">
+</dtml-if>
+
+</nobr>

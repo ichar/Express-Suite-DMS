@@ -1,0 +1,27 @@
+<dtml-if "not _.has_key('link') and meta_type == 'HTMLDocument'">
+    <dtml-return document_view>
+</dtml-if>
+
+<dtml-let n="_.string.find(link, 'view')">
+  <dtml-if "n > 0 and link[n-1:n] in ['/','=','_','?','&']">
+    <dtml-return document_view>
+  </dtml-if>
+</dtml-let>
+  
+<dtml-if "_.string.find(link, 'addtoFavorites') >= 0">
+    <dtml-return addtoFavorites>
+</dtml-if>
+
+<dtml-if "link.startswith('edit') or link.startswith('document_edit')">
+    <dtml-return "document_edit_form(this(), link='document_edit_form', REQUEST=REQUEST)">
+</dtml-if>
+
+<dtml-var document_html_header>
+
+<iframe name="workfield" src="&dtml-link;" scrolling="auto" width="100%" height="100%" frameborder="0">
+
+Unfortunately your browser does not support frames.
+
+</iframe>
+
+<dtml-var document_html_footer>

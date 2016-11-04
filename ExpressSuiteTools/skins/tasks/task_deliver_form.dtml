@@ -1,0 +1,118 @@
+<dtml-revision $Revision: 1.11.10.1.6.2 $>
+
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script language="JavaScript">
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function validateForm(frm) {
+    var involved_users = frm.involved_selected_users;
+    if( !involved_users.options.length ) {
+        alert('<dtml-var "msg('Please specify responsible members')">');
+        return false;
+    }
+    return true;
+}
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.deliverForm;
+    if( validateForm(frm) ) {
+        DisableForm(frm);
+        CheckAndRefreshCommentFields(frm, ['text']);
+        form.submit();
+    }
+}
+</script>
+
+<div class="Desktop" id="task_deliver_container">
+
+<dtml-let container="getBase()"
+          rti="getResponseTypeById(status)"
+          uname="portal_membership.getAuthenticatedMember().getUserName()"
+          prev_responses="searchResponses(status=status, member=uname)"
+          recent_response="_.len(prev_responses) and prev_responses[-1]"
+          recent_response_id="recent_response and searchResponses().index(recent_response)+1"
+          brains_type="BrainsType()"
+>
+
+<h1><dtml-var aboveInThread></h1>
+
+<form name="deliverForm" action="&dtml-absolute_url;/Respond" method="post" enctype="multipart/form-data">
+<table class="FormLayout" width="100%">
+<tr>
+  <td class="smallHeader" valign=top align=left>
+<dtml-let action_description="msg(rti['description'], add=0)">
+  <dtml-if action_description>
+    <strong style="color:purple"><dtml-msg "Action">:&nbsp;"<dtml-var action_description>"</strong>
+  </dtml-if>
+</dtml-let>
+ </td>
+</tr>
+
+<tr>
+  <td class="smallHeader" valign=top align=left>
+    <dtml-var "user_list(this(), 
+          name='involved', 
+          allowed_users=portal_membership.listAllowedUsersForDeliverExecution(),
+          size=8, 
+          IsSimple=1
+    )">
+ </td>
+</tr>
+
+<tr>
+  <td valign=top align=left>
+    <h3 style="font-size:11px;"><em><dtml-var "msg('Request instruction')">:</em></h3>
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-call "REQUEST.set('comment_rows', 5)">
+    <dtml-var "comment_template(this(), form='deliverForm', field='text', context=('task.respond.%s.deliver' % brains_type), value='')">
+  </td>
+</tr>
+
+<tr>
+  <td style="padding: 5px 0 5px 0">
+    <input type="hidden" name="status" value="&dtml-status;">
+    <input type="button" name="OK" value=" <dtml-var "msg('OK')"> " title="<dtml-var "msg('Witness a signature')">" onclick="javascript:SubmitForm();" style="width:110px;">
+    <input type="button" name="cancel" onClick="JavaScript:location.href='&dtml-absolute_url;'" value=" <dtml-var "msg('Cancel')"> " style="width:110px;">
+  </td>
+</tr>
+</table>
+
+</form>
+
+</div>
+
+<br>
+
+<dtml-if "container is not None and container.implements('isDocument')">
+<table width="100%">
+<tr class="task_title">
+  <td class="smallHeader"><dtml-var "msg('Document text')"></td>
+</tr>
+<tr>
+  <td width="100%" bgcolor="#FFFFFF"><dtml-var "this().CookedBody(view=1, resolution='none')"></td>
+</tr>
+</table>
+</dtml-if>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.top += task_response_container.offsetHeight + 60;
+      resolution_body.style.display = 'block';
+    };
+//-->
+</script>
+
+<dtml-var simple_html_footer>

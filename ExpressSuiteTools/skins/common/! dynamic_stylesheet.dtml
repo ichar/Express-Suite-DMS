@@ -1,0 +1,435 @@
+<style type="text/css">
+
+body, td, h1, h2, h3, p, li,
+table.FormLayout th, table.SearchFormLayout th {
+    font-family: <dtml-var "portal_membership.getFontFamily()">;
+    margin-right:0pt;
+    font-size:11px;
+}
+
+div.Desktop p {
+    font-family: <dtml-var "portal_membership.getFontFamily()">;
+    margin-right:0pt;
+    font-size:12px;
+}
+
+.DesktopStatusBar, p.DesktopStatusBar, .ContentsList a.button {
+    font-family: <dtml-var "portal_membership.getFontFamily('message')">;
+}
+
+p.DocumentStatusBar {
+    font-family: <dtml-var "portal_membership.getFontFamily('message')">;
+    color: green;
+}
+
+div.Desktop h1, div.DesktopTitle h2 {
+    font-family: <dtml-var "portal_membership.getFontFamily('title')">;
+}
+
+input, select, textarea {
+    font-family: <dtml-var "portal_membership.getFontFamily('input')">;
+}
+
+tr.task_result, td.task_result {
+    font-family: Verdana, Times, Arial;
+    font-size: 80%;
+    font-weight: bold;
+    background-color: #FFFFFF;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    padding-left: 0px;
+    padding-right: 0px;	
+}
+
+td.statHeader {
+    font-family: Arial, Verdana;
+    font-size: 12px;
+    font-weight: bold;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;	
+}
+
+td.statData {
+    font-family: Verdana;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+td.check_option {
+    font-family: Verdana;
+    font-size: 11px;
+    font-weight: normal;
+    color: #000000;
+}
+
+tr.row_title, td.row_title {
+    font-weight: bold;
+    background-color: #94B2C6;
+}
+
+tr.row_total, td.row_total {
+    font-weight: bold;
+    background-color: #E9FDBD;
+}
+
+tr.row_odd, td.col_odd {
+    background-color: #D6E1E8;
+}
+
+td.dump {
+    font-family: Arial;
+    font-size: 11px;
+    background-color: #CCCC99;
+    padding: 5px 0 5px 20px;
+}
+
+td.row_tab {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #999999;
+    padding-bottom: 2px;
+}
+
+td.row_button {
+    background-color: #C9D3DC;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #999999;
+    padding-bottom: 2px;
+}
+
+td.col_button {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #800080;
+}
+
+td.form-label {
+    font-weight: bold;
+}
+
+a:link {
+    color: #000000;
+    font-family: Verdana;
+    font-size: 13px;
+}
+
+a:visited {
+    color: #000000;
+    font-family: Verdana;
+    font-size: 13px;
+}
+
+a:active {
+    color: #000000;
+    font-family: Verdana;
+    font-size: 13px;
+}
+
+a:hover {
+    color: #666666;
+    font-family: Verdana;
+    font-size: 13px;
+}
+
+a.nav:link {
+    color: #000000;
+    font-size: 11px;
+}
+
+a.nav:visited {
+    color: #000000;
+    font-size: 11px;
+}
+
+a.nav:active {
+    color: #000000;
+    font-size: 11px;
+}
+
+a.nav:hover {
+    color: #666666;
+    font-size: 11px;
+}
+
+a.tree:link {
+    color: #000000;
+    text-decoration: none;
+    font-family: Verdana;
+    font-size: 10pt;
+}
+
+a.tree:visited {
+    color: #000000;
+    text-decoration: none;
+    font-family: Verdana;
+    font-size: 10pt;
+}
+
+a.tree:active {
+    color: #000000;
+    text-decoration: none;
+    font-family: Verdana;
+    font-size: 10pt;
+}
+
+a.tree:hover {
+    color: #666666;
+    text-decoration: none;
+    font-family: Verdana;
+    font-size: 10pt;
+}
+
+a.navigate:link {
+    color: #000000;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+a.navigate:visited {
+    color: #000000;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+a.navigate:active {
+    color: #000000;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+a.navigate:hover {
+    color: #666666;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+a.attach:link {
+    font-family: Times, Arial, Verdana;
+    color: #000080;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+a.attach:visited {
+    font-family: Times, Arial, Verdana;
+    color: #800080;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+a.attach:active {
+    font-family: Times, Arial, Verdana;
+    color: #000080;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+a.attach:hover {
+    font-family: Times, Arial, Verdana;
+    color: #0808FF;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+a.info:link {
+    font-family: Times, Arial, Verdana;
+    color: #000080;
+    font-size: x-small;
+    font-style: normal;
+}
+
+a.info:visited {
+    font-family: Times, Arial, Verdana;
+    color: #800080;
+    font-size: x-small;
+    font-style: normal;
+}
+
+a.info:active {
+    font-family: Times, Arial, Verdana;
+    color: #000080;
+    font-size: x-small;
+    font-style: normal;
+}
+
+a.info:hover {
+    font-family: Times, Arial, Verdana;
+    color: #0808FF;
+    font-size: x-small;
+    font-style: normal;
+}
+
+a.manage:link {
+    font-family: Times, Arial, Verdana;
+    color: #0000F0;
+    font-size: 12pt;
+}
+
+a.manage:visited {
+    font-family: Times, Arial, Verdana;
+    color: #800080;
+    font-size: 12pt;
+}
+
+a.manage:active {
+    font-family: Times, Arial, Verdana;
+    color: #000080;
+    font-size: 12pt;
+}
+
+a.manage:hover {
+    font-family: Times, Arial, Verdana;
+    color: #8080FF;
+    font-size: 12pt;
+}
+
+a.tabs {
+    padding-left: 3px;
+    padding-right: 3px;
+}
+
+a.tabs:hover {
+    color:  #666666;
+    text-decoration: none;
+    font-size: xx-small;
+}
+
+.symbs {
+    font-family: <dtml-var "portal_membership.getFontFamily('symbol')">;
+}
+
+.ViewField {
+    font-size: 85%;
+    padding-top: 3px;
+    padding-left: 4px;
+}
+
+.EditField {
+    padding-top: 0px;
+    padding-left: 4px;
+}
+
+.mousepointer {
+    cursor: hand; 
+    font-size: 12px;
+}
+
+.strongText {
+    font-family: <dtml-var "portal_membership.getFontFamily('title')">;
+    font-size: 12px;
+}
+
+.resolution { 
+    font-family: Times, Arial, Verdana;
+    font-size: 95%;
+    font-weight: normal;
+    color: DarkMagenta;
+}
+
+.info {
+    font-family: <dtml-var "portal_membership.getFontFamily('')">;
+    font-size: 90%;
+    font-weight: bold;
+    color: red;
+}
+
+a.Fax_Incoming_Folder_editable {
+    font-weight: bold;
+    color: green;
+}
+
+a.Fax_Incoming_Folder_frozen {
+    font-weight: bold;
+    color: blue;
+}
+
+a.Fax_Incoming_Folder_fixed {
+    font-weight: bold;
+    color: gray;
+}
+
+div.comment_editor p {
+    FONT-FAMILY: Times New Roman;
+    font-size: 12pt;
+    TEXT-INDENT: 0px; 
+    TEXT-ALIGN: left;
+    MARGIN: 0 0 0 0;
+    color: #000040;
+}
+
+div.comments p {
+    FONT-FAMILY: Times New Roman;
+    font-size: 12px;
+    TEXT-INDENT: 0px; 
+    TEXT-ALIGN: left;
+    MARGIN: 0 0 0 0;
+}
+
+td.services_title {
+    font-family: tahoma;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+td.services_option {
+    font-family: tahoma;
+    font-size: 11px;
+    color: #000099;
+}
+
+span.services_info {
+    font-family: tahoma;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+td.services_schedule_title {
+    font-family: tahoma;
+    font-size: 11px;
+    font-weight: bold;
+    color: #0000FF;
+    padding: 0 0 10px 0;
+}
+
+td.services_info {
+    font-family: tahoma;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+td.services_item {
+    font-family: tahoma;
+    font-size: 11px;
+}
+
+p.xxx a:link {
+    font-family: Times, Arial, Verdana;
+    color: #000080;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+p.xxx a:visited {
+    font-family: Times, Arial, Verdana;
+    color: #800080;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+p.xxx a:active {
+    font-family: Times, Arial, Verdana;
+    color: #000080;
+    font-size: 12pt;
+    font-style: italic;
+}
+
+p.xxx a:hover {
+    font-family: Times, Arial, Verdana;
+    color: #0808FF;
+    font-size: 12pt;
+    font-style: italic;
+}
+</style>

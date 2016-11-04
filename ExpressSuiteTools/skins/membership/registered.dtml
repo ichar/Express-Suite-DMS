@@ -1,0 +1,33 @@
+<dtml-comment>
+<dtml-var standard_html_header>
+</dtml-comment>
+
+<dtml-var simple_html_header>
+<div class="Desktop">
+
+<h1> <dtml-var "msg('Registration complete')"></h1>
+
+<p> <dtml-var "msg('User has been added')"> </p>
+
+<dtml-if "portal_properties.validate_email">
+
+<p> <dtml-var "msg('Confirmation email was sent to the user')"> </p>
+
+</dtml-if>
+
+<dtml-if "REQUEST.get('not_sended','')">
+
+<p> <dtml-var "msg('Failed to send registration data to user')">. <dtml-var "msg('Check the mail settings please.')"> </p>
+
+</dtml-if>
+
+<p> <a href="&dtml-portal_url;/manage_users_form"><dtml-var "msg('Portal users list')"></a> </p>
+
+</div>
+
+</body>
+</html>
+
+<dtml-comment>
+<dtml-var standard_html_footer>
+</dtml-comment>

@@ -1,0 +1,52 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function DisableForm( frm ) {
+    try {
+      frm.create_version.disabled=true;
+      frm.compare_versions.disabled=true;
+    }
+    catch (error) {}
+}
+
+function SubmitForm( obj ) {
+    var frm = document.versionsForm;
+    if (typeof(obj) == 'object' && validateForm(frm)) {
+        frm.action_name.value = obj.name;
+        DisableForm(frm);
+        frm.submit();
+    }
+}
+
+function validateForm( frm ) {
+	return true;
+}
+//-->
+</script>
+
+<h3><dtml-msg "Available versions"></h3>
+
+<dtml-let container="this()"
+          versions_disabled="getCustomDefinitions('versions_disabled', context=container)">
+
+<form name="versionsForm" method="POST" action="<dtml-var "relative_url(action='document_versions_handler')" html_quote>">
+<input type="hidden" name="action_name" value="">
+
+<dtml-var document_versions_embedded>
+<br />
+<dtml-if isLocked>
+  <dtml-msg "This document has been locked because it is being edited by another user.">
+  <br />
+<dtml-elif "_.SecurityCheckPermission('Create object versions', container)">
+<input name="create_version" type="button" value="<dtml-msg "Create new version">" onclick="javascript:SubmitForm(this);" <dtml-if versions_disabled>disabled</dtml-if> style="width:185px;">
+</dtml-if>
+<dtml-if "_.len(listVersions()) > 1">
+<input name="compare_versions" type="button" value="<dtml-msg "Compare versions">" onclick="javascript:SubmitForm(this);" style="width:185px;">
+</dtml-if>
+
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

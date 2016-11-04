@@ -1,0 +1,80 @@
+<dtml-var simple_html_header>
+
+<dtml-call "REQUEST.set('show_add_reply', 0)">
+
+<table width="100%" bgcolor="#E5E5E5" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td valign=top width=21><dtml-var actn030.gif>&nbsp;</td>
+  <td align=left style="width:100%"><h3><dtml-var "aboveInThread()"></h3></td>
+</tr>
+</table>
+
+<dtml-let creator_name="portal_membership.getMemberName(Creator())"
+          creator_email="portal_membership.getMemberEmail(Creator())"
+          Title="title or description"
+          base="getBase()"
+          IsDocument="base is not None and base.implements('isDocument') and 1 or 0"
+>
+<table bgcolor="#E5E5E5" cellspacing="1" cellpadding="2" width="100%" border="0">
+<tr class="row_odd">
+  <td width="5%" class="smallheader"><dtml-var "msg('Comment owner')">:&nbsp;</td>
+  <td class="small"><dtml-var "member_name(this(), member=_['Creator'])"></td>
+  <dtml-if IsDocument>
+  <td align="right" valign="middle" nowrap>
+    <dtml-let view_url="base.absolute_url()+'/document_view?expand=1'">
+    (<a target="_top" href="&dtml-view_url;"><dtml-var "msg('Open the document')"></a>)
+    </dtml-let>
+  </td>
+  </dtml-if>
+</tr>
+
+  <dtml-if ModificationDate>
+<tr>
+  <td class="smallheader"><dtml-var "msg('Date')">:</td>
+  <td class="small"><dtml-var ModificationDate></td>
+</tr>
+  </dtml-if>
+
+<tr>
+  <td class="smallheader"><dtml-msg "Title">:</td>
+  <td class="small">&dtml.html_quote-Title;</td>
+</tr>
+
+  <dtml-if expr="Creator()==_.str(portal_membership.getAuthenticatedMember())">
+<form action="&dtml-absolute_url;/edit_item" method="post">
+<tr>
+  <td colspan="3">
+    <dtml-msg "Title">:<br>
+    <input type="text" name="title" value="&dtml-Title;" style="width: 100%">
+    <br>
+    <dtml-msg "Text">:<br>
+    <textarea name="text" cols="50" rows="10" wrap="soft" style="width: 100%">&dtml-text;</textarea>
+    <input type="submit" value="<dtml-msg "Change">" style="width:100px;">
+    <dtml-if "not talkback.hasReplies( this() )">
+    <input type="button" value="<dtml-msg "Delete">" onclick="location.href='<dtml-var expr="talkback.absolute_url()">/delete_item?id=&dtml-id;'" style="width:100px;">
+    </dtml-if> 
+  </td>
+</tr>
+</form>
+  <dtml-else>
+<tr>
+  <td colspan="3" style="padding: 20 5 20 5;">
+    <em style="color:blue;font-size:12px;">&dtml.html_quote.newline_to_br.-text;</em>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+<tr>
+  <td colspan="3"><br><dtml-var viewThreadsAtBottom></td>
+</tr>
+
+<tr>
+  <td colspan="3" style="padding-right:10px;">
+    <dtml-call "REQUEST.set('title_override', this().Description)">
+    <dtml-var discussionReply>
+  </td>
+</tr>
+</table>
+
+<dtml-var simple_html_footer>

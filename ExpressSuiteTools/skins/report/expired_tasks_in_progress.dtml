@@ -1,0 +1,290 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title><dtml-var "msg(REQUEST.get('PageTitle','Expired Tasks'))" html_quote></title>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+
+<style type="text/css">
+td.small {
+    font-size: 10px;
+}
+td.smallHeader {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+    border: 1px solid black;
+}
+td.smallFooter {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid black;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+.header {
+    font-family: tahoma;
+    font-size: 20px;
+    /*font-weight: bold;*/
+    cursor: default;
+    color: black;
+}
+.comment {
+    font-family: verdana;
+    font-size: 10px;
+    cursor: default;
+    color: black;
+    padding-left: 1px;
+}
+.information {
+    font-family: verdana;
+    font-size: 13px;
+    cursor: default;
+    color: black;
+}
+td.queryHeader {
+    font-size: x-small;
+    font-weight: bold;
+    padding: 0 5px 0 35px;
+}
+td.inline {
+    padding: 0 5px 0 5px;
+}
+td.workarea {
+    font-size: 10px;
+    padding: 5px 5px 5px 5px;
+}
+td.expiration {
+    background-color: #FFCECE;
+    font-size: 11px;
+    padding: 5px 5px 5px 5px;
+    color: #CC0000;
+}
+td.description {
+    font-size: 10px;
+    padding: 5px 7px 5px 7px;
+}
+td.statistics {
+    font-family: verdana;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+td.p_info {
+    font-family: arial;
+    font-size: 12px;
+    border: 1px solid gray;
+}
+td.p_view {
+    font-family: arial;
+    font-size: 12px;
+    border: 1px solid gray;
+}
+span.p_member {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+}
+</style>
+</head>
+
+<script type="text/javascript">
+<!-- 
+function DoImgClick( id ) {
+    var query = document.all[id];
+    var s=(query.style.display == 'none' ? 'block' : 'none');
+    query.style.display = s;
+}
+
+function PrintPreview() {
+    var frm = document.reportForm;
+    frm.print_preview.value = 1;
+    frm.target = '_blank';
+    onSubmitForm( frm );
+}
+
+function Refresh() {
+    var frm = document.reportForm;
+    frm.print_preview.value = '';
+    frm.target = '_self';
+    DisableForm( frm );
+    onSubmitForm( frm );
+}
+
+function DisableForm( frm ) {
+    frm.refresh.disabled=true;
+    frm.close.disabled=true;
+    frm.preview.disabled=true;
+}
+
+function onSubmitForm( frm ) {
+    frm.submit();
+}
+
+var shown = 'block';
+
+function displayDataOfCategory( id, display ) {
+   var obj = document.getElementById(id);
+   var icon = document.getElementById(id+'_icon');
+   if( typeof(obj) != 'object' ) return;
+   if( !display ) display = ( obj.style.display == 'block' ? 'none' : 'block' );
+   obj.style.display = display;
+   if( typeof(icon) != 'object' ) return;
+   icon.src = ( display == 'block' ? 'row_e.gif' : 'row_c.gif' );
+}
+
+function showCategories() {
+   var rows = document.getElementsByTagName('div');
+   if( !rows ) return;
+   if( shown == 'block' ) shown='none'; else shown='block';
+   for (var i = 0; i < rows.length; i++) {
+     if( rows[i].name == 'row_of_category' ) displayDataOfCategory( rows[i].id, shown );
+   }
+}
+//-->
+</script>
+
+<dtml-let container="this()"
+          archive_search="_.int(REQUEST.get('archive_search') or 0)"
+          instances="[ x for x in getPortalConfiguration().getAttribute('URLs', context=container)
+              if archive_search or not x['id'].startswith('arc') ]"
+          company_logo="getPortalConfiguration().getAttribute('company_logo', context=container)"
+          common_url="portal_properties.common_url()"
+          member="portal_membership.getAuthenticatedMember()"
+          uname="member.getUserName()"
+
+          print_preview="REQUEST.get('print_preview') and '1' or ''"
+
+          bgcolor="'#E7E7E7'"
+          period="0"
+          x_p="0"
+          days="x_p == 7 and 360 or x_p == 6 and 180 or x_p == 5 and 90 or x_p == 4 and 30 or x_p == 3 and 14 or x_p == 2 and 7 or 1"
+          date_till="_.DateTime()+1"
+          date_from="days and date_till-days or None"
+          not_finalized_only="0"
+          not_answered_only="0"
+          enabled_only="0"
+          in_time="0"
+          with_delay="0"
+          cio="_.int(REQUEST.get('cio','0')) or 0"
+
+          report_name="msg('User Expired Tasks Report')"
+
+          item_color="'FFFFFF'"
+          show_color="'FFFACD'"
+>
+
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="&dtml-bgcolor;">
+
+<table width="100%" cellspacing="5" cellpadding="5" border="0">
+<form name="reportForm" method="post">
+<input type="hidden" name="BackgroundColor" value="&dtml-bgcolor;">
+<input type="hidden" id="print_preview" name="print_preview" value="&dtml-print_preview;">
+<input type="hidden" name="cio" value="&dtml-cio;">
+
+<dtml-unless print_preview>
+<tr>
+  <td align="left" valign="top">
+    <img src="&dtml-common_url;&dtml-company_logo;">
+  </td>
+  <td align="left" style="width:100%;padding-top:5px;" valign="top">
+    <dtml-var cio_report_name>
+  </td>
+  <td align="right" valign="top" style="padding-left:1px;">
+    <img src="&dtml-portal_url;/docflow-logo-ex.gif">
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding: 10px 5px 10px 5px;" nowrap>
+    <input type="button" name="refresh" onClick="javascript:Refresh();" value="<dtml-var "msg('Refresh')">" style="width:95px;">
+    <input type="button" name="close" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+    <input type="button" name="preview" onClick="javascript:PrintPreview();" value="<dtml-var "msg('Print preview')">" style="width:125px;">
+    <input type="button" onClick="javascript:showCategories();" value=" ... ">
+  </td>
+  <td align="right">
+  <dtml-if "_.len(instances) > 1">
+    <table cellspacing="0" cellpadding="1" border="0">
+    <tr>
+    <dtml-in instances mapping>
+      <td id="&dtml-id;_sign" style="display:block;">
+        <table cellspacing="2" cellpadding="1" border="0" style="border:1pt solid #000080;">
+        <tr>
+          <td bgcolor="#8080C0"><img title="&dtml-id;" src="&dtml-portal_url;/spacer.gif" height="10"></td>
+	    </tr>  
+        </table>
+      </td>
+    </dtml-in>
+    </tr>
+    </table>
+  </dtml-if>
+  </td>
+</tr>
+</table>
+</dtml-unless>
+
+<div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<dtml-if print_preview>
+  <dtml-let rtype="'summary'" options="0">
+    <dtml-var cio_preview_options>
+  </dtml-let>
+</dtml-if>
+
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td bgcolor="white" background="&dtml-portal_url;/right_fr.gif">&nbsp;</td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 0 0;">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_title">
+      <td class="smallHeader" width="20" align="center" valign="middle"><dtml-var "msg('#')"></td>
+      <td class="smallHeader"><dtml-var "msg('Document')"></td>
+      <td class="smallHeader" width="120" valign="middle"><dtml-var "msg('Author')"></td>
+      <td class="smallHeader" bgcolor="#FFA8A8" width="80" align="center"><dtml-var "msg('Expiration Date')"></td>
+      <td class="smallHeader" width="60" align="center"><dtml-var "msg('Expired (days)')"></td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td width="100%" bgcolor="&dtml-bgcolor;">
+  <dtml-in instances mapping>
+    <div id="&dtml-id;_data"></div>
+    <iframe scrolling="no" frameborder="0" height="0" width="100%" style="display:none" 
+            src="&dtml-url;/expired_tasks_instance?print_preview=&dtml-print_preview;"></iframe>
+  </dtml-in>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td width="100%">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_total">
+      <td class="smallFooter" width="20" align="center" valign="middle">&nbsp;</td>
+      <td class="smallFooter" style="text-align:left; padding-left:6px;" colspan="5" nowrap><b><dtml-msg "Total expired tasks">:&nbsp;&nbsp;&nbsp;<span id="counter">0</span></b></td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+</form>
+</table>
+<br></div>
+
+</dtml-let>
+
+</body>
+</html>

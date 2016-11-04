@@ -1,0 +1,64 @@
+<dtml-comment>
+$Id: dtml_edit_form.dtml,v 1.17 2003/07/22 08:03:55 ypetrov Exp $
+</dtml-comment>
+
+<dtml-var simple_html_header>
+
+<form action="&dtml-absolute_url;/dtml_edit" method="post" style="height: 100%">
+<table width="100%" height="100%" cellpadding="2" cellspacing="0" border="0">
+
+  <tr>
+    <td colspan="2" valign="middle" class="smallHeader">
+      <h1>&nbsp;<dtml-var "msg('Editing')"> &dtml-title_or_id; (&dtml-getId;)
+      <dtml-if wl_isLocked>
+        <img src="&dtml-portal_url;/p_/davlocked"
+             alt="<dtml-var "msg('This document has been locked because it is editing by another user')">">
+      </dtml-if>
+      </h1>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="smallHeader" align="right"><dtml-var "msg('Id')">:</td>
+    <td class="small"><input type="text" name="id" value="<dtml-var getId>" size="30"></td>
+  </tr>
+
+  <tr>
+    <td align="right" class="smallHeader"><dtml-var "msg('Category')">:</td>
+    <td class="small" width="100%">&nbsp;<dtml-var "msg(Category())"></td>
+  </tr>
+
+  <dtml-let wf_id="portal_metadata.getCategoryById(Category()).Workflow()"
+            state="portal_workflow.getInfoFor(this(), 'state', '')"
+  >
+  <tr>
+    <td align="right" class="smallHeader"><dtml-var "msg('State')">:</td>
+    <td class="small" width="100%">&nbsp;<dtml-var "msg(portal_workflow.getStateTitle(wf_id, state), add=None)"></td>
+  </tr>
+  </dtml-let>
+
+  <tr>
+    <td class="smallHeader" nowrap>
+      <dtml-if "getSite() and isPublished()"><a href="&dtml-absolute_url;/document_presentation_form"><dtml-var "msg('Web presentation')"></a>
+      <dtml-else>&nbsp;</dtml-if>
+    </td>
+    <td align="right">
+    <dtml-if wl_isLocked>
+      <dtml-var "msg('This document has been locked because it is editing by another user')">&nbsp;&nbsp;
+    <dtml-else>
+      <input type="submit" value=" <dtml-var "msg('Save document')"> ">&nbsp;&nbsp;
+    </dtml-if>
+    </td>
+  </tr>
+
+  <tr>
+    <td valign="top" colspan="2" height="99%">
+      <textarea name="data:text" wrap="off"
+                rows="20" cols="10" style="width: 100%; height: 100%; font-family: monospace; font-size: 10pt;"><dtml-var __str__></textarea>
+    </td>
+  </tr>
+
+</table>
+</form>
+
+<dtml-var simple_html_footer>

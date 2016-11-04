@@ -1,0 +1,37 @@
+<dtml-let cat_id="ctrl_value"
+          cat="portal_metadata.getCategoryById(cat_id)"
+          user_storage_type="portal_properties.storage_type()"
+          IsArchive="user_storage_type == 'archive' and 1 or 0"
+          workflow="cat.getWorkflow()"
+          wf_id="workflow.getId()"
+          states="workflow.getSortedStateList(wf_id)"
+          query="None #portal_catalog.getQuery(query_id, REQUEST=REQUEST)"
+          state="query is not None and _.hasattr(query, 'state') and query.state"
+          action="_.has_key('action') and action != 'None' and action"
+>
+<script type="text/javascript">
+<!--
+function openAttributesSelectionWnd()
+{
+    var url = window.objectBaseURL + '/search_attr_model';
+    url = setParam( url, 'cat_id', '<dtml-var cat_id>' );
+    window.open( url, '_blank', 'toolbar=no,scrollbars=yes,status=yes,width=550,height=550,resizable=yes' );
+}
+//-->
+</script>
+
+<select name="state.&dtml-cat_id;:record" <dtml-if IsArchive>size="3"<dtml-else>size="10"</dtml-if> <dtml-if action>style="width:300px;"<dtml-else>style="width:100%;"</dtml-if> />
+  <option value="any">-- <dtml-var "msg('Any')"> --</option>
+  <dtml-in states>
+    <option value="&dtml-sequence-item;" <dtml-var "_['sequence-item']==state" fmt="selected">><dtml-msg expr="portal_workflow.getStateTitle(wf_id, _['sequence-item'])"></option>
+  </dtml-in>
+</select>
+
+<dtml-if "cat.listAttributeDefinitions()">
+  <br /><br />
+  <input type="button" value="<dtml-msg "Search in attributes">"
+         onClick="window.open(window.objectBaseURL + '/search_attr_model?cat_id=<dtml-var cat_id>&query_id=<dtml-var query_id>&from=<dtml-var action>', '_blank', 'toolbar=no,scrollbars=yes,status=yes,top=100,left=135,width=680,height=460,resizable=yes');" />
+</dtml-if>
+
+</dtml-let>
+

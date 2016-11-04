@@ -1,0 +1,223 @@
+<dtml-let schedule_status=getScheduleStatus
+          editable="not _.has_key('editable') and isSuperuser() and not isFinalized() or _.has_key('editable') and _.getitem('editable')"
+          periodical="Frequency() is not None and 1 or 0"
+          brains_type=BrainsType
+          brains_tti="portal_followup.getTTI(brains_type)"
+          uname="portal_membership.getAuthenticatedMember().getUserName()"
+          template_id="TaskTemplateId()"
+          faxsimile_templates="['makeTaskToSign','SelfSignature','SIGN_GD','SIGN_IGD']"
+          IsDocument="getBase().implements('isDocument') and 1 or 0"
+          IsDebug="0"
+>
+<dtml-if IsDebug><dtml-var id>:<dtml-var template_id>:<dtml-var isEnabled></dtml-if>
+
+<dtml-if editable>
+
+<script type="text/javascript">
+<!--
+function InfoDisableForm(frm) {
+    frm.edit.disabled=true;
+}
+
+function InfoSubmitForm() {
+    var frm = document.editForm;
+    InfoDisableForm(frm);
+    frm.submit();
+}
+//-->
+</script>
+
+<form name="editForm" method="post" action="&dtml-absolute_url;/task_edit_form" style="margin: 0px 0px 0px 0px;">
+<input type="hidden" name="periodical:int" value="&dtml-periodical;">
+<input type="hidden" name="brains_type" value="&dtml-brains_type;">
+</dtml-if>
+
+<table width="100%" cellspacing="1" cellpadding="2" bgColor="#E5E5E5" border="0">
+<tr class="task_title">
+  <td class="smallHeader" nowrap><dtml-var "msg('Task type')">:</td>
+  <td width="90%" align="left" nowrap>
+    <table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+	  <td class="smallHeader">
+    <dtml-var "msg(brains_tti['title'], add=0)"> <dtml-if schedule_status><img src='timer.gif' alt="<dtml-var "msg('Scheduled task')">"/></dtml-if>
+    <dtml-if "template_id in faxsimile_templates">&nbsp;(<dtml-var "msg('faxsimile')">)</dtml-if>
+      </td>
+      <td align="right" valign="top" nowrap>
+    <dtml-if IsDocument>
+      <dtml-if "brains_type=='registration'">
+        <dtml-let metadata_url="getBase().absolute_url()+'/metadata_edit_form?expand=1'">
+          (<a target="_blank" href="&dtml-metadata_url;"><dtml-var "msg('Registry card')"></a>)
+        </dtml-let>
+      <dtml-else>
+        <dtml-let view_url="getBase().absolute_url()+'/document_view?expand=1'">
+          (<a target="_top" href="&dtml-view_url;"><dtml-var "msg('Open the document')"></a>)
+        </dtml-let>
+      </dtml-if>
+    </dtml-if>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<dtml-if "Description() and not getTaskResolution()">
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Description')">:&nbsp;</td>
+  <td class="small">
+    <dtml-var "getFormattedComments(Description(view=1), mode=1)" newline_to_br>
+  </td>
+</tr>
+</dtml-if>
+
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Assigned by')">:</td>
+  <td class="small">
+    <dtml-var "member_name(this(), member=_['Creator'])">
+  </td>
+</tr>
+
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Effective date')">:</td>
+  <td class="small" nowrap>
+    <dtml-var "effective_date" fmt="%Y-%m-%d %H:%M">
+  </td>
+</tr>
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Expiration date')">:</td>
+  <td class="small" nowrap>
+    <dtml-if "expiration_date and template_id not in ['SelfSignature']">
+      <dtml-var "expiration_date" fmt="%Y-%m-%d %H:%M">&nbsp;
+    </dtml-if>
+    <dtml-if isFinalized>
+      <strong><dtml-var "msg('Closed')"></strong>
+    <dtml-else>
+      <dtml-if "_.DateTime() > expiration_date">
+        <font color="red"><strong><dtml-var "msg('expired')"></strong></font>
+      </dtml-if>
+    </dtml-if>
+    <dtml-let demand_revision_code="getDemandRevisionCode()">
+      <dtml-if "demand_revision_code and demand_revision_code not in ['success']">
+        <font color="#3366CC">[<strong><dtml-var "msg(demand_revision_code)"></strong>]</font>
+      </dtml-if>
+    </dtml-let>
+  </td>
+</tr>
+
+<dtml-let plan_time="getPlanTime()" actual_time="getActualTimeFor(uname)">
+  <dtml-if plan_time>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Plan time')">:</td>
+  <td class="small" nowrap>
+    <dtml-var "dateperiod(getPlanTime())">
+  </td>
+</tr>
+  </dtml-if>
+  <dtml-if actual_time>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Actual time')">:</td>
+  <td class="small" nowrap>
+    <dtml-var "dateperiod(actual_time)">
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+<dtml-if periodical>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Repeat every')">:</td>
+  <td class="small" nowrap>
+    <dtml-var "dateperiod(Frequency())">
+  </td>
+</tr>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Duration')">:</td>
+  <td class="small" nowrap>
+    <dtml-var "dateperiod(Duration())">
+  </td>
+</tr>
+  <dtml-if schedule_status>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Next time')">:</td>
+  <td class="small" nowrap>
+    <dtml-var "schedule_status['timeNext']" fmt="%Y-%m-%d %H:%M">
+  </td>
+</tr>
+  </dtml-if>
+</dtml-if>
+
+<dtml-let supervisors="listSupervisors()">
+  <dtml-if supervisors>
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Supervisor')">:&nbsp;</td>
+  <td class="small">
+    <dtml-in supervisors>
+    <font color="#800080"><strong><dtml-var "member_name(this(), member=_['sequence-item'])"></strong></font>
+    <dtml-unless sequence-end><br></dtml-unless>
+    </dtml-in>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+<dtml-let userids="listInvolvedUsers()"
+          involved_users="portal_membership.listSortedUserNames(userids)"
+          IsAdviseTask="template_id in ['makeTaskToAdvise']"
+>
+  <dtml-if "involved_users and userids != [_['Creator']]">
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-var "msg('Involved members')">:&nbsp;</td>
+  <td>
+    <table width="100%" cellpadding="0" cellspacing="0">
+    <tr>
+      <td class="small">
+        <dtml-in involved_users mapping>
+        <font color=<dtml-if "IsAdviseTask and user_id == userids[0] and _['sequence-length'] > 1">"#AA00AA"<dtml-else>"#000000"</dtml-if> /><dtml-var "member_name(this(), member=user_id)"></font><br>
+          <dtml-if "(_['sequence-length'] > 10) and _['sequence-index'] == _['sequence-length'] / 2">
+      </td> 
+      <td style="padding: 0 2px 0 2px;"><dtml-var spacer.gif></td>
+      <td class="small">
+          </dtml-if>
+        <dtml-else>
+          -
+        </dtml-in>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+<dtml-with "this().getBase()">
+  <dtml-let category="_.has_key('category') and category or meta_type in ['HTMLDocument'] and Category() or None"
+            IsCustomDocument="meta_type in ['HTMLDocument'] and hasCustomCategory(context=this()) and 1 or 0"
+            IsReg="IsCustomDocument and ((_.hasattr(this(), 'registry_data') and registry_data) or (this().getVersion().registry_data)) and 1 or 0"
+  >
+    <dtml-if IsReg>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('Incoming registry number')">:</td>
+  <td class="smallHeader" nowrap>
+    <dtml-var registry_info>
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-let>
+</dtml-with>
+
+<tr class="row_even">
+  <td class="smallHeader" colspan="2" align="right">
+    <dtml-if periodical>
+      <input type="hidden" name="periodical" value="1">
+    </dtml-if>
+    <dtml-if editable>
+      <input type="button" name="edit" value="<dtml-var "msg('Change')">" onclick="javascript:InfoSubmitForm();">
+    </dtml-if>
+  </td>
+</tr>
+</table>
+
+<dtml-if editable>
+</form>
+</dtml-if>
+
+</dtml-let>

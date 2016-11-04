@@ -1,0 +1,69 @@
+<dtml-revision $Revision: 1.6 $>
+
+<dtml-var simple_html_header>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: &dtml-Title;</a></strong></p>
+
+<p>
+<strong><a href="&dtml-absolute_url;/workflow_states">&lt;&lt; <dtml-var "msg('Document category states')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/task_template_list"><dtml-var "msg('Actions templates')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/task_template_summary"><dtml-var "msg('Routing')"></a></strong>
+</p>
+
+<h2><dtml-var "msg('Document category transitions')"></h2>
+
+<dtml-let wf=Workflow
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+
+<dtml-with "portal_workflow[wf].getSortedTransitionsList(wf, ret_type=1)">
+
+<form action="workflows" method="POST">
+<table width="100%" cellspacing="0" cellpadding="2" border="0">
+<dtml-in values sort="title">
+  <dtml-let local="isPrivateItem(_['sequence-item'])">
+<tr class="row_title">
+  <td align="left" colspan="2">
+  <dtml-if IsAdmin>
+    <input type="checkbox" name="ids:list" value="&dtml-id;" <dtml-var "not isPrivateItem(_['sequence-item']) and 'disabled' or ''"> />
+  </dtml-if>
+    <a href="transition_properties?transition=&dtml-id;"><dtml-var "msg(actbox_name or id)"></a>
+    <dtml-var "local and msg('private') or msg('acquired')">
+    &nbsp;   
+  </td>
+</tr>
+<tr>
+  <td width="10%"></td>
+  <td>
+    <dtml-var "msg('Destination state')">: <dtml-if new_state_id><dtml-var "msg(portal_workflow.getStateTitle(wf,new_state_id), add=None)"><dtml-else>(<dtml-var "msg('Remain in state')">)</dtml-if><br />
+  </td>
+</tr>
+  </dtml-let>
+<dtml-else>
+<tr>
+  <td><em><dtml-var "msg('No transitions defined')">.</em></td>
+</tr>
+</dtml-in>
+</table>
+
+<dtml-if IsAdmin>
+  <dtml-if values>
+<input type="submit" name="manage_renameForm:method" value="<dtml-var "msg('Rename')">" />
+<input type="submit" name="deleteTransitions" value="<dtml-var "msg('Delete')">" />
+  </dtml-if>
+
+<br><br>
+<h3><dtml-var "msg('Add a transition')"></h3>
+<p>
+<dtml-var "msg('Id')">: <input type="text" name="trans_id" size="40" value="" />
+<input type="submit" name="addTransition" value="<dtml-var "msg('Add')">" onclick="return validateIdentifier(this.form.trans_id, '<dtml-var "msg('This identifier is not valid.')">');">
+</p>
+</dtml-if>
+
+</form>
+
+</dtml-with>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

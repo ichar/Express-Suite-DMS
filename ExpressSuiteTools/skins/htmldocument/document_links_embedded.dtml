@@ -1,0 +1,222 @@
+<script type="text/javascript">
+<!--
+function DisableLinksForm( frm ) {
+    frm.remove_link_button.disabled = true;
+}
+
+function SubmitLinksForm() {
+    var frm = document.linkItems;
+    DisableLinksForm(frm);
+    frm.submit();
+}
+
+function toggleSelect() {
+    var IsSelected = false;
+    var form = document.all['linkItems'];
+    if( typeof(form) != 'object' ) return;
+
+    for( var i = 0; i < form.elements.length; i++ ) {
+        var elem = form.elements[ i ];
+        if( elem.name.substr( 0, 12 ) == 'remove_links' && elem.checked ) {
+            IsSelected = 1;
+            break;
+        }
+    }
+
+    var obj = document.all['remove_link_button'];
+    if( typeof(obj) != 'object' ) return;
+    obj.disabled = ( IsSelected ?  false : true );
+  }
+//-->
+</script>
+
+<dtml-let this_uid="getUid()"
+          doc_locked="_.has_key('isLocked') and isLocked() or 0"
+          can_modify_all="_.SecurityCheckPermission('Modify portal content', this())"
+          can_modify_attachment_only="_.SecurityCheckPermission('Add Documents, Images, and Files', this())"
+          can_modify="(can_modify_all or can_modify_attachment_only) and not doc_locked"
+          version_id="implements('isDocument') and getCurrentVersionId()"
+          links_from="portal_links.searchLinks(source_uid=this_uid, source_ver_id=version_id, check_permission=1)"
+          links_to="portal_links.searchLinks(dest_uid=this_uid, source_ver_id=version_id, check_permission=1)"
+          remote_links="_.getattr(this(), 'remote_links', None)"
+>
+  <dtml-if can_modify>
+<form id="linkItems" name="linkItems" action="&dtml-portal_url;/portal_links/removeLinks" method="POST" target="workfield">
+<input type="hidden" name="this_uid" value="&dtml-this_uid;">
+  </dtml-if>
+
+  <dtml-if "links_from or links_to or remote_links">
+<table class="List" cellpadding="0" cellspacing="0" border="0">
+  </dtml-if>
+  
+  <dtml-if links_from>
+<tr><td colspan="4" nowrap><h3><dtml-var "msg('Links from this document')">:</h3></td></tr>
+    <dtml-in links_from prefix="links">
+      <dtml-if links_start>
+<tr>
+  <td valign="top" colspan="2"><b><dtml-var "msg('Relation type')"></b></td>
+  <td valign="top" style="padding-left:5px"><b><dtml-var "msg('Document')"></b></td>
+  <td valign="top" style="padding-left:5px" nowrap><b><dtml-var "msg('Created')"></b></td>
+</tr>
+<tr><td height="10"><dtml-var spacer.gif></td></tr>
+      </dtml-if>
+      <dtml-let link=getObject
+                destination="link is not None and link.getDestinationObject()"
+                link_name="link is not None and link.getDestinationMetadata('Title')"
+                link_uid="link is not None and link.getDestinationUid()"
+                IsDebug="0"
+      >
+        <dtml-if IsDebug>
+<tr>
+  <td colspan="4">
+    <dtml-var "link is not None and 1 or 0">:
+    <dtml-var link_uid>:
+    <dtml-var link_name><br>
+  </td>
+</tr>
+        </dtml-if>
+<tr>
+  <td>
+        <dtml-if can_modify>
+    <input type="checkbox" name="remove_links:list" onclick="javascript:toggleSelect();" value="<dtml-var id>" />&nbsp;
+        </dtml-if>
+  </td>
+  <td nowrap style="padding-right:20px;">
+    <dtml-var "msg(portal_links.getProperRelation(relation_type, relation_direction, source_uid==this_uid, context=destination), add=0)">
+  </td>
+  <td valign="middle" style="padding: 0 20px 0 5px">
+        <dtml-if "destination is not None">
+          <dtml-let ver_id="link.Extra('destination_ver_id')"
+                    version="ver_id and destination.getVersion(ver_id)"
+                    title="destination.getInfoForLink() or destination.TitleOrId()"
+          >
+            <dtml-if "version is not None and destination.implements('isVersionable')">
+    <a class="attach" href="<dtml-var "version.locate_url()">" target="assistant_item"><dtml-var title> (<dtml-var "msg('Version')"> <dtml-var "version.getVersionNumber()">)</a>
+            <dtml-else>
+    <a class="attach" href="<dtml-var "destination.locate_url()">" target="assistant_item"><dtml-var title></a>
+            </dtml-if>
+          </dtml-let>
+        <dtml-elif "link_name and link_uid">
+    <em style="color:black; font-size:12px;"><dtml-var link_name></em><br>
+    <em style="color:red;">(<dtml-var "msg('unauthorized')">)</em>
+        <dtml-else>
+    <font color="#FF0000"><dtml-var "msg('Document was removed')"></font>
+        </dtml-if>
+  </td>
+  <td valign="middle" style="padding-left:5px"><dtml-var "destination is not None and destination.CreationDate()"></td>
+</tr>
+      </dtml-let>
+    </dtml-in>
+
+    <dtml-if can_modify>
+<tr>
+  <td colspan="4" align="left" style="padding: 10px 0 20px 0;">
+    <input type="button" id="remove_link_button" name="remove" value="<dtml-var "msg('Remove links')">" disabled onclick="javascript:SubmitLinksForm();">
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-if>
+
+  <dtml-if "links_from and links_to">
+<tr><td height="10"><dtml-var spacer.gif></td></tr>
+  </dtml-if>
+
+  <dtml-if links_to>
+<tr><td colspan="4" nowrap><h3><dtml-var "msg('Links to this document')">:</h3></td></tr>
+    <dtml-in links_to>
+      <dtml-if sequence-start>
+<tr>
+  <td valign="top" colspan="2"><b><dtml-var "msg('Relation type')"></b></td>
+  <td valign="top" style="padding-left:5px"><b><dtml-var "msg('Document')"></b></td>
+  <td valign="top" style="padding-left:5px" nowrap><b><dtml-var "msg('Created')"></b></td>
+</tr>
+<tr><td height="10"><dtml-var spacer.gif></td></tr>
+      </dtml-if>
+      <dtml-let link=getObject
+                source="link is not None and link.getSourceObject()"
+                IsDebug="0"
+      >
+        <dtml-if IsDebug>
+<tr>
+  <td colspan="4">
+    <dtml-var "link is not None and 1 or 0">:
+    <dtml-var "source is not None and source.getUid()"><br>
+  </td>
+</tr>
+        </dtml-if>
+<tr>
+  <td nowrap style="padding: 2px 20px 0 0;" colspan="2">
+    <dtml-var "msg(portal_links.getProperRelation(relation_type, relation_direction, source_uid==this_uid, context=source), add=0)">
+  </td>
+  <td style="padding: 0 20px 0 5px">
+        <dtml-if "source is not None">
+          <dtml-let ver_id="link.Extra('source_ver_id')"
+                    version="ver_id and source.getVersion(ver_id)"
+                    title="source.getInfoForLink() or source.TitleOrId()"
+          >
+            <dtml-if "version is not None and source.implements('isVersionable')">
+    <a class="attach" href="<dtml-var "version.locate_url()">" target="assistant_item"><dtml-var title> (<dtml-var "msg('Version')"> <dtml-var "version.getVersionNumber()">)</a>
+            <dtml-else>
+    <a class="attach" href="<dtml-var "source.locate_url()">" target="assistant_item"><dtml-var title></a>
+            </dtml-if>
+          </dtml-let>
+        <dtml-else>
+          <dtml-var "msg('broken link')">
+        </dtml-if>
+  </td>
+  <td valign="middle" style="padding-left:5px"><dtml-var "source is not None and source.CreationDate()"></td>
+</tr>
+      </dtml-let>
+    </dtml-in>
+  </dtml-if>
+
+  <dtml-if "(links_from or links_to) and remote_links">
+<tr><td height="10"><dtml-var spacer.gif></td></tr>
+  </dtml-if>
+
+  <dtml-if remote_links>
+<tr><td colspan="3" nowrap><h3><dtml-var "msg('Remote links for this document')">:</h3></td></tr>
+
+    <dtml-in remote_links mapping>
+      <dtml-if sequence-start>
+<tr><td valign="top" colspan="2"><b><dtml-var "msg('Document')"></b></td></tr>
+<tr><td height="10"><dtml-var spacer.gif></td></tr>
+      </dtml-if>
+
+      <dtml-if "_.has_key('uid')">
+        <dtml-let source="portal_catalog.getObjectByUid(uid)"
+                  remote_uid="source is not None and source.getUid() or uid"
+                  IsDebug="0"
+        >
+          <dtml-if IsDebug>
+<tr>
+  <td colspan="3">
+    <dtml-var uid>:
+    <dtml-var url>:
+    <dtml-var title>:
+    <dtml-var "source is not None and source.getUid()">:
+    <dtml-var remote_uid><br>
+  </td>
+</tr>
+          </dtml-if>
+<tr>
+  <td colspan="3">
+          <dtml-if "source is not None">
+    <a class="attach" href="<dtml-var "source.locate_url()">" target="assistant_item"><dtml-var "source.getInfoForLink() or source.TitleOrId()"></a>
+          <dtml-else>
+    <a class="attach" href="<dtml-var "portal_properties.remote_url(url)">?expand=1" target="assistant_item"><dtml-var title></a>
+          </dtml-if>
+    &nbsp;&nbsp;&nbsp;
+  </td>
+</tr>
+        </dtml-let>
+      </dtml-if>
+    </dtml-in>
+  </dtml-if>
+  <dtml-if "links_from or links_to or remote_links">
+</table>
+  </dtml-if>
+  <dtml-if can_modify>
+</form>
+  </dtml-if>
+</dtml-let>

@@ -1,0 +1,165 @@
+<dtml-let x="portal_followup.getCIO_ABCD(REQUEST=REQUEST, member=uname)"
+          total="x[0]"
+          expired="x[1]"
+          p_expired="x[2]"
+          A="x[3]"
+          new="x[4]"
+          finalized="x[5]"
+          D="x[6]"
+          companies="x[7]"
+          total_companies="cio and _.len(companies)"
+
+          query="'%s&p2=0&commissions:tokens=%s&state:tokens=%s&brains_type:tokens=%s&no_cookie=1' % (cio and '&cio=1' or '', cids, sids, bids)"
+          company_query="pids and '&company:tokens=%s' % pids or ''"
+          category_query="gids and '&category:tokens=%s' % gids or ''"
+          responsible_query="uids and '&responsible:tokens=%s' % uids or ''"
+          base_url="'commissions_in_progress?print_preview=1&enabled_only=1&ctype=%s%s%s%s%s' % (ctype, query, company_query, category_query, responsible_query)"
+          period="_.int(period)"
+
+          href_total="'%s&p1=1&period=0' % base_url"
+          href_expired="'%s&p1=1&period=10&expired=1' % base_url"
+          href_new="'%s&p1=0&period=%s&new=1' % (base_url, period)"
+          href_finalized="'%s&period=%s&finalized=1' % (base_url, period+20)"
+
+          group="None #portal_membership.getMemberProperties(name='commissions')"
+          allowed_users="group and portal_membership.getGroupMembers(group)"
+          category_width="_.has_key('category_width') and category_width or 340"
+          cell_width="_.has_key('cell_width') and cell_width or 80"
+
+          item_color="'FFFFFF'"
+          show_color="'FFFACD'"
+>
+
+<script type="text/javascript">
+<!-- 
+function show( url ) {
+  <dtml-if cio>
+    params = 'menubar=yes,toolbar=yes,location=no,scrollbars=yes,status=yes,resizable=yes';
+    window.open( url, '_top', params );
+  <dtml-else>
+    params = 'menubar=yes,toolbar=yes,location=no,scrollbars=yes,status=yes,top=40,left=10,resizable=yes';
+    window.open( url, '_blank', params );
+  </dtml-if>
+}
+
+function pointer( obj, mouse ) {
+    color = (mouse == 'over' ? '#FF8448' : '&dtml-show_color;');
+    obj.bgColor = color;
+}
+//-->
+</script>
+
+<table cellspacing="3" cellpadding="0" border="0">
+<colgroup>
+<col>
+<col>
+<col width="60">
+<tr>
+  <td class="queryHeader" nowrap><dtml-var "msg('A)')"></td>
+  <td class="p_info" align="left" valign="middle" colspan="2" nowrap><dtml-var "msg('Total check-up tasks')">:</td>
+  <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_total;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"><span class="show"><strong><dtml-var total></strong></span></td>
+</tr>
+<tr>
+  <td class="queryHeader" nowrap>&nbsp;</td>
+  <td class="p_info" align="left" valign="middle" colspan="2" style="padding: 1px 0 0 20px;color:purple;font-weight:normal;" nowrap><dtml-var "msg('with expired date of performance among total')">:</td>
+  <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_expired;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" width="&dtml-cell_width;"><span class="show_expiration"><dtml-var expired></span></td>
+  <td class="p_cell" width="80"><span class="show_expiration"><dtml-var p_expired>%</span></td>
+</tr>
+  <dtml-if A>
+<tr>
+  <td class="queryHeader" nowrap>&nbsp;</td>
+  <td class="h_cell" align="center" width="&dtml-category_width;" rowspan="2" nowrap><dtml-var "msg('Task category')"></td>
+  <td class="h_cell" align="center" rowspan="2"><dtml-var "msg('Check up')"></td>
+  <td class="h_cell" align="center" colspan="2"><dtml-var "msg('expired tasks among checked up')"></td>
+    <dtml-if total_companies>
+  <td class="h_cell" align="center" colspan="&dtml-total_companies;" nowrap><dtml-var "msg('By companies')"></td>
+    </dtml-if>
+</tr>
+<tr>
+  <td class="queryHeader" nowrap>&nbsp;</td>
+  <td class="h_cell"><dtml-var "msg('# items')"></td>
+  <td class="h_cell">%</td>
+    <dtml-if total_companies>
+      <dtml-if "total_companies > 1">
+        <dtml-in companies mapping>
+  <td class="h_cell" align="center"><dtml-var title></td><dtml-comment> width="&dtml-cell_width;" nowrap</dtml-comment>
+        </dtml-in>
+      <dtml-else>
+  <td class="h_cell" align="center" nowrap><dtml-var "companies[0]['title']"></td>
+      </dtml-if>
+    </dtml-if>
+</tr>
+    <dtml-in A mapping>
+      <dtml-if total>
+        <dtml-let category_info="getPortalConfiguration().getAttribute(attr='category', key=category)"
+                  item_url="'commissions_in_progress?print_preview=1&enabled_only=1&ctype=%s%s%s&category=%s' % (ctype, query, responsible_query, category)"
+                  href_item_total="'%s%s&p1=1' % (item_url, company_query)"
+                  href_item_expired="'%s%s&p1=1&period=10&expired=1' % (item_url, company_query)"
+        >
+<tr>
+  <td class="queryHeader" nowrap>&nbsp;</td>
+  <td class="p_cell" style="padding: 1px 10px 0 20px;text-align:left;" bgcolor="&dtml-item_color;"><dtml-var "category_info and msg(category_info['title'])"></td>
+  <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_item_total;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" nowrap><dtml-var total></td> <dtml-comment>&nbsp;/&nbsp;<dtml-var member_total></dtml-comment>
+  <td class="p_cell" bgcolor="&dtml-show_color;" <dtml-if expired>style="cursor:hand;" onclick="javascript:show('&dtml-href_item_expired;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> /><dtml-var expired>&nbsp;/&nbsp;<dtml-var member_expired></td>
+  <td class="p_cell" bgcolor="&dtml-item_color;"><dtml-var p_expired></td>
+          <dtml-if total_companies>
+            <dtml-in companies mapping>
+              <dtml-let value="companies_info[id]"
+                        href_company="'%s&company=%s&p1=1&period=0' % (item_url, id)"
+              >
+  <td class="p_cell" <dtml-if value>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_company;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"<dtml-else>bgcolor="&dtml-item_color;"</dtml-if> /><dtml-var value></td>
+              </dtml-let>
+            </dtml-in>
+          </dtml-if>
+</tr>
+        </dtml-let>
+      </dtml-if>
+    </dtml-in>
+  </dtml-if>
+<tr>
+  <td class="queryHeader" nowrap><dtml-var "msg('B)')"></td>
+  <td class="p_info" align="left" valign="middle" colspan="2" nowrap><dtml-var "msg('New tasks at the accounting period')">:</td>
+  <td class="p_cell" bgcolor="&dtml-show_color;" <dtml-if new>style="cursor:hand;" onclick="javascript:show('&dtml-href_new;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> /><span class="show"><strong><dtml-var new></strong></span></td>
+</tr>
+<tr>
+  <td class="queryHeader" nowrap><dtml-var "msg('C)')"></td>
+  <td class="p_info" align="left" valign="middle" colspan="2" nowrap><dtml-var "msg('Finalized tasks at the accounting period')">:</td>
+  <td class="p_cell" bgcolor="&dtml-show_color;" <dtml-if finalized>style="cursor:hand;" onclick="javascript:show('&dtml-href_finalized;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> /><span class="show" style="color:green;"><strong><dtml-var finalized></strong></span></td>
+</tr>
+  <dtml-if D>
+<tr>
+  <td class="queryHeader" nowrap><dtml-var "msg('D)')"></td>
+  <td class="p_info" align="left" valign="middle" colspan="2" nowrap><dtml-var "msg('Expired tasks by involved users')">:</td>
+</tr>
+<tr>
+  <td class="queryHeader" nowrap>&nbsp;</td>
+  <td class="h_cell" align="center" colspan="2" nowrap><dtml-var "msg('L.F.M.')"></td>
+  <td class="h_cell" align="center"><dtml-var "msg('##')"></td>
+  <td class="h_cell" align="center"><dtml-var "msg('note')"></td>
+</tr>
+    <dtml-in D mapping>
+      <dtml-let category_info="getPortalConfiguration().getAttribute(attr='category', key=category)"
+                item_url="'commissions_in_progress?print_preview=1&enabled_only=1&ctype=%s%s&category=%s' % (ctype, query, category)"
+      >
+<tr>
+  <td class="queryHeader" nowrap>&nbsp;</td>
+  <td class="p_cell" style="padding: 1px 0 0 20px;text-align:left;" colspan="4"><font color="#8E402C"><strong><dtml-var "category_info and msg(category_info['title'])"></strong></font></td>
+</tr>
+        <dtml-in results mapping>
+          <dtml-if "expired and (not allowed_users or member in allowed_users)">
+            <dtml-let href_item_expired="'%s&period=10&p1=1&expired=1&responsible:tokens=%s' % (item_url, member)">
+<tr>
+  <td class="queryHeader" nowrap>&nbsp;</td>
+  <td class="p_cell" style="padding: 1px 0 0 20px;text-align:left;" bgcolor="&dtml-item_color;" colspan="2"><span class="p_member"><dtml-var "_['sequence-index']+1">.&nbsp;<dtml-var "portal_membership.getMemberBriefName(member, 'LFM')"></span></td>
+  <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_item_expired;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"><dtml-var expired></td>
+  <td class="p_cell" bgcolor="&dtml-item_color;">&nbsp;</td>
+</tr>
+            </dtml-let>
+          </dtml-if>
+        </dtml-in>
+      </dtml-let>
+    </dtml-in>
+  </dtml-if>
+</table>
+
+</dtml-let>

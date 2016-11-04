@@ -1,0 +1,21 @@
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td width="5" align="left" valign="top" background="&dtml-portal_url;/right_fr.gif">
+    <img src="&dtml-portal_url;/tr.gif" width="21">
+  </td>
+  <td valign="top" colspan="3" style="padding: 5px 10px 5px 10px; font-family:verdana; border: 1pt solid #004080;" bgcolor="#FFFFFF">
+  <dtml-let date_style="'face=arial size=1 color=#808000'">
+    <span style="cursor:default;color:black;">
+    <font &dtml-date_style;>18.03.2009</font>&nbsp;
+Версия СЭДО Express Suite DMS 2.1.
+    <br><img src="&dtml-portal_url;/tr.gif" height="2"><br>
+    <font &dtml-date_style;>01.06.2008</font>&nbsp;
+Версия СЭДО Express Suite DMS 2.0.
+    </span>
+  </dtml-let>
+  </td>
+  <td width="5" align="left" valign="top" background="&dtml-portal_url;/right_fr.gif">
+    <img src="&dtml-portal_url;/tr.gif" width="21">
+  </td>
+</tr>
+</table><br />

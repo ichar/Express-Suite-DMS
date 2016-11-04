@@ -1,0 +1,56 @@
+<dtml-var standard_html_header>
+
+<h1 class="DesktopTitle">
+ Вход 
+</h1>
+
+<form action="&dtml.url-logged_in;" method="post">
+
+<!-- ****** Enable the automatic redirect ***** -->
+<dtml-if name="came_from">
+  <input type="hidden" name="came_from" value="&dtml-came_from;">
+</dtml-if>
+<!-- ****** Enable the automatic redirect ***** -->
+
+<table class="FormLayout">
+<tr>
+  <td align="left" valign="top">
+  <strong>Имя</strong>
+  </td>
+  <td align="left" valign="top">
+  <input type="TEXT" name="__ac_name" size="20" value="<dtml-var "REQUEST.get('__ac_name', '')">">
+  </td>
+</tr>
+<tr>
+  <td align="left" valign="top">
+  <strong>Пароль</strong>
+  </td>
+  <td align="left" valign="top">
+  <input type="PASSWORD" name="__ac_password" size="20">
+  </td>
+</tr>
+
+<tr valign="top" align="left">
+<td></td>
+<td><input type="checkbox" name="__ac_persistent" value="1" checked id="cb_remember" />
+<label for="cb_remember">Запомнить имя для следующего входа.</label>
+</td></tr>
+
+<tr>
+  <td align="left" valign="top">
+  </td>
+  <td align="left" valign="top">
+  <input type="submit" name="submit" value=" Войти ">
+  </td>
+</tr>
+
+</table>
+</form>
+
+<p><a href="&dtml.url-mail_password_form;">Если вы забыли свой пароль...</a></p>
+
+<p>
+Если вы испытываете проблемы со входом в портал, удостоверьтесь, что в браузере включены cookies.
+</p>
+
+<dtml-var standard_html_footer>

@@ -1,0 +1,24 @@
+<html>
+<head>
+
+<script type="text/javascript">
+<!--
+    var portalRootURL  = '<dtml-var "portal_url()">';
+    var objectBaseURL  = '<dtml-var "absolute_url()">';
+    var redirectURL    = '<dtml-var "REQUEST['link']">';
+    var openInFrame    = '<dtml-var "REQUEST['frame']">';
+    var updateSections = '<dtml-var "' '.join( REQUEST.get('_UpdateSections',[]) )">';
+//-->
+</script>
+
+<script type="text/javascript" src="&dtml-portal_url;/scripts.js"></script>
+
+</head>
+<body leftmargin="5" topmargin="5" marginwidth="5" marginheight="5">
+
+<noscript>
+Please use Web browser with JavaScript support.
+</noscript>
+
+</body>
+</html>

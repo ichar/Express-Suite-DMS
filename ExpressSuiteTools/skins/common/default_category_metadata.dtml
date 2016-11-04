@@ -1,0 +1,162 @@
+<dtml-call "REQUEST.set('OpenInFrame', 'category_data')">
+<dtml-call "REQUEST.set('BackgroundColor', '')">
+
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<script type="text/javascript">
+<!--
+registerCallback(window, 'onLoad', function (ev) { resizeParentFrame('attributes_table', this, 5) });
+// -->
+</script>
+
+<dtml-let category2="portal_metadata.getCategoryById(category_id)"
+          attributes="category2 is not None and category2.listAttributeDefinitionsBySortkey()"
+          templates="category2 is not None and category2.listTemplates()"
+          forbid_free_cookedbody="category2 is not None and category2.getFreeCookedBodyMode() or 0"
+          IsCustomOfficeRegistration="getCustomDefinitions('CustomOfficeRegistration', path=absolute_url())"
+          registrators="portal_membership.getGroupMembers('REGISTRATOR')"
+          no_wysiwyg_group="portal_membership.getGroupMembers('_NO_WYSIWYG_')"
+          default_template="category2 is not None and category2.getDefaultTemplate() or None"
+
+          member="portal_membership.getAuthenticatedMember()"
+          department="member is not None and member.getMemberDepartment() or 'nonselected'"
+          home="member.getHomeFolder()"
+          HasHomeCompany="member.hasHomeCompany()"
+          userid="member.id"
+          roles="home and home.get_local_roles_for_userid( userid ) or []"
+          IsWorkflowChief="userid in registrators or 'WorkflowChief' in roles"
+          IsWysiwygRescricted="userid in no_wysiwyg_group"
+          form="'category_metadata_form'"
+>
+
+<table id="attributes_table" bgcolor="#E5E5E5" cellspacing="3" cellpadding="0" border="0">
+<form name="&dtml-form;">
+<COLGROUP>
+<COL style="WIDTH:10%">
+<COL style="WIDTH:90%">
+<TBODY>
+
+<dtml-in templates>
+  <dtml-if sequence-start>
+<tr><td colspan="2"> <strong><dtml-var "msg('Select template')">:</strong> </td></tr>
+<tr>
+  <td colspan="2" align="left">
+    <table bgcolor="#E5E5E5" cellspacing="0" cellpadding="0" border="0">
+    <dtml-if "not forbid_free_cookedbody">
+    <tr>
+      <td width="25px" valign="middle">
+        <input type="radio" name="selected_template" value="">
+      </td>
+      <td style="padding-top:1px;"><dtml-msg "None"></td>
+    </tr>
+    </dtml-if>
+  </dtml-if>
+
+  <dtml-let templ_uid="_['sequence-item'][0]"
+            templ_title="_['sequence-item'][1]"
+            templ_url="_['sequence-item'][2]"
+            IsNotRestricted="not (IsWysiwygRescricted and _['sequence-item'][6])"
+  >
+    <dtml-if IsNotRestricted>
+    <tr>
+      <td align="left" valign="middle">
+        <input type="radio" name="selected_template" value="<dtml-var "_['sequence-item'][0]" html_quote>"
+           <dtml-if IsCustomOfficeRegistration>
+             <dtml-if "_['sequence-index'] == _['sequence-length']-1">checked</dtml-if>
+           <dtml-else>
+             <dtml-if "templ_uid == default_template">checked</dtml-if>
+           </dtml-if>
+           <dtml-if "templ_url is None">disabled</dtml-if>
+        />
+      </td>
+      <td style="padding-bottom:2px;" nowrap>
+        <dtml-if templ_title>
+          <a href="&dtml-templ_url;?expand=1" target="_blank"> <dtml-var "templ_title" html_quote></a>
+        <dtml-else>
+          <font color="red"><dtml-msg "Document deleted or broken UID"></font>
+        </dtml-if>
+      </td>
+    </tr>
+    </dtml-if>
+  </dtml-let>
+
+  <dtml-if sequence-end>
+    </table>
+  </td>
+</tr>
+<tr><td colspan="2">&nbsp;</td></tr>
+  </dtml-if>
+</dtml-in>
+
+<dtml-in attributes>
+  <dtml-let name="getId()"
+            type="Type()"
+            is_macro="name[:1]=='$' or getCustomDefinitions('macro', name=name)"
+            value="REQUEST.get(name) or getDefaultValue()"
+            is_department="name.lower().endswith('department')"
+            def_value="type=='lines' and is_department and haveComputedDefault() and department or None"
+            title="Title()"
+            is_workflow_editable_field="name.find('Executor') > -1"
+            is_department_field="name.find('Department') > -1"
+            can_modify="(is_workflow_editable_field and IsWorkflowChief or is_department_field and (IsWorkflowChief or HasHomeCompany)) and 1 or 0"
+  >
+    <dtml-if "(isReadOnly() and not isMandatory()) or isHidden() or is_macro">
+      <dtml-comment>...</dtml-comment>
+    <dtml-elif "isReadOnly() and isMandatory() and value and not type in ['link','file'] and not can_modify">
+<tr>
+  <td valign="top" style="padding: 0 5px 0 0"><b><dtml-var "msg(title, add=0)"></b></td>
+  <td style="vertical-align:middle;">
+      <dtml-let x_type="type in ['userlist','list'] and 'list' or 
+                    type in ['lines','items'] and def_value and 'items' or type=='date' and 'date_' or type"
+                value="def_value or value"
+                x_value="x_type=='list' and value and value[0] or 
+                    type=='date' and _.DateTime(_.str(value)).strftime('%d.%m.%Y %H:%M') or 
+                    value"
+                no_br="is_department and _.len(x_value) < 50 and 1"
+      >
+        <input id="&dtml-name;" type="hidden" value="&dtml-x_value;" name="&dtml-name;:&dtml-x_type;">
+        <dtml-call "REQUEST.set('view_font_style', 'color:purple;font-size:120%;font-family:Times;')">
+        <dtml-if no_br><nobr></dtml-if>
+        <dtml-var "entry_field_view(category2, name=name, type=type, value=value)">
+        <dtml-if no_br></nobr></dtml-if>
+        <dtml-call "REQUEST.set('view_font_style', '')">
+      </dtml-let>
+  </td>
+</tr>
+    <dtml-else>
+<tr>
+  <td valign="top" style="padding: 3px 5px 0 0">
+      <dtml-var "isMandatory() and '<b>' or ''"><dtml-var "msg(title, add=0)"><dtml-var "isMandatory() and '</b>' or ''">
+  </td>
+  <td style="vertical-align:middle;">
+      <dtml-let w="getWidth()"
+                context="type not in ['lines','items'] and category2 or None"
+                attr_data="category_id+':'+name"
+                field_style="w and 'width:'+ w + ';'"
+      >
+        <dtml-var "entry_field_edit(this(), type=type, name=name, value=value,
+                context=context,
+                str_data=isMandatory() and 'mandatory=1' or '', 
+                attr_data=attr_data,
+                field_title=title, 
+                field_style=field_style,
+                display='block',
+                mode='invoke',
+                form=form
+                )">
+      </dtml-let>
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-let>
+</dtml-in>
+
+</form>
+</TBODY>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

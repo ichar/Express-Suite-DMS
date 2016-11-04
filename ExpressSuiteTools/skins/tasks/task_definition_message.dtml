@@ -1,0 +1,4 @@
+<tr class="row_even">
+  <td><dtml-var "msg('Message text')">:</td>
+  <td><input type="text" name="message" value="<dtml-var "taskDefinitionArray['message']">"></td>
+</tr>

@@ -1,0 +1,391 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function validateConfirm( frm ) {
+    if ( !isTransportSpecified( frm ) ) {
+      alert('<dtml-var "msg('Please specify whether this document should be delivered by fax and/or e-mail.')">');
+      return false;
+    }
+
+    if ( frm['email_checkbox'].checked && !validSelectionRequestedUsers( frm ) ) {
+      alert('<dtml-var "msg('You have not selected user(s)')">');
+      return false;
+    }
+
+    if ( frm['fax_checkbox'].checked ) {
+	  if ( !frm['fax_numbers'].value ) {
+        alert('<dtml-var "msg('You have not entered valid fax number')">');
+        return false;
+      } else
+      if ( !validFaxNumber( frm ) ) {
+        alert('<dtml-var "msg('You have entered not valid fax number')">');
+        return false;
+      }
+    }
+      
+    if ( !validSelectionLetterContent( frm ) ) {
+      alert("<dtml-var "msg('You didn\'t specify what to include in the letter')">");
+      return false;
+    }
+      
+    if ( selectedTransportableContent( frm ) && !userAgreeWithSendOverNonSecureConnection() ) {
+      return false;
+    }
+    
+    requested_users = frm['requested_selected_users'];
+    selectAll(requested_users);
+    return true;
+}
+
+function isTransportSpecified( frm ) {
+    return ( frm['fax_checkbox'].checked || frm['email_checkbox'].checked );
+}
+
+function validFaxNumber( frm ) {
+    var faxRegexp = new RegExp( '^[\+\(\\d\-\)\;\\s]+$', 'i' );
+    var fax_number=frm['fax_numbers'].value;
+    if(!fax_number) return false;
+    if( faxRegexp && !fax_number.match( faxRegexp )) return false;
+    fax_number = fax_number.replace( /\(+/g,'' );
+    fax_number = fax_number.replace( /\)+/g,'' );
+    fax_number = fax_number.replace( /\-+/g,'' );
+    frm['fax_numbers'].value = fax_number;
+    return true;
+}
+    
+function validSelectionRequestedUsers( frm ) {
+    var requested_users = frm['requested_selected_users'];
+    var holding = frm['holding:list'];
+    var IsHolding = false;
+    for (var i = 0; i < holding.length; i++) {
+      if( holding[i].checked ) {
+        IsHolding = true;
+		break;
+	  }
+    }
+    return ( requested_users.length > 0 || frm['other_user_emails'].value || IsHolding );
+}
+    
+function validSelectionLetterContent( frm ) {
+    var list = frm['letter_parts:list'];
+    return (list[0].checked || list[1].checked || list[2].checked || (list.length > 3 && list[3].checked));
+}
+
+function selectedTransportableContent( frm ) {
+    var list = frm['letter_parts:list'];
+    return ( list[0].checked || list[1].checked || list[2].checked);
+}
+
+function userAgreeWithSendOverNonSecureConnection() {
+    return confirm('<dtml-var "msg('Attention! The information will be sent over non-secure connection, continue?')">');
+}
+
+function switchDiv( div, state ) {
+    div.style.display = state ? '' : 'none';
+    if( document.all['fax_checkbox'].checked ) {
+      document.all['link_to_doc'].checked = false;
+      document.all['link_to_doc'].disabled = true;
+    } else {
+      document.all['link_to_doc'].disabled = false;
+    }
+    CloseResolution();
+}
+
+function OpenHolding() {
+    var div = document.all['send_to_holding'];
+	if( typeof(div) != 'object') return;
+    div.style.display = ( div.style.display == 'none' ? 'block' : 'none' );
+    CloseResolution();
+}
+
+var resolution_height = 0;
+
+function CloseResolution() {
+    if (typeof(document.all['resolution_body']) != 'object') return;
+    resolution_body.style.display = 'none';
+    FixResolutionLocation();
+}
+
+function FixResolutionLocation() {
+    if( !resolution_height ) resolution_height = resolution_body.offsetHeight
+    resolution_body.style.top = distribute_document_container.offsetHeight - resolution_height - 20;
+}
+
+function DistributeDisableForm(form) {
+    form.OK.disabled=true;
+}
+
+function DistributeSubmitForm() {
+    var form = document.distribute_document_form;
+    if (validateConfirm(form)) {
+        DistributeDisableForm(form);
+        form.submit();
+    }
+}
+//-->
+</script>
+
+<div id="distribute_document_container">
+
+<dtml-let container="this()"
+          user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+>
+<form name="distribute_document_form" action="distribute_document" method="post">
+<h3><dtml-msg "Please specify the way this document should be sent to recipients"></h3>
+
+<table class="FormLayout" width="100%" border="0">
+<tr class="row_odd">
+  <td class="smallHeader">
+    <input type=checkbox id="email_checkbox" onClick="switchDiv(document.getElementById('email_div'), this.checked)" name="transport:list" value="email">
+    <label for="email_checkbox"><dtml-msg "Send by email"></label>
+  </td>
+</tr>
+</table>
+
+<div id="email_div" style="display:none">
+
+<table class="FormLayout" width="100%" border="0">
+<tr class="row_even">
+  <td style="width:100%;" align=left>
+    <table width="100%" cellpadding="2" cellspacing="0" class="List" border="0">
+    <tr>
+      <td nowrap><img src="&dtml-portal_url;/spacer.gif" width="19"></td>
+      <td style="width:100%; padding: 0 0 0 1px;" align=left colspan="2" nowrap>
+        <strong><dtml-var "msg('Distribute the document to the following users')">:</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left>
+        <dtml-var "user_list(this(), 
+              name='requested', 
+              allowed_users=portal_membership.listMemberIds(),
+              allowed_groups=IsManager and portal_membership.getListGroups(),
+              size=20,
+              style='width:512px', 
+              with_groups=1,
+              IsAdvanced=1
+        )">
+      </td>
+      <td style="padding: 0 5px 0 10px;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td align=left colspan="3">
+        <hr style="border:thin dotted white;" noshade width="100%" size="1">
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left colspan="2">
+        <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td><img src="&dtml-portal_url;/survey.gif" onclick="javascript:OpenHolding()" border="0"></td>
+          <td class="smallHeader" style="padding: 18px 0 0 4px;"><font color="purple"><strong><dtml-var "msg('Send to holding')"></strong></font></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td align=left style="padding-bottom:10px">
+            <div id="send_to_holding" style="display: none">
+            <font color="#004BB8" face="verdana" style="font-size:11px">
+          <dtml-in "getCustomDefinitions('custom_emails', context=container)" mapping>
+            <nobr>
+            <input type="checkbox" name="holding:list" id="&dtml-id;" value="&dtml-email;">
+            <label for="&dtml-id;" title="<dtml-var "msg(info)">"><dtml-var "msg(name)"></label></nobr><br>
+          </dtml-in>
+            </font>
+            </div>
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left colspan="2" style="padding-top:3px;" nowrap>
+        <strong><dtml-var "msg('Other addresses (use semicolon as separator)')">:</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left colspan="2">
+      <dtml-let value="getCustomDefinitions('other_user_emails', context=this(), byway='E-mail')">
+        <textarea name="other_user_emails" cols="40" rows="3" style="width:100%;">&dtml-value;</textarea>
+      </dtml-let>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left colspan="2" nowrap>
+        <strong><dtml-var "msg('Subject of mail')">:</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left colspan="2" style="width:100%;">
+        <input type="text" name="subject" size="100" style="width:100%;" value="&dtml-title_or_id;">
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left colspan="2" nowrap>
+        <strong><dtml-var "msg('Message text')">:</strong>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align=left colspan="2" style="width:100%; padding-bottom:10px;">
+        <textarea name="comment" rows="10" cols="80" style="width:100%;"><dtml-var "msg('Read this document.')"></textarea>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+</div>
+
+<table class="FormLayout" width="100%" border="0">
+<tr class="row_odd">
+  <td class="smallHeader">
+    <input type=checkbox id="fax_checkbox" onClick="switchDiv( document.getElementById('fax_div'), this.checked )" name="transport:list" value="fax">
+    <label for="fax_checkbox"><dtml-msg "Send by fax"></label>
+  </td>
+</tr>
+</table>
+
+<div id="fax_div" style="display: none">
+
+<table class="FormLayout" width="100%" border="0">
+<tr class="row_even">
+  <td style="width:100%;" align=left>
+    <table cellpadding="2" cellspacing="0" class="List" border="0">
+    <tr>
+      <td nowrap><img src="&dtml-portal_url;/spacer.gif" width="19"></td>
+      <td style="padding-top:5px;" nowrap><strong><dtml-msg "Fax number">:</strong></td>
+      <td style="padding-left:10px;" width="100%">
+        <dtml-let value="getCustomDefinitions('other_user_emails', context=this(), byway='FAX')">
+          <input type="text" id="fax_numbers" name="fax_numbers:string" size="80" value="&dtml-value;" style="width:80%;">
+        </dtml-let>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+</div>
+
+<br><h3><dtml-msg "Content of the letter"></h3>
+
+<table class="FormLayout" width="100%" border="0">
+<tr>
+  <td class="check_option" style="width:100%; padding: 0 0 10px 1px;" align=left>
+    <input type="checkbox" name="letter_parts:list" id="body" value="body" checked>
+    <label for="body"><dtml-var "msg('include document body')"></label><br>
+    <input type="checkbox" name="letter_parts:list" id="metadata" value="metadata">
+    <label for="metadata"><dtml-var "msg('include registration card')"></label><br>
+    <input type="checkbox" name="letter_parts:list" id="link_to_doc" value="link_to_doc">
+    <label for="link_to_doc"><dtml-var "msg('include link to the document')"></label><br>
+<dtml-in "listAttachments( no_inline=0, no_emailed=1 )">
+  <dtml-if sequence-start>
+    <input type="checkbox" 
+           name="letter_parts:list" 
+           onClick="switchDiv( document.getElementById('attachments_div'), this.checked )"
+           id="attachments" 
+           value="attachment"
+    >
+    <label for="attachments"><dtml-msg "include attachments"></label>
+    <div id="attachments_div" style="display: none">
+    <table cellpadding="2" cellspacing="0" class="List" border="0">
+    <tr>
+      <td nowrap><img src="&dtml-portal_url;/spacer.gif" width="20"></td>
+      <td colspan="3" style="padding:5px 0 5px 0;"><strong><dtml-var "msg('File list for sending')">:</strong></td>
+    </tr>
+  </dtml-if>
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td>&nbsp;</td>
+      <td>
+        <input type="checkbox" name="attachments:list" value="&dtml-getId;">
+      </td>
+      <td style="padding-top:4px;">
+        <dtml-let icon="icon or (meta_type == 'Image Attachment' and 'misc_/Photo/photo.gif')">
+          <dtml-if icon>
+            <a href="<dtml-var "container.relative_url( action=getId() )" >" target="_blank">
+              <img src="&dtml-BASEPATH1;/&dtml-icon;" alt="&dtml-meta_type;" title="&dtml-meta_type;" border="0">
+            </a>
+          </dtml-if>
+        </dtml-let>
+      </td>
+      <td width="100%" align="left" style="padding-top:6px;">
+        <a href="<dtml-var "container.relative_url( action=getId() )" >" target="_blank" class="navigate">
+          &dtml-title_or_id;
+        </a> (<dtml-var "'%.1f' % (get_size() / 1024.0)"> Kb)
+      </td>
+    </tr>
+  <dtml-if sequence-end>
+    </table>
+    </div>
+  </dtml-if>
+</dtml-in>
+  </td>
+</tr>
+</table>
+
+<h3><dtml-msg "Post distribiting attributes"></h3>
+
+<table class="FormLayout" width="100%" border="0">
+<tr>
+  <td class="check_option" style="width:100%; padding: 0 0 10px 1px;" align=left>
+  <dtml-comment>
+    <input type="checkbox" name="return_receipt_to" id="return_receipt_to" value="1">
+    <label for="return_receipt_to"><dtml-var "msg('return receipt to')"></label><br>
+  </dtml-comment>
+    <input type="checkbox" name="confirm_reading_to" id="confirm_reading_to" value="1" checked>
+    <label for="confirm_reading_to"><dtml-var "msg('confirm reading to')"></label><br>
+  </td>
+</tr>
+</table>
+
+<table class="FormLayout" width="100%" border="0">
+<tr>
+  <td><input type="button" name="OK" value=" <dtml-var "msg('Distribute document')">" onclick="javascript:DistributeSubmitForm();"></td>
+</tr>
+<tr>
+  <td><br><h1>&dtml-title_or_id;</h1><br></td>
+</tr>
+
+</form>
+
+<tr>
+  <td>
+    <table width="100%" bgcolor="#F2F2F2" border="0">
+    <tr class="task_title">
+      <td class="smallHeader"><dtml-var "msg('Document text')"></td>
+    </tr>
+    <tr>
+      <td id="cooked_body" width="100%" bgcolor="#FFFFFF"><dtml-var "CookedBody(view=1, resolution='none')"></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+</table>
+</dtml-let>
+
+</div>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.display = 'block';
+      FixResolutionLocation();
+    };
+//-->
+</script>
+
+<dtml-var simple_html_footer>

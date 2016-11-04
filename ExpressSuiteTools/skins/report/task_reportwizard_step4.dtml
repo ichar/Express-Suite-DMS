@@ -1,0 +1,67 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<script type="text/javascript">
+<!--
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.step4_form;
+    DisableForm(frm);
+    frm.add_report_to_links.value = ( frm.add_links.checked ? '1' : '' );
+    frm.submit();
+}
+//-->
+</script>
+
+<table class="FormLayout" border="0">
+<dtml-let report="portal_followup.saveLinkedReport(this(), task_title, task_description, _.getitem(template), REQUEST, transition='fix')"
+          report_url="report and report[0]"
+          destination_uid="report and report[1]"
+          dest_folder_uid="_.has_key('dest_folder_uid') and dest_folder_uid"
+>
+  <dtml-if "report_url is not None">
+<tr>
+  <td>
+    <h1><dtml-var aboveInThread></h1>
+    <h1><dtml-var "msg('Report created')"></h1>
+  </td>
+</tr>
+
+<form name="step4_form" method="POST" action="document_link_add">
+<input type="hidden" name="report_url" value="&dtml-report_url;">
+<input type="hidden" name="destination_uid" value="&dtml-destination_uid;">
+<input type="hidden" name="add_report_to_links" value="1">
+<tr>
+  <td>
+    <p><dtml-var "msg('Your report has been saved with name')">&nbsp;<a href="&dtml-report_url;/view">&dtml-task_title;</a>.</p>
+  </td>
+</tr>
+<tr>
+  <td nowrap style="padding: 5px 0 10px 0">
+    <input type="checkbox" id="add_links" value="1" checked <dtml-if "not dest_folder_uid">disabled</dtml-if> />
+    <label for="add_links"><dtml-var "msg('Add report to document links')"></label>
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="button" name="OK" value=" <dtml-var "msg('OK')"> " onclick="javascript:SubmitForm();">
+  </td>
+</tr>
+</form>
+  <dtml-else>
+<tr>
+  <td>
+    <p><i><dtml-var "msg('Unhappen. Report was not created. Talk with administrator')"></i></p>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+</table>
+</div>
+
+<dtml-var simple_html_footer>

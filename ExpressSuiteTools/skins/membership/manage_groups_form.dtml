@@ -1,0 +1,112 @@
+<dtml-var simple_html_header>
+
+<dtml-if "not _.has_key('view_only') and not portal_membership.checkPermission('Manage portal', this())">
+  <dtml-call "RESPONSE.redirect(absolute_url())">
+</dtml-if>
+
+<div class="Desktop">
+
+<dtml-let context=this
+          user="portal_membership.getAuthenticatedMember()"
+          IsViewOnly="_.has_key('view_only') and _.int(view_only) or 0"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin() and portal_membership.checkPermission('Manage portal', this())"
+          attr="_.has_key('attr') and attr or None"
+          callback="_.has_key('callback') and callback or None"
+          groups="portal_membership.getListGroups(attr=attr, sys=(IsManager and not IsViewOnly))"
+>
+
+<dtml-in groups sort="group_title" mapping>
+  <dtml-if sequence-start>
+<table class="List" cellspacing="3" cellpadding="2" border="0">
+<tr>
+  <td colspan="10">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td width="100%">
+        <h1><dtml-var groups_icon.gif>&nbsp;<dtml-var "msg('User groups')"></h1>
+    <dtml-if groups>
+        <h3 style="padding:0 0 20px 0;"><dtml-msg "Total member groups">:&nbsp;<dtml-var "_.len(groups)"></h3>
+    </dtml-if>
+      </td>
+    <dtml-if IsViewOnly>
+      <td valign="middle" nowrap>
+        <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+      </td>
+    </dtml-if>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr class="row_title">
+  <td width="15%"><dtml-var "msg('Identifier')"></td>
+  <td><dtml-var "msg('Description')"></td>
+  <td><dtml-var "msg('SD')"></td>
+  <td><dtml-var "msg('CH')"></td>
+  <td><dtml-var "msg('DA')"></td>
+</tr>
+  </dtml-if>
+
+  <dtml-let subdivision="portal_membership.getGroupAttribute(group_id, 'SD')"
+            chief="portal_membership.getGroupAttribute(group_id, 'CH')"
+            delegate="portal_membership.getGroupAttribute(group_id, 'DA')"
+  >
+<tr style="cursor:hand" class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>" onclick="JavaScript:followInnerLink(this)">
+  <td>
+    <a class="navigate" href="<dtml-var "context.relative_url(action='group_editor_form', params={'group_id':group_id, 'view_only':IsViewOnly, 'callback':callback})">">&dtml-group_id;</a>&nbsp;
+  </td>
+  <td>&dtml-group_title;</td>
+  <td align="center"><dtml-if subdivision>+</dtml-if></td>
+  <td align="center"><dtml-if chief>+</dtml-if></td>
+  <td align="center"><dtml-if delegate>+</dtml-if></td>
+</tr>
+  </dtml-let>
+  <dtml-if sequence-end>
+</table>
+  </dtml-if>
+<dtml-else>
+  <dtml-var "msg('There are no groups yet')">
+</dtml-in>
+
+<dtml-if "IsAdmin and not IsViewOnly">
+<form action="manage_groups" method="post">
+<table cellpadding="2" border="0">
+<tr>
+  <td align="left" valign="top">
+    <input type="text" name="group" size="20" value="">
+  </td>
+  <td align="left" valign="top">
+    <div class="form-element">
+    <input class="form-element" type="submit" name="addGroup" value="<dtml-var "msg('Add group')">">
+    </div>
+  </td>
+</tr>
+
+  <dtml-if groups>
+<tr>
+  <td align="left" valign="top">
+    <div class="form-element">
+    <select name="groups:list">
+    <dtml-in groups sort="group_title" mapping>
+      <option value="&dtml-group_id;">&dtml-group_title;</option>
+    </dtml-in>
+    </select>
+    </div>
+  </td>
+  <td align="left" valign="top">
+    <div class="form-element">
+    <input class="form-element" type="submit" name="delGroup" value="<dtml-var "msg('Remove group')">">
+    </div>
+  </td>
+</tr>
+  </dtml-if>
+</table>
+</form>
+</dtml-if>
+
+</dtml-let>
+
+</div>
+
+<dtml-var simple_html_footer>

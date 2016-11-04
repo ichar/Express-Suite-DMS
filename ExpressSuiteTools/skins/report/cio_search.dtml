@@ -1,0 +1,280 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title><dtml-var "msg(REQUEST.get('PageTitle','CIO Search'))" html_quote></title>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+<dtml-call "REQUEST.set('OpenInFrame', None)">
+
+<style type="text/css">
+td.small {
+    font-family: verdana;
+    font-size: 12px;
+    font-weight: bold;
+}
+.header {
+    font-family: tahoma;
+    font-size: 20px;
+    /*font-weight: bold;*/
+    cursor: default;
+    color: black;
+}
+.information {
+    font-family: verdana;
+    font-size: 13px;
+    cursor: default;
+    color: black;
+}
+td.queryHeader {
+    font-size: x-small;
+    font-weight: bold;
+    padding: 0 5px 0 5px;
+}
+td.queryInfo {
+    font-size: 11px;
+    font-weight: normal;
+    padding: 0 5px 0 5px;
+    color: blue;
+}
+</style>
+</head>
+
+<script type="text/javascript">
+<!-- 
+function change_option( obj, option ) {
+    if (typeof(obj) != 'object')
+        return;
+    var value = (option == 'period' || option == 'ctype' ? obj.value : (obj.checked ? '1' : '0'));
+    document.all[option].value = value;
+}
+
+function DoImgClick() {
+    var query = document.all.query;
+    var s=(query.style.display == 'none' ? 'block' : 'none');
+    query.style.display = s;
+}
+
+function addOptionTo( list, text, value ) {
+    var len = list.length;
+    var opt = list.document.createElement("OPTION");
+    opt = list.options[len] = opt;
+    opt.text = text;
+    opt.value = value;
+    return opt;
+}
+
+function addSelectionToList( src_list, dest_list, type_of_list ) {
+    var len = dest_list.length;
+    var prefix = ( type_of_list ? type_of_list+':' : '' );
+    for(var i = 0; i < src_list.length; i++) {
+        if ((src_list.options[i] != null) && (src_list.options[i].selected)) {
+            //Check if this value already exist in the dest_list or not
+            //if not then add it otherwise do not add it.
+            var found = false;
+            for(var count = 0; count < len; count++) {
+                if (dest_list.options[count] != null) {
+                    var value = dest_list.options[count].value;
+                    value = value.replace(prefix+'');
+                    if (src_list.options[i].value == value) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found != true) {
+                addOptionTo(dest_list, src_list.options[i].text, prefix+src_list.options[i].value);
+                len++;
+            }
+        }
+    }
+}
+
+function deleteSelectionFromList( dest_list )	{
+    var len = dest_list.options.length;
+    for(var i = (len-1); i >= 0; i--) {
+        if ((dest_list.options[i] != null) && (dest_list.options[i].selected == true)) {
+            dest_list.options[i] = null;
+        }
+    }
+}
+
+function SearchStrInSelect( str, select ) {
+    var strn=0, strl=0;
+    for (var i = 0; i < select.length; i++) {
+        select.options[i].selected = false;
+        var curl = 0;
+        var inpStr = str.toUpperCase();
+        var selStr = select.options[i].text.toUpperCase();
+        for (var l = 0; l < str.length+1; l++) {
+            curl = l;
+            if (inpStr.charAt(l) != selStr.charAt(l)) break;
+        }
+        if (curl > strl) { strl=curl; strn=i; }
+    }
+    if (!select.multiple || str.length) select.options[strn].selected = true;
+}
+
+function selectAll( list ) {
+    var len = list.length;
+    for(var i = 0; i < len; i++) { list.options[i].selected=true; }
+}
+
+function MainMenu() {
+    var url = 'cio';
+    var params = '';
+    window.open( url, '_top', params );
+}
+
+function Refresh() {
+    var frm = document.search_form;
+    var obj = frm.all['text:search'];
+    var str = '';
+    var r_none = /[\.\?]/g;
+    if( typeof(obj) == 'object' ) {
+      var str = obj.value;
+      str = str.replace( '/', ' ' );
+      str = str.replace( r_none, '' );
+      frm.search_text.value = str; //escape(str);
+    }
+    /*
+    if( !str 
+        && frm.company.selectedIndex == 0
+        && frm.category.selectedIndex == 0
+        && frm.brains_type.selectedIndex == 0
+        && frm.commissions_type.selectedIndex == 0
+        && frm.state.selectedIndex == 0
+        && frm.responsible_selected_users.selectedIndex == -1
+        && frm.ctype.value == 'any' 
+		) {
+      alert('<dtml-var "msg('Type any request options!')">');
+      if( obj ) { obj.value = str; obj.focus(); }
+      return false;
+    }
+    */
+    frm.target = '_self';
+    onSubmitForm( frm );
+}
+
+function onSubmitForm( frm ) {
+    var obj = frm.owner_selected_users;
+    if( obj.options.length ) selectAll(obj); else frm.w.name = 'owner';
+    var obj = frm.responsible_selected_users;
+    if( obj.options.length ) selectAll(obj); else frm.x.name = 'responsible';
+    //frm.submit();
+    return true;
+}
+//-->
+</script>
+
+<dtml-let container="this()"
+          company_logo="getPortalConfiguration().getAttribute('company_logo', context=container)"
+          companies="getDepartmentDictionary().listCompanies()"
+          categories="getPortalConfiguration().getAttribute('categories', context=container, with_base=1)"
+          states="getPortalConfiguration().getAttribute('task_states', context=container)"
+          common_url="portal_properties.common_url()"
+          member="portal_membership.getAuthenticatedMember()"
+          uname="member.getUserName()"
+
+          period="0"
+          not_finalized_only="0"
+          not_answered_only="0"
+          ctype="'supervising'"
+          company="[]"
+          category="[]"
+          owners="[]"
+          brains_type="[]"
+          commissions="[]"
+          state="[]"
+          involved_users="[]"
+          rtype="'summary'"
+          enabled_only="None"
+
+          bgcolor="'#E7E7E7'"
+>
+
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="&dtml-bgcolor;">
+<form name="search_form" action="&dtml-portal_url;/commissions_in_progress" method="post">
+<input type="hidden" name="BackgroundColor" value="&dtml-bgcolor;">
+<input type="hidden" name="search_text" value="">
+<input type="hidden" name="period" value="&dtml-period;">
+<input type="hidden" name="not_finalized_only" value="&dtml-not_finalized_only;">
+<input type="hidden" name="not_answered_only" value="&dtml-not_answered_only;">
+<input type="hidden" name="enabled_only" value="&dtml-enabled_only;">
+<input type="hidden" name="rtype" value="&dtml-rtype;">
+<input type="hidden" name="cio" value="1">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<colgroup>
+<col width="30%">
+<col>
+<col>
+<col>
+<col width="30%">
+
+<tr>
+  <td><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td class="header" align="center" style="padding: 20px 0 10px 0;" valign="top" colspan="3">
+    <nobr><dtml-msg "Commissions Search Form"></nobr><br>
+    <nobr><font size=1><dtml-msg "in the system of"></font></nobr><br>
+    <nobr><dtml-msg "office's administrative documents of the company"></nobr>
+  </td>
+  <td><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td></td>
+  <td class="information" align="center" colspan="3" style="padding-bottom:20px;">
+    <font color="purple"><strong><dtml-var "member.getMemberNotes()"><br><dtml-var "member.getMemberBriefName()"></strong></font>
+  </td>
+  <td></td>
+</tr>
+
+<tr>
+  <td></td>
+  <td class="queryHeader" nowrap>
+    <img src="&dtml-portal_url;/spacer.gif" width="30" height="1"><span><dtml-var "msg('Search context')">:</span>&nbsp;
+  </td>
+  <td class="queryHeader">
+    <input type="text" name="text:search" size="110">
+  </td>
+  <td class="queryHeader" align="left" nowrap>
+    <input type="submit" name="search" onClick="javascript:return Refresh();" style="width:80px;" value="<dtml-var "msg('Find >>')">" />
+    <input type="button" name="menu" onClick="javascript:MainMenu();" value="<dtml-var "msg('Main menu')">" style="width:120px;">
+  </td>
+  <td></td>
+</tr>
+<tr>
+  <td colspan="2"></td>
+  <td class="queryInfo"><b><dtml-msg "note">:</b>&nbsp;<dtml-msg "Search is applied for documents and tasks contain commissions."></td>
+  <td colspan="2"></td>
+</tr>
+
+<tr><td colspan="5"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+
+<tr>
+  <td colspan="2"><img src="&dtml-portal_url;/spacer.gif" width="100" height="1"></td>
+  <td align="left" style="padding: 0 0 10px 0;" colspan="3">
+  <dtml-let period_options="0" commissions_options="1" finalized_and_answered_options="0" query_options="1" align="'left'" no_line="1" spec="'cellspacing=0 cellpadding=3'">
+    <div align="center" id="query" style="display:block">
+    <dtml-var cio_query>
+    </div>
+  </dtml-let>
+  </td>
+</tr>
+</table>
+
+</form>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+window.onload = function () {
+  document.all['text:search'].focus();
+}
+//-->
+</script>
+
+</body>
+</html>

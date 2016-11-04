@@ -1,0 +1,87 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function DisableForm(form) {
+    form.OK.disabled=true;
+    form.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var form = document.signatureForm;
+    if (validateForm(form)) {
+        DisableForm(form);
+        form.submit();
+    }
+}
+//-->
+</script>
+
+<dtml-let uname="portal_membership.getAuthenticatedMember().getUserName()"
+          brains_type="'signature_request'"
+          status="'sign'"
+          manual_report_close="0"
+          transition="'ToSelfSignature'"
+>
+<div class="Desktop" id="self_signature_container">
+
+<h1><dtml-var aboveInThread></h1>
+
+<form name="signatureForm" method="post" action="self_signature">
+<input type="hidden" name="workflow_action" value="&dtml-transition;">
+<input type="hidden" name="brains_type" value="&dtml-brains_type;">
+
+<table class="FormLayout" width="100%">
+<tr>
+  <td class="smallHeader" valign=top align=left>
+  <dtml-let action_description="msg('Self signature request for the document', add=0)">
+    <dtml-if action_description>
+    <strong style="color:purple"><dtml-msg "Action">:&nbsp;"<dtml-var action_description>"</strong>
+    </dtml-if>
+  </dtml-let>
+  </td>
+</tr>
+<tr>
+  <td valign=top align=left>
+    <strong><em><dtml-var "msg('Additional information')">:</em></strong><br>
+    <dtml-call "REQUEST.set('comment_rows', '5')">
+    <dtml-var "comment_template(this(), form='signatureForm', field='text', context=('task.respond.%s' % brains_type), value='')">
+  </td>
+</tr>
+<tr>
+  <td style="padding: 5px 0 5px 0">
+    <input type="hidden" name="status" value="&dtml-status;">
+    <input name="OK" type="button" value=" <dtml-var "msg('OK')"> " title="<dtml-var "msg('Witness a signature')">" onclick="javascript:SubmitForm();" style="width:110px;">
+    <input name="cancel" type="button" onClick="javascript:location.href='&dtml-absolute_url;';DisableForm();" value=" <dtml-var "msg('Cancel')"> " style="width:110px;">
+  </td>
+</tr>
+</table>
+
+</form>
+</div>
+
+<dtml-if "implements('isDocument')">
+<table width="100%">
+<tr class="task_title">
+  <td class="smallHeader"><dtml-var "msg('Document text')"></td>
+</tr>
+<tr>
+  <td width="100%" bgcolor="#FFFFFF"><dtml-var "this().CookedBody(view=1, resolution=None)"></td>
+</tr>
+</table>
+</dtml-if>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload = 
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.display = 'none';
+      resolution_body.style.top += self_signature_container.offsetHeight + 60;
+    };
+//-->
+</script>
+
+<dtml-var simple_html_footer>

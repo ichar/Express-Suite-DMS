@@ -1,0 +1,120 @@
+<dtml-if "portal_membership.protection(context='backup', REQUEST=REQUEST)">
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<h1><dtml-var "msg('Configure pack and backup options')"></h1>
+
+<dtml-with portal_properties only>
+  <dtml-let packOpts="packDBOptions()" backupOpts="backupDBOptions()">
+
+<form name="portal_properties" action="&dtml.url-reconfig_backup;" method="POST">
+<table class="FormLayout" border="0" cellspacing="2" cellpadding="2">
+<tr>
+  <th valign="top" align="left">
+    <dtml-var "msg('Pack Zope database')">
+  </th>
+  <td>
+    <dtml-var "msg('Pack each')">
+    <input type="text" name="pack_days:int" value="<dtml-var "packOpts.get('pack_days', 0)">" size="5"> <dtml-var "msg('days at')">
+    <input type="text" name="pack_hours:int" value="<dtml-var "packOpts.get('pack_hours', 0)">" size="2" maxlength="2">:
+    <input type="text" name="pack_minutes:int" value="<dtml-var "packOpts.get('pack_minutes',0)">" size="2" maxlength="2">. <br>
+    <dtml-var "msg('Removing revisions of objects that are older than')"> <input type="text" name="pack_older:int" value="<dtml-var "packOpts.get('pack_older',0)">" size="3" > <dtml-var "msg('days')">.
+    <br>
+    <dtml-var "msg('State')">:
+    <dtml-let isPack="isPackTaskActive()">
+      <font color="<dtml-var "isPack==1 and '0000CF' or isPack==2 and '00CF00' or 'CF0000'">">
+      <dtml-var "msg(isPack and 'forced' or 'paused')">.
+      </font>
+    </dtml-let>
+  </td>
+</tr>
+
+<tr>
+  <th valign="top" align="left">
+    <dtml-var "msg('Backup Zope database')">
+  </th>
+  <td valign="top">
+    <table>
+    <tr>
+      <td colspan="2">
+        <dtml-var "msg('Backup each')">
+        <input type="text" name="backup_days:int" value="<dtml-var "backupOpts.get('backup_days', 0)">" size="5"> <dtml-var "msg('days at')">
+        <input type="text" name="backup_hours:int" value="<dtml-var "backupOpts.get('backup_hours', 0)">" size="2" maxlength="2">:
+        <input type="text" name="backup_minutes:int" value="<dtml-var "backupOpts.get('backup_minutes', 0)">" size="2" maxlength="2"> <dtml-var "msg('and store no more than')">
+        <input type="text" name="backup_copies:int" value="<dtml-var "backupOpts.get('backup_copies', 1)">" size="2" maxlength="2"> <dtml-var "msg('copies')">. <br>
+        <dtml-var "msg('Path to store backups')">: <input type="text" name="backup_path:str" value="<dtml-var "backupOpts.get('backup_path', '')">" size="50">
+        <br>
+        <dtml-var "msg('State')">:
+    <dtml-let isBackup="isBackupTaskActive()">
+        <font color="<dtml-var "isBackup==1 and '0000CF' or isBackup==2 and '00CF00' or 'CF0000'">">
+          <dtml-var "msg(isBackup and 'forced' or 'paused')">.<br>
+        </font>
+    </dtml-let>
+      </td>
+    </tr>
+    <tr>
+      <td width="10%" valign="top" nowrap>
+        <dtml-var "msg('Notified members')"><br>(<dtml-var "msg('Administrators only')">)
+      </td>
+      <td align="left">
+        <select name="notified_members:list" size="5" multiple>
+    <dtml-let notified_members="portal_membership.listMemberIds()">
+      <dtml-in notified_members sort>
+        <dtml-if "portal_membership.getMemberById(_['sequence-item']).has_role('Manager') ">
+          <dtml-let selected="_['sequence-item'] in getBackupNotifiedMembers() and ' selected' or ''">
+        <option value="&dtml-sequence-item;"&dtml-selected;><dtml-var "msg(_['sequence-item'])"></option>
+          </dtml-let>
+        </dtml-if>
+      </dtml-in>
+    </dtml-let>
+        </select>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <th valign="top" align="left"> <dtml-var "msg('Program for archiving backup copy')">:</th>
+  <td>
+    <select name="arc_program">
+    <dtml-in "[('', 'Do not archive')] + listArchivers() " prefix="arch">
+    <option value="&dtml-arch_key;"
+      <dtml-var "arch_key==backupOpts.get('arc_program') and 'selected' or ''">
+      ><dtml-var "msg(arch_item)"></option>
+    </dtml-in>
+    </select>
+    <dtml-var "msg('Note: path to this program have to be set in the PATH variable')">.<br>
+  </td>
+</tr>
+
+<tr>
+  <td></td>
+  <td colspan="2"><input type="submit" name="apply" value="<dtml-var "msg('Apply')">"></td>
+</tr>
+<tr>
+  <td colspan="3"><hr></td>
+</tr>
+<tr>
+  <td></td>
+  <td colspan="2">
+    <input type="submit" name="pack_now" value="<dtml-var "msg('Pack now')">">&nbsp;
+    <input type="submit" name="backup_now" value="<dtml-var "msg('Backup now')">">
+    <input type="hidden" name="backup_or_pack_only" value="1" />
+  </td>
+</tr>
+</table>
+
+</form>
+
+  </dtml-let>
+</dtml-with>
+
+</div>
+
+</body>
+</html>
+
+</dtml-if>

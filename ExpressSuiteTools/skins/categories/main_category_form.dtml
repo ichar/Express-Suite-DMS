@@ -1,0 +1,446 @@
+<dtml-var simple_html_header>
+
+<p><strong><a href="<dtml-var "aq_parent.absolute_url(action='manage_categories')">">&lt;&lt; <dtml-var "msg('Document categories management')"></a></strong></p>
+
+<h2><dtml-var "msg('Category')">: <dtml-var "msg(Title(), add=0)"></h2>
+
+<script type="text/javascript">
+<!--
+function OnClickTemplate( row ) {
+    var obj = document.all['template_uid_selected_'+row];
+    if( typeof(obj) != 'object' ) return false;
+	
+    var isChecked = obj.checked;
+    var objDiv = document.all['template_properties_'+row];
+
+    if( typeof(objDiv) == 'object' ) {
+        objDiv.style.display = ( isChecked ? 'block' : 'none' );
+    }
+}
+function OnClickChecked( obj ) {
+    if( typeof(obj) == 'object' ) {
+        obj.value = ( obj.checked ? '1' : '-1' );
+    }
+}
+function validate() {
+	var message = '<dtml-var "msg('Do you really want to remove template?')">';
+	return confirm(message);
+}
+//-->
+</script>
+
+<dtml-let IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+          IsDebug="0"
+>
+
+<table width="90%" cellspacing="2" cellpadding="2">
+<tr class="row_title">
+  <td colspan="2"><dtml-var "msg('Base categories')"></td>
+</tr>
+<tr class="row_even">
+  <td>
+    <dtml-in listBases>
+      <dtml-var "msg(Title())"><dtml-unless sequence-end>,</dtml-unless>
+    <dtml-else>
+      <dtml-var "msg('n/a')">
+    </dtml-in>
+  </td>
+  <td width="7%" align="center"><a href="category_bases_form"><dtml-var "msg('edit')"></a></td>
+</tr>
+</table>
+
+<br>
+
+<table width="90%" cellspacing="2" cellpadding="2">
+<tr class="row_title">
+  <td colspan="2"><dtml-var "msg('Allowed content types')"></td>
+</tr>
+<tr class="row_even">
+  <td>
+    <dtml-in listAllowedTypes>
+      <dtml-var "msg(_['sequence-item'])"><dtml-unless sequence-end>,</dtml-unless>
+    <dtml-else>
+      <dtml-var "msg('n/a')">
+    </dtml-in>
+  </td>
+  <td width="7%" align="center"><a href="category_types_form"><dtml-var "msg('edit')"></a></td>
+</tr>
+</table>
+
+<br>
+
+<table width="90%" cellspacing="2" cellpadding="2">
+<tr class="row_title">
+  <td colspan="2"><dtml-var "msg('Category attributes')"></td>
+</tr>
+<tr class="row_even">
+  <td>
+    <dtml-in listAttributeDefinitionsBySortkey>
+      <dtml-var "msg(Title(), add=None)"> (<dtml-var "msg(Type())">) <br>
+    <dtml-else>
+      <dtml-var "msg('n/a')">
+    </dtml-in>
+  </td>
+  <td width="7%" align="center"><a href="category_metadata_form"><dtml-var "msg('edit')"></a></td>
+</tr>
+</table>
+
+<br>
+
+<dtml-let wf=getWorkflow>
+  <dtml-if wf>
+<table width="90%" cellspacing="2" cellpadding="2" border="0">
+<tr class="row_title">
+  <td colspan="3"><dtml-var "msg('Document workflow')"></td>
+</tr>
+<tr class="row_even">
+  <td><strong><dtml-var "msg('States')"></strong></td>
+  <td>
+    <dtml-with "wf.states">
+      <dtml-in values sort=title>
+        <dtml-var "msg(title or id, add=None)"><br>
+      <dtml-else>
+        <dtml-var "msg('n/a')">
+      </dtml-in>
+    </dtml-with>
+  </td>
+  <td align="center"><a href="workflow_states"><dtml-var "msg('edit')"></a></td>
+</tr>
+<tr class="row_even">
+  <td><strong><dtml-var "msg('Transitions')"></strong></td>
+  <td>
+    <dtml-with "wf.transitions">
+      <dtml-in values sort=id>
+        <dtml-if "not actbox_name">*</dtml-if><dtml-var "msg(actbox_name or id, add=None)"><br>
+      <dtml-else>
+        <dtml-var "msg('n/a')">
+      </dtml-in>
+    </dtml-with>
+  </td>
+  <td width="7%" align="center"><a href="workflow_transitions"><dtml-var "msg('edit')"></a></td>
+</tr>
+<tr class="row_even">
+  <td><strong><dtml-var "msg('Permissions')"></strong></td>
+  <td>
+    <dtml-in "wf.permissions">
+      <dtml-var "msg(_['sequence-item'], add=None)"><br>
+    <dtml-else>
+      <dtml-var "msg('n/a')">
+    </dtml-in>
+  </td>
+  <td width="7%" align="center"><a href="workflow_permissions"><dtml-var "msg('edit')"></a></td>
+</tr>
+<tr class="row_even">
+  <td><strong><dtml-var "msg('Actions templates')"></strong></td>
+  <td>
+    <dtml-in "this().taskTemplateContainerAdapter.getTaskTemplatesAsArray( getId() )" sort=template_title mapping>
+      <a href="task_template_task_definition_info?template_id=&dtml-template_id;&id_task_definition=1">
+        <small><dtml-var "msg(_['sequence-item']['template_title'])"></small>
+      </a><br>
+    <dtml-else>
+      <dtml-var "msg('n/a')">
+    </dtml-in>
+  </td>
+  <td width="7%" align="center">
+    <a href="task_template_list"><dtml-var "msg('edit')"></a>
+  </td>
+</tr>
+<tr class="row_even">
+  <td colspan="2"><strong><dtml-var "msg('Configure documents routing')"></strong></td>
+  </td>
+  <td width="7%" align="center">
+    <a href="task_template_summary">
+      <dtml-var "msg('edit')">
+    </a>
+  </td>
+</tr>
+</table>
+  </dtml-if>
+</dtml-let>
+
+<form action="category_edit" method="POST" id="template_edit">
+
+<table width="100%" border="0">
+<tr>
+  <td align="right"><strong><dtml-var "msg('Title')"></strong>:</td>
+  <td width="90%">
+    <input style="width:50%;" type="text" size="30" name="title" value="<dtml-var "msg(Title(), add=0)">">
+  </td>
+</tr>
+
+<dtml-let templates="listTemplates()" default_template="getDefaultTemplate()">
+  <dtml-if IsDebug>
+<tr><td colspan=2><dtml-var templates></td></tr>
+  </dtml-if>
+  <dtml-if templates>
+<tr>
+  <td align="right" valign="top" nowrap style="padding-top:2px"><strong><dtml-var "msg('Templates for the documents')"></strong>:</td>
+  <td>
+    <dtml-in templates>
+      <dtml-if sequence-start>
+    <table cellspacing="0" cellpadding="0" border="0">
+      </dtml-if>
+      <dtml-let templ_uid="_['sequence-item'][0]"
+                templ_title="_['sequence-item'][1]"
+                templ_url="_['sequence-item'][2]"
+                template_edit_fields_only="_['sequence-item'][3]"
+                template_use_translate="_['sequence-item'][4]"
+                template_use_facsimile="_['sequence-item'][5]"
+                wysiwyg_restricted="_['sequence-item'][6]"
+                row="_['sequence-index']"
+      >
+    <tr>
+      <td align="left">
+        <input type="checkbox" id="template_uid_selected_&dtml-row;" name="template_uid_selected:list" value="<dtml-var "templ_uid" html_quote>" onclick="javascript:OnClickTemplate('&dtml-row;');">
+      </td>
+      <td>
+        <dtml-if templ_title>
+          <a href="&dtml-templ_url;?expand=1" target="_blank"><dtml-var "templ_title" html_quote></a>
+        <dtml-else>
+          <font color="red"><dtml-msg "Document deleted or broken UID"></font>
+        </dtml-if>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="left">
+        <div id="template_properties_&dtml-row;" style="display:none;">
+
+        <table cellspacing="0" cellpadding="0" border="0">
+        <tr>
+          <td style="padding:3px 0 0 0"><strong><dtml-var "msg('Template settings')"></strong>:</td>
+        </tr>
+        <tr>
+          <td>
+          <dtml-let tid="'template_edit_fields_only_' + templ_uid">
+            <label id="label_&dtml-tid;" for="&dtml-tid;" class="mousepointer" style="font-size:95%">
+              <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" <dtml-if template_edit_fields_only>value="1" checked<dtml-else>value="-1"</dtml-if> onclick="javascript:OnClickChecked(this);" />
+              <dtml-var "msg('User can edit only additional fields values')">
+            </label>
+          </dtml-let>
+          </td>
+        </tr>
+        <tr>
+          <td>
+          <dtml-let tid="'template_use_translate_' + templ_uid">
+            <label id="label_&dtml-tid;" for="&dtml-tid;" class="mousepointer" style="font-size:95%">
+              <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" <dtml-if template_use_translate>value="1" checked<dtml-else>value="-1"</dtml-if> onclick="javascript:OnClickChecked(this);" />
+              <dtml-var "msg('Use textarea translating for a cookedbody')">
+            </label>
+          </dtml-let>
+          </td>
+        </tr>
+        <tr>
+          <td>
+          <dtml-let tid="'template_use_facsimile_' + templ_uid">
+            <label id="label_&dtml-tid;" for="&dtml-tid;" class="mousepointer" style="font-size:95%">
+            <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" <dtml-if template_use_facsimile>value="1" checked<dtml-else>value="-1"</dtml-if> onclick="javascript:OnClickChecked(this);" />
+              <dtml-var "msg('Use facsimile for a cookedbody')">
+            </label>
+          </dtml-let>
+          </td>
+        </tr>
+        <tr>
+          <td>
+          <dtml-let tid="'wysiwyg_restricted_' + templ_uid">
+            <label id="label_&dtml-tid;" for="&dtml-tid;" class="mousepointer" style="font-size:95%">
+            <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" <dtml-if wysiwyg_restricted>value="1" checked<dtml-else>value="-1"</dtml-if> onclick="javascript:OnClickChecked(this);" />
+              <dtml-var "msg('WYSIWYG restricted template')">
+            </label>
+          </dtml-let>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:0 0 3px 0">
+            <dtml-let tid="'default_template_' + templ_uid"
+                      IsDefaultTemplate="(default_template and default_template == templ_uid and 1) or (default_template is None and row == 1 and 1) or 0">
+              <label id="label_&dtml-tid;" for="&dtml-tid;" class="mousepointer" style="font-size:95%">
+              <input type="radio" id="&dtml-tid;" name="default_template" <dtml-if IsDefaultTemplate>value="&dtml-templ_uid;" checked<dtml-else>value="-1"</dtml-if> onclick="javascript:this.value='&dtml-templ_uid;';" />
+                <dtml-var "msg('Default template')">
+              </label>
+            </dtml-let>
+          </td>
+        </tr>
+        </table>
+
+        </div>
+      </td>
+    </tr>
+      </dtml-let>
+      <dtml-if sequence-end>
+    </table>
+      </dtml-if>
+    </dtml-in>
+  </td>
+</tr>
+  
+    <dtml-if IsAdmin>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding:0 0 3px 0">
+    <input type="submit" name="remove_template" value="<dtml-var "msg('Remove template')">" style="width:180px;" onclick="return validate();">
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-if>
+</dtml-let>
+  
+<tr>
+  <td align="right" valign="top" nowrap><strong><dtml-var "msg('Add template')"></strong>:</td>
+  <td>
+    <input style="width:50%;" type="text" size="30" name="template_title" value="" disabled>
+    <input type="hidden" name="template_uid" value="">
+
+  <dtml-if IsAdmin>
+    <input type="button" value="<dtml-msg "Browse...">" 
+           onClick="return OpenDocumentSelectionWnd(this.form.id, 'callbackFunctionTemplate', '<dtml-var "portal_metadata.getTemplatesFolderPath()">', 'HTMLDocument')" />
+    <input type="submit" name="add_template"  value="<dtml-msg "Add">" 
+           onClick="return checkTemplateField(this.form.id)"
+           style="width:80px;" />
+  </dtml-if>
+
+    <script type="text/javascript">
+      function callbackFunctionTemplate( formId, uid, title ){
+        document.forms[formId]['template_uid'].value = "uid:"+uid;
+        document.forms[formId]['template_title'].value = title;
+      }
+      function checkTemplateField( formId ){
+      if (document.forms[formId]['template_uid'].value != '') return true
+      alert('<dtml-msg "Please specify template first">');
+      return false
+      }
+    </script>
+  </td>
+</tr>
+
+<tr><td colspan="2"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+  
+<tr>
+  <td align="right" nowrap><strong><dtml-msg "Default registry"></strong>:</td>
+  <td>
+  <dtml-let default_registry="getDefaultRegistry()">
+    <input style="width:50%;" type="text" size="30" name="registry_title" value="<dtml-var "default_registry and default_registry.Title() or ''">" disabled>
+    <input type="hidden" name="registry_uid" value="<dtml-var "default_registry and default_registry.getUid() or ''">">
+  </dtml-let>		
+
+  <dtml-if IsAdmin>
+    <input type="button" value="<dtml-msg "Browse...">" 
+           onClick="return OpenDocumentSelectionWnd(this.form.id, 'callbackFunctionRegistry', '', 'Registry')" />
+    <input type="button" value="<dtml-msg "Delete">" 
+           onClick="javascript:delDefaultRegistry();"
+           style="width:80px;" />
+  </dtml-if>
+
+    <script type="text/javascript">
+      function callbackFunctionRegistry( formId, uid, title ){
+        document.forms[formId]['registry_uid'].value = uid;
+        document.forms[formId]['registry_title'].value = title;
+      }
+      function delDefaultRegistry(){
+        document.all.registry_uid.value=null;
+        document.all.registry_title.value='';
+        document.all.RN.value='';
+        document.all.RD.value='';
+      }
+    </script>
+  </td>
+</tr>
+
+<tr>
+  <td></td>
+  <td align="left"><dtml-msg "Registry fields to create link">:</td>
+</tr>
+
+<tr>
+  <td align="right"><strong><dtml-msg "RN field"></strong>:</td>
+  <td><input size="40" type="text" name="RN" value="<dtml-var "getRN() or ''">"></td>
+</tr>
+
+<tr>
+  <td align="right"><strong><dtml-msg "RD field"></strong>:</td>
+  <td><input size="40" type="text" name="RD" value="<dtml-var "getRD() or ''">"></td>
+</tr>
+
+<tr>
+  <td align="right"><strong><dtml-var "msg('Registry postfix')"></strong>:</td>
+  <td><input size="10" type="text" name="postfix" value="<dtml-var "getPostfix()">"></td>
+</tr>
+
+<tr><td colspan="2"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+  
+<tr>
+  <td align="right" nowrap><strong><dtml-var "msg('Lock timeout')"></strong>:</td>
+  <td>
+    <table cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td class="small">
+        <dtml-var "dateperiod_form(this(), prefix='lock_timeout', period=edit and getLockTimeout() or 0)">
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td>
+    <table cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td>
+    <dtml-let tid="'forbid_free_cookedbody'">
+      <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" value="1" <dtml-var "getFreeCookedBodyMode() and 'checked' or ''"> />
+      <label for="&dtml-tid;">
+        <dtml-var "msg('Forbid free cookedbody')">
+      </label>
+    </dtml-let>
+      </td>
+    </tr>
+    <tr>
+      <td>
+    <dtml-let tid="'reply_to_action'">
+      <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" value="1" <dtml-var "getReplyToAction() and 'checked' or ''"> />
+      <label for="&dtml-tid;">
+        <dtml-var "msg('Apply reply to action')">
+      </label>
+    </dtml-let>
+      </td>
+    </tr>
+    <tr>
+      <td>
+    <dtml-let tid="'lock_attachments'">
+      <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" value="1" <dtml-var "getLockAttachments() and 'checked' or ''"> />
+      <label for="&dtml-tid;">
+        <dtml-var "msg('Apply attachments locking property')">
+      </label>
+    </dtml-let>
+      </td>
+    </tr>
+    <tr>
+      <td>
+    <dtml-let tid="'implement_language'">
+      <input type="checkbox" id="&dtml-tid;" name="&dtml-tid;" value="1" <dtml-var "getImplementLanguage() and 'checked' or ''"> />
+      <label for="&dtml-tid;">
+        <dtml-var "msg('Implement object language support')">
+      </label>
+    </dtml-let>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+    <dtml-if IsAdmin>
+<tr>
+  <td>&nbsp;</td>
+  <td align="left" style="padding: 10px 0 0 0">
+    <input type="submit" name="save_changes" value="<dtml-var "msg('Save changes')">" style="width:180px;">
+  </td>
+</tr>
+    </dtml-if>
+</table>
+
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

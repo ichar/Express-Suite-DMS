@@ -1,0 +1,27 @@
+<dtml-comment>
+$Id: document_confirm_association.dtml,v 1.2 2003/07/01 08:46:10 vpastukhov Exp $
+</dtml-comment>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+<form name="attachments" action="<dtml-var "relative_url( action='document_edit' )" >"
+  method="post" target="workfield">
+
+<input type="hidden" name="associatefile" value="<dtml-var "REQUEST.get('associatefile', '')">">
+
+  <p class="DesktopStatusBar">
+    <dtml-var "msg('The document contains text')">.
+    <dtml-var "msg('Setting the association will replace document text with text containing in the attachment')">.
+    <br>
+    <dtml-var "msg('Do you want to proceed?')">
+  </p>
+
+  <dtml-var FormattedBody>
+  <p>
+  <input type="submit" value="<dtml-var "msg('Set association')">">
+  </p>
+
+</form>
+</div>
+<dtml-var simple_html_footer>

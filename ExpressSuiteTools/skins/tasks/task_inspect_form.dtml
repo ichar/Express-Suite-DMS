@@ -1,0 +1,152 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script language="JavaScript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function validatePlanTime(frm, element_id) {
+<dtml-if "getPlanTime() and BrainsType() == 'inspect' and status == 'inspected'">
+    if( frm[element_id + '_days'].value != '0'  ||
+        frm[element_id + '_hours'].value != '0'  ||
+        frm[element_id + '_minutes'].value != '0'  ) {
+        return true;
+    }
+    else {
+        alert('<dtml-var "msg('You have to specify actual time spent to accomplish the task')">');
+        frm[element_id + '_days'].focus();
+        return false;
+    }
+<dtml-else>
+    return true;
+</dtml-if>
+}
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.inspectForm;
+    if( validatePlanTime(frm, 'actual_time') ) {
+        DisableForm(frm);
+        CheckAndRefreshCommentFields(frm, ['response']);
+        frm.text.value = "" + document.all['document_body'].innerHTML + "";
+        frm.submit();
+    }
+}
+//-->
+</script>
+
+<div class="Desktop" id="task_response_container">
+
+<dtml-let context="this()"
+          container="getBase()"
+          base_url="container.absolute_url()"
+          rti="getResponseTypeById(status)"
+          user="portal_membership.getAuthenticatedMember().getUserName()"
+          brains_type="BrainsType()"
+>
+
+<dtml-with container>
+
+<dtml-if "REQUEST.has_key('unlock')">
+  <dtml-if "wl_isLocked()">
+    <dtml-call expr="unlockDocument()">
+  </dtml-if>
+<dtml-elif "REQUEST.has_key('lock')">
+  <dtml-unless "wl_isLocked()">
+    <dtml-call expr="lockDocument()">
+  </dtml-unless>
+</dtml-if>
+
+</dtml-with>
+
+<h1><dtml-var aboveInThread></h1>
+
+<form id="response" name="inspectForm" action="&dtml-absolute_url;/task_inspect" method="post" enctype="multipart/form-data">
+<textarea id="text" name="text" style="display:none"></textarea>
+<input type="hidden" name="IsEditFieldsOnly" value="1"> 
+<input type="hidden" name="text_format" value="html">
+
+<table class="FormLayout" width="100%" border="0">
+<tr>
+  <td class="smallHeader" valign=top align=left>
+<dtml-let action_description="msg(rti['description'], add=0)">
+  <dtml-if action_description>
+    <strong style="color:purple"><dtml-msg "Action">:&nbsp;"<dtml-var action_description>"</strong>
+  </dtml-if>
+</dtml-let>
+  </td>
+</tr>
+<tr>
+  <td valign=top align=left>
+    <h3 style="font-size:11px;"><em><dtml-var "msg('Comment')">:</em></h3>
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-call "REQUEST.set('comment_rows', 5)">
+    <dtml-var "comment_template( context, form='inspectForm', field='response', context=('task.respond.%s.%s' % (brains_type, status)), value='' )">
+  </td>
+</tr>
+
+<dtml-if "brains_type=='inspect' and status=='inspected'">
+<tr>
+  <td valign=top align=left>
+    <strong><em><dtml-var "msg('Actual time spent to accomplish the task')">:</em></strong><br>
+    <dtml-var "dateperiod_form( context, prefix='actual_time', period=getActualTimeFor(user) or 0 )">
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "rti.get('manual_report_close', None)">
+<tr>
+  <td>
+    <input type="checkbox" name="close_report:int" value="1"> <dtml-var "msg('Close report')">
+  </td>
+</tr>
+</dtml-if>
+
+<tr>
+  <td style="padding: 5px 0 5px 0">
+    <input type="hidden" name="status" value="&dtml-status;">
+    <input type="button" name="OK" value=" <dtml-var "msg('OK')"> " title="<dtml-var "msg('Witness a signature')">" onclick="javascript:SubmitForm();" style="width:110px;">
+    <input type="button" name="cancel" onClick="JavaScript:location.href='&dtml-absolute_url;'" value=" <dtml-var "msg('Cancel')"> " style="width:110px;">
+  </td>
+</tr>
+
+<dtml-if "container is not None and container.implements('isDocument')">
+<tr class="task_title">
+  <td valign="top">
+    <table cellspacing="0" cellpadding="10" width="100%" border="1">
+    <tr>
+      <td class="smallHeader"><dtml-var "msg('Document text')"></td>
+    </tr>
+    <tr>
+      <td width="100%" bgcolor="#FFFFFF"><div id="document_body"><dtml-var "EditableBody()"></div></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</dtml-if>
+
+</form>
+
+</table>
+
+</div>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.top += task_response_container.offsetHeight + 80;
+      resolution_body.style.display = 'block';
+    };
+//-->
+</script>
+
+<dtml-var simple_html_footer>

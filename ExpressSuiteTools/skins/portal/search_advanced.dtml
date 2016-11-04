@@ -1,0 +1,331 @@
+<dtml-let user_storage_type="portal_properties.storage_type()"
+          IsArchive="user_storage_type == 'archive' and 1 or 0"
+          action="_.has_key('action') and action or None"
+          query_id="_.has_key('query_id') and query_id or None"
+          profile_id="_.has_key('profile_id') and profile_id or None"
+          query="portal_catalog.getQuery(id=query_id, profile=profile_id, REQUEST=REQUEST)"
+          folder="query.location and restrictedTraverse(query.location)"
+          type_items="portal_types.listSortedTypeInfo(searchable=1)"
+          batch_items="[5,10,20,50,100]"
+          batch_length="_.has_key('batch_length') and batch_length or _.int(portal_membership.getInterfacePreferences('viewing_document_number'))"
+          selected_category_items="['Document']"
+>
+<dtml-var search_scripts>
+
+<dtml-call "batch_length in batch_items or batch_items.append( batch_length ) or batch_items.sort()">
+
+<style type="text/css">
+<!--
+.SearchFormLayout h4, .SearchFormLayout p {
+    font-size: 10px;
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+.SearchFormLayout h4, .SearchFormLayout th {
+    color: #000000;
+    font-size: 11px;
+}
+.SearchFormLayout table {
+    border: 0px;
+    border-spacing: 0px;
+}
+.SearchFormLayout th {
+    text-align: left;
+}
+.SearchFormLayout .expanded {
+    width: 98%;
+}
+//-->
+</style>
+
+<dtml-with query>
+  <dtml-let category="category or REQUEST.get('category') or []"
+            otype_on="'bodies' in objects or category"
+            category_on="category"
+            standard_on="oid or title or description or creation[0] or creation[1]"
+            special_on="'normative_filter' in filters or transitivity"
+            normative_on="'normative_filter' in filters or transitivity"
+            scope_on="scope!='global'"
+            sorting="_.has_key('sorting') and sorting or 'relevance'"
+  >
+<form id="search_form" name="search_form" action="<dtml-var "relative_url( action='search_query' )">" method="POST" class="SearchFormLayout"
+    <dtml-unless "REQUEST.get('callback_form')">target="workspace"</dtml-unless>
+      onSubmit="return validateSearchForm(this)">
+    <dtml-if action>
+<input type="hidden" name="action" value="&dtml-action;" />
+    </dtml-if>
+    <dtml-if profile_id>
+<input type="hidden" name="profile_id" value="&dtml-profile_id;" />
+    </dtml-if>
+<input type="hidden" name="callback_form" value="<dtml-var "REQUEST.get('callback_form', '')">" />
+<input type="hidden" name="callback_function" value="<dtml-var callback_function missing="">" />
+<input type="hidden" name="callback_uid_field" value="<dtml-var "REQUEST.get('callback_uid_field', '')">" />
+<input type="hidden" name="callback_title_field" value="<dtml-var "REQUEST.get('callback_title_field', '')">" />
+<input type="hidden" name="uid_field" value="<dtml-var "REQUEST.get('uid_field', '')">" />
+<input type="hidden" name="title_field" value="<dtml-var "REQUEST.get('title_field', '')">" />
+
+<h4><dtml-var "msg('Search text')"></h4>
+<input type="hidden" name="objects:list" value="">
+
+<p style="font-size:10px; margin-bottom:10px;">
+<table class="expanded" width="100%" border="0">
+<tr>
+  <td>
+    <input type="text" name="text" value="&dtml-text;" title="<dtml-var "msg('search.syntax_tip')" html_quote>" style="width:100%;" />
+  </td>
+</tr>
+<tr>
+  <td>
+    <dtml-var "msg('This will find text in items\' contents, title and description.')">
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="submit" name="search" value="<dtml-var "msg('Search')">" />
+  </td>
+</tr>
+
+<tr>
+  <td style="padding-top:10px;">
+    <p style="font-size:10px;">
+    <input type="hidden" name="objects:list" value="">
+    <input id="search_versions" type="checkbox" name="objects:list" value="versions"
+      <dtml-var "objects and 'versions' in objects and 'checked' or ''"> />
+    <label for="search_versions"><dtml-var "msg('Search in versions of documents')"></label>
+    <br/>
+    <input id="search_bodies" type="checkbox" name="objects:list" value="bodies"
+      <dtml-var "objects and 'bodies' in objects and 'checked' or ''"> />
+    <label for="search_bodies"><dtml-var "msg('Search in documents')"></label>
+    <br />
+
+    <dtml-let searchable_attaches="portal_catalog.attachmentSearchEnabled()">
+      <dtml-if searchable_attaches>
+    <input id="search_attachments" type="checkbox" name="objects:list" value="attachments"
+      <dtml-var "objects and 'attachments' in objects and 'checked' or ''"> />
+    <label for="search_attachments"><dtml-var "msg('Search in attachments')"></label>
+    <br />
+      </dtml-if>
+    </dtml-let>
+
+    <input id="search_folders" type="checkbox" name="objects:list" value="folders"
+      <dtml-var "objects and 'folders' in objects and 'checked' or ''"> />
+    <label for="search_folders"><dtml-var "msg('Search in heading properties')"></label>
+    <br />
+    </p>
+  </td>
+</tr>
+
+<tr>
+  <td>
+    <hr width="100%" size="1">
+    <dtml-in "portal_metadata.listCategories()">
+      <dtml-let attrs="_['sequence-item'].listAttributeDefinitions()"
+    	        cat_id="_['sequence-item'].getId()">
+        <dtml-if "cat_id in selected_category_items or cat_id[:4] in getCustomDefinitions('search_advanced_prefix')">
+          <dtml-if attrs>
+    	    <DIV id="conditions" style="display: none;">
+    <select name="conditions_&dtml-cat_id;:list" type="select-multiple" multiple></select>
+    	    </DIV>
+          </dtml-if>
+          <dtml-in attrs prefix="attr">
+    <input type="hidden" id="&dtml-cat_id;_<dtml-var "attr_item.getId()">" name="&dtml-cat_id;_<dtml-var "attr_item.getId()">:lines" value="">
+    <input type="hidden" name="&dtml-cat_id;_<dtml-var "attr_item.getId()">_inchild" name="&dtml-cat_id;_<dtml-var "attr_item.getId()">_inchild" value="">
+          </dtml-in>
+        </dtml-if>
+      </dtml-let>
+    </dtml-in>
+
+    <DIV id="otype_HTMLDocument_div" style="display: <dtml-var "not otype_on and 'none' or ''">; margin-top: 0pt; width: 100%;">
+    <h4><dtml-var "msg('Document category')"></h4>
+      <dtml-let categories="portal_metadata.getCategories(custom=None)"
+                total="categories and _.len(categories) or 0"
+                size="total in _.range(1,10) and total or 10">
+    <select multiple id="category" name="category:list" size="&dtml-size;" <dtml-if action>style="width:300px;"<dtml-else>style="width:100%;"</dtml-if> onChange="checkDiv( this.form, this.id, 1 ); checkDiv( this.form, 'attrs', 0 );">
+        <dtml-in categories>
+          <dtml-let cat_id="_['sequence-item'].getId()">
+            <dtml-if "cat_id in selected_category_items or cat_id[:4] in getCustomDefinitions('search_advanced_prefix')">
+    <option value="&dtml-getId;" <dtml-var "category and getId() in category" fmt="selected">><dtml-msg expr="Title()"></option>
+            </dtml-if>
+          </dtml-let>
+        </dtml-in>
+    </select>
+      </dtml-let>
+      <br>
+        
+    <DIV id="category_any_div" style="display: <dtml-var "not category_on and 'none' or ''">; margin-top: 5pt;">
+    <h4><dtml-msg "State"></h4>
+        <dtml-in "portal_metadata.getCategories()">
+          <dtml-let cat_id="_['sequence-item'].getId()">
+            <dtml-if "cat_id in selected_category_items or cat_id[:4] in getCustomDefinitions('search_advanced_prefix')">
+    <DIV id="category_&dtml-getId;_div" style="display: none"></DIV>
+            </dtml-if>
+          </dtml-let>
+        </dtml-in>
+    </DIV>
+    </DIV>
+  </td>
+</tr>
+
+<tr>
+  <td>
+    <hr width="100%" size="1">
+    <h4><dtml-var "msg('Search scope')"></h4>
+    <input type="hidden" name="location" value="&dtml.null-location;" />
+    <dtml-if "folder is not None and not action">
+      <dtml-with "folder">
+    <p style="font-size:10px;">
+    <label>
+    <input type="radio" name="scope" value="preserved" checked="1" />
+    <dtml-var "msg('Folder')">
+    <a href="&dtml-absolute_url;/folder_contents" target="workspace"><dtml-var "_.has_key('TitleOrId') and TitleOrId() or Title()"></a>
+    </label>
+    <br />
+      </dtml-with>
+    </dtml-if>
+    
+    <p style="font-size:10px;">
+    <input id="scope_global" type="radio" name="scope" value="global"
+    <dtml-var "not folder and scope=='global'" fmt="checked"> />
+    <label for="scope_global"><dtml-var "msg('Global search')"></label>
+    <br />
+    <input id="scope_local" type="radio" name="scope" value="local"
+    <dtml-var "not folder and scope=='local'" fmt="checked"> />
+    <label for="scope_local"><dtml-var "msg('Current folder only')"></label>
+    <br />
+    <input id="scope_recursive" type="radio" name="scope" value="recursive"
+    <dtml-var "not folder and scope=='recursive'" fmt="checked"> />
+    <label for="scope_recursive"><dtml-var "msg('Current folder with subfolders')"></label>
+    </p>
+  </td>
+</tr>
+
+<dtml-unless action>
+<tr>
+  <td>
+    <h4 style="padding-top:5px;"><dtml-var "msg('Results sorting')"></h4>
+    <input id="sorting_relevance" type="radio" name="sorting" value="relevance" checked <dtml-var "sorting=='relevance'" fmt="checked"> />
+    <label for="sorting_relevance"><dtml-var "msg('By relevance')"></label>
+    <br />
+    <input id="sorting_ByABC" type="radio" name="sorting" value="ABC" <dtml-var "sorting=='ABC'" fmt="checked"> />
+    <label for="sorting_ByABC"><dtml-var "msg('By ABC')"></label>
+    <br />
+    <input id="sorting_ByDate" type="radio" name="sorting" value="date" <dtml-var "sorting=='date'" fmt="checked"> />
+    <label for="sorting_ByDate"><dtml-var "msg('By date')"></label>
+  </td>
+</tr>
+</dtml-unless action>
+
+<tr>
+  <td>
+    <hr class="expanded" size="1">
+    <table border="0">
+    <tr>
+      <th><dtml-var "msg('Id')">&nbsp;</th>
+      <td style="width:80%"><input type="text" name="oid" value="&dtml-oid;" size="10" style="width:100%" /></td>
+    </tr>
+    <tr>
+      <th><dtml-var "msg('Title')"></th>
+      <td><input type="text" name="title" value="&dtml-title;" size="10" style="width:100%" /></td>
+    </tr>
+    <tr>
+      <th><dtml-var "msg('Description')"></th>
+      <td><input type="text" name="description" value="&dtml-description;" size="10" style="width:100%" /></td>
+    </tr>
+    <tr>
+      <th><dtml-var "msg('RegN')"></th>
+      <td><input type="text" name="registry_id" value="&dtml-registry_id;" size="10" style="width:100%" /></td>
+    </tr>
+    <tr><th colspan="2" nowrap><dtml-var "msg('Created')">:</th></tr>
+    <tr>
+      <th align="right"><dtml-var "msg('since')"></th>
+      <td align="left" nowrap>
+        <dtml-var "datetime_form( this(), REQUEST, prefix='created_from', date=creation[0], date_only=1 )">
+      </td>
+    </tr>
+    <tr>
+      <th align="right"><dtml-var "msg('till')"></th>
+      <td align="left" nowrap>
+        <dtml-var "datetime_form( this(), REQUEST, prefix='created_till', date=creation[1], date_only=1 )">
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <td>
+    <hr width="100%" size="1">
+    <h4><dtml-var "msg('Owner')"></h4>
+    <select name="owners" multiple="1" size="10" <dtml-if action>style="width:300px;"<dtml-else>style="width:100%;"</dtml-if>>
+      <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+    <option value="&dtml-user_id;">&dtml-user_name;</option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td style="padding-top:5px">
+    <dtml-var "msg('Fast search')">:
+    <input type="text" onKeyUp="SearchStrInSelect(value, owners);">
+  </td>
+</tr>
+
+<tr>
+  <td>
+    <h4><dtml-var "msg('Type')"></h4>
+    <select id="otype" name="otype" multiple="1" size="12" <dtml-if action>style="width:300px;"<dtml-else>style="width:100%;"</dtml-if>>
+    <option value="any">-- <dtml-var "msg('Any')"> --</option>
+      <dtml-if "portal_catalog.attachmentSearchEnabled()">
+    <option value="Attachments" <dtml-var "'attachments' in objects" fmt="selected">>
+      <dtml-msg "Attachments">
+    </option>
+      </dtml-if>
+      <dtml-in type_items>
+        <dtml-let id="_['sequence-item']">
+    <option value="&dtml-id;" <dtml-var "types and id in types or otype_on and id=='HTMLDocument'" fmt="selected">>
+      <dtml-msg expr="id">
+    </option>
+        </dtml-let>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td>
+    <hr width="100%" size="1">
+    <h4><dtml-var "msg('Results per page')"></h4>
+    <p style="font-size:10px;">
+    <select name="batch_length:int" style="width:60px;">
+      <dtml-in batch_items>
+    <option value="&dtml-sequence-item;"
+          <dtml-var "_['sequence-item'] == batch_length and 'selected' or ''"> >&dtml-sequence-item;
+    </option>
+      </dtml-in>
+    <option value="0"><dtml-var "msg('All')"></option>
+    </select>
+    </p>
+    <br />
+	
+    <input type="submit" name="search" value="<dtml-var "msg('Search')">">
+    <input type="submit" name="save" value="<dtml-var "msg('Save query')">">
+  </td>
+</tr>
+</form>
+</table>
+</p>
+
+<script type="text/javascript">
+<!--
+document.search_form.text.focus();
+
+<dtml-if "category and category!='any'">
+  setupForm( document.forms['search_form'], &dtml-category; );
+</dtml-if>
+//-->
+</script>
+
+  </dtml-let>
+</dtml-with>
+
+</dtml-let>

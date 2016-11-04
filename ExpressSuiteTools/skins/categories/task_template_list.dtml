@@ -1,0 +1,56 @@
+<dtml-revision $Revision: 1.6.10.1 $>
+
+<dtml-var simple_html_header>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: <dtml-var "msg(Title())"></a></strong></p>
+
+<p>
+<strong><a href="&dtml-absolute_url;/workflow_states">&lt;&lt; <dtml-var "msg('Document category states')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/workflow_transitions"><dtml-var "msg('Document category transitions')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/task_template_summary"><dtml-var "msg('Routing')"></a></strong>
+</p>
+
+<b><dtml-var "msg('Actions templates')"></b><br><br>
+
+<dtml-let category_id=getId
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+
+<dtml-in "this().taskTemplateContainerAdapter.getTaskTemplatesAsArray( category_id )" sort="template_title" mapping>
+  <dtml-if sequence-start>
+  <table width="80%" cellpadding="2" cellspacing="2">
+  <tr class="row_odd">
+    <td width="10%"><b><dtml-var "msg('Id')"></b></td>
+    <td width="30%"><b><dtml-var "msg('Title')"></b></td>
+    <td width="10%">&nbsp;</td>
+  </tr>
+  </dtml-if>
+  <tr class="row_even">
+    <td>&dtml-template_id;</td>
+    <td>&dtml-template_title;</td>
+    <td>
+    <dtml-comment>
+      <a href="task_template_edit?template_id=&dtml-template_id;">
+        <small><dtml-var "msg('Change')"></small>
+      </a>
+    </dtml-comment>
+      <a href="task_template_task_definition_info?template_id=&dtml-template_id;&id_task_definition=1">
+        <small><dtml-var "msg('Change')"></small>
+      </a>
+    </td>
+  </tr>
+  <dtml-if sequence-end>
+  <table>
+  </dtml-if>
+<dtml-else><dtml-var "msg('None')">
+</dtml-in>
+
+<br><br>
+
+<dtml-if IsAdmin>
+  <dtml-var "task_definition_add_root_form_emb( this(), from_page='task_template_list', REQUEST=REQUEST )">
+</dtml-if>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,316 @@
+<dtml-call "REQUEST.set('PageTitle', 'Documents report')">
+
+<dtml-var simple_html_header>
+
+<style type="text/css">
+td.p_creator {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: normal;
+    border: 1px solid gray;
+    text-align: center;
+    padding: 2px 5px 2px 5px;
+}
+
+td.p_user {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+td.p_category {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid gray;
+    padding: 3px 10px 3px 10px;
+}
+
+td.p_state {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: normal;
+    border: 1px solid gray;
+}
+
+td.p_company {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid gray;
+    padding: 3px 10px 3px 10px;
+}
+
+td.p_resolution {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid gray;
+    padding: 3px 10px 3px 10px;
+}
+</style>
+
+<dtml-let user="portal_membership.getAuthenticatedMember()"
+          username="user.getUserName()"
+          IsManager="user.has_role('Manager') and 1 or 0"
+
+          apply="REQUEST.get('apply')"
+          x="apply=='back' and -1 or apply=='forward' and 1 or 0"
+          IsApplyFilter="apply=='apply_filter' or x"
+
+          begin="_.DateTime()"
+          from_name="'created_from'"
+          F="IsApplyFilter and REQUEST.get(from_name) and portal_membership.getDate(from_name, REQUEST)"
+          created_from="(F or _.DateTime(begin.year(), begin.month(), begin.day(), 0, 0)) + x" 
+
+          end="_.DateTime()"
+          till_name="'created_till'"
+          T="IsApplyFilter and REQUEST.get(till_name) and portal_membership.getDate(till_name, REQUEST)"
+          created_till="(T or _.DateTime(end.year(), end.month(), end.day(), 0, 0)) + x" 
+
+          results="portal_catalog.searchDocumentStatistics(REQUEST=REQUEST, created={'query':(created_from, created_till+0.99999), 'range':'min:max'})"
+          results_by_creators="results and results[0]"
+          results_by_categories="results and results[1]"
+          results_by_resolutions="results and results[2]"
+          results_by_companies="results and results[3]"
+
+          show_color="'#FFFACD'"
+
+          IsRunFilter="1"
+          filtered="REQUEST.get('apply_filter') or IsRunFilter"
+          unlimit_search="REQUEST.get('unlimit_search', 0)"
+          IsDebug="0"
+>
+
+<script language="JavaScript">
+<!--
+var customized = 0;
+
+function SubmitForm( obj ) {
+  var frm = obj.form;
+  frm.apply.value = obj.name;
+  var cmds = document.getElementsByTagName('input');
+  if( cmds ) {
+    for (var i = 0; i < cmds.length; i++) {
+      try { 
+        var t = cmds[i].type;
+        if( t == 'button' || t == 'submit' ) document.all[cmds[i].name].disabled = true; }
+      catch (error) {}
+    }
+  }
+  frm.submit();
+}
+
+function show( url ) {
+  params = 'menubar=yes,toolbar=yes,location=yes,scrollbars=yes,status=yes,resizable=yes';
+  if( typeof(self.screen) == 'object' && customized )
+    try { params += ',top=0,left=0,width=' + parseInt(self.screen.width / 1.5) + ',height=' + parseInt(self.screen.height / 2); } catch (error) {}
+  window.open( url+'&expand=1', '_blank', params );
+}
+
+function pointer( obj, mouse ) {
+    color = (mouse == 'over' ? '#FF8448' : '&dtml-show_color;');
+    obj.bgColor = color;
+}
+//-->
+</script>
+
+<dtml-if IsDebug>
+  <dtml-var created_from>:<dtml-var created_till>:<br>
+  <dtml-var "REQUEST.get('PageTitle', None)">
+  <dtml-var "REQUEST.has_key('PageTitle')">
+</dtml-if>
+
+<dtml-call "REQUEST.set('created_from', created_from)">
+<dtml-call "REQUEST.set('created_till', created_till)">
+
+<script language="JavaScript">
+var n = 0;
+</script>
+
+<div class="Desktop">
+
+<h1><dtml-var "msg('Documents report')"></h1>
+
+<form name="search_form" action="<dtml-var "relative_url(action='search_query')">" method="POST">
+<table cellspacing="5" cellpadding="0" border="0">
+<tr>
+  <td align="left" valign="top" width="60%">
+
+<dtml-in results_by_creators mapping>
+  <dtml-if sequence-start>
+    <table cellspacing="1" cellpadding="3" border="0">
+    <tr class="row_title">
+      <td class="p_user" valign="middle" align="left" width="50%"><dtml-var "msg('User')"></td>
+      <td class="p_user" valign="middle" align="center" width="10%"><dtml-var "msg('Documents created')"></td>
+    </tr>
+  </dtml-if>
+  <dtml-if found_objects>
+<script language="JavaScript">n = n + <dtml-var found_objects>;</script>
+    <dtml-let query_title="portal_membership.getMemberName(creator)"
+              href_by_creator="'%s/search_query?otype=HTMLDocument&query_title=%s&owners=%s%s' % (relative_url(), query_title, creator, filtered and '&created_from=%s&created_till=%s' % (created_from, created_till) or '')">
+    <tr class="row_even">
+      <td class="small" nowrap>
+        <b><dtml-var "member_name(this(), member=creator, brief=0)"></b>
+        <a target="workspace" class="navigate" href="&dtml-href_by_creator;" title="<dtml-var "msg('User documents list')">">&gt;&gt;</a>
+      </td>
+      <td class="p_creator" bgcolor="&dtml-show_color;" align="center" style="cursor:hand;" onclick="javascript:show('&dtml-href_by_creator;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');">
+        &dtml-found_objects;
+      </td>
+    <tr>
+    </dtml-let>
+  </dtml-if>
+  <dtml-if sequence-end>
+    <tr class="row_even">
+      <td class="smallHeader" align="right" nowrap><font color="purple"><dtml-var "msg('Total')">:</font>&nbsp;</td>
+      <td class="smallHeader" align="center"><font color="purple"><span id="total_count"></span></font></td>
+    </tr>
+    </table>
+  </dtml-if>
+</dtml-in>
+
+<script language="JavaScript">
+  try { document.all.total_count.innerHTML = n; } catch(error) {}
+</script>
+
+  </td>
+  <td align="left" valign="top" style="padding-left:10px">
+  
+<dtml-in results_by_categories mapping>
+  <dtml-if sequence-start>
+    <table cellspacing="1" cellpadding="3" style="border: 1pt solid black;" border="0">
+  </dtml-if>
+  <dtml-if found_objects>
+    <dtml-let category_title="portal_metadata.getCategoryById(category).Title()"
+              template="'%s/search_query?otype=HTMLDocument&category:tokens=%s%s' % (relative_url(), category, filtered and '&created_from=%s&created_till=%s' % (created_from, created_till) or '')"
+              href_by_category="template + '&query_title=%s' % category_title">
+    <tr class="row_even">
+      <td class="statHeader" nowrap>
+	    <font color="navy"><dtml-var "msg(portal_metadata.getCategoryTitle(category), add=None)"></font>
+        <a class="navigate" href="&dtml-href_by_category;" title="<dtml-var "msg('Documents list')">">&gt;&gt;</a>
+      </td>
+      <td class="p_category" bgcolor="&dtml-show_color;" align="center" style="cursor:hand;" onclick="javascript:show('&dtml-href_by_category;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');">
+         &dtml-found_objects;
+      </td>
+    </tr>
+      <dtml-in states mapping>
+        <dtml-let state_title="msg(state)"
+                  href_by_state="template + '&state=%s&query_title=%s. %s' % (state, category_title, state_title)">
+    <tr>
+      <td class="x-small" nowrap style="padding-left:10px;">
+        <dtml-var "msg(portal_metadata.getStateTitle(category, state), add=None)">
+        <a class="navigate" href="&dtml-href_by_state;" title="<dtml-var "msg('Documents list')">">&gt;&gt;</a>
+      </td>
+      <td class="p_state" bgcolor="&dtml-show_color;" align="center" style="cursor:hand;" onclick="javascript:show('&dtml-href_by_state;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');">
+         &dtml-found_objects;
+      </td>
+    </tr>
+        </dtml-let>
+      </dtml-in>
+    </dtml-let>
+  </dtml-if>  
+  <dtml-if sequence-end>
+    </table>
+  </dtml-if>
+</dtml-in>
+
+<dtml-if results_by_companies>
+  <h3 style="color:purple; padding: 10px 0 5px 0;"><dtml-var "msg('Results by companies')">:</h3>
+</dtml-if>
+
+<dtml-in results_by_companies mapping>
+  <dtml-if sequence-start>
+    <table cellspacing="1" cellpadding="3" style="border: 1pt solid black;" border="0">
+  </dtml-if>
+  <dtml-let ids="' '.join(owners)" href_by_company="'%s/search_query?otype=HTMLDocument&owners:tokens=%s%s' % (relative_url(), ids, filtered and '&created_from=%s&created_till=%s' % (created_from, created_till) or '')">
+    <tr <dtml-if sequence-even>class="row_even"</dtml-if> />
+      <td class="x-small" nowrap style="padding-left:10px;">
+        <dtml-var "company or '***'">
+        <a class="navigate" href="&dtml-href_by_company;" title="<dtml-var "msg('Documents list')">">&gt;&gt;</a>
+      </td>
+      <td class="p_company" bgcolor="&dtml-show_color;" align="center" style="cursor:hand;" onclick="javascript:show('&dtml-href_by_company;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');">
+         &dtml-found_objects;
+      </td>
+    </tr>
+  </dtml-let>
+  <dtml-if sequence-end>
+    </table>
+  </dtml-if>
+</dtml-in>
+
+<dtml-if results_by_resolutions>
+  <h3 style="color:purple; padding: 10px 0 5px 0;"><dtml-var "msg('Appended resolutions')">:</h3>
+</dtml-if>
+
+<dtml-in results_by_resolutions mapping>
+  <dtml-if sequence-start>
+    <table cellspacing="1" cellpadding="3" style="border: 1pt solid black;" border="0">
+  </dtml-if>
+  <dtml-let href_by_resolution="'%s/search_query?resolutions=1&state=%s%s' % (relative_url(), state, filtered and '&created_from=%s&created_till=%s' % (created_from, created_till) or '')">
+    <tr <dtml-if sequence-even>class="row_even"</dtml-if> />
+      <td class="x-small" nowrap style="padding-left:10px;">
+        <dtml-var "msg(state, add=None)">
+        <a class="navigate" href="&dtml-href_by_resolution;" title="<dtml-var "msg('Documents list')">">&gt;&gt;</a>
+      </td>
+      <td class="p_resolution" bgcolor="&dtml-show_color;" align="center" style="cursor:hand;" onclick="javascript:show('&dtml-href_by_resolution;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');">
+         &dtml-found_objects;
+      </td>
+    </tr>
+  </dtml-let>
+  <dtml-if sequence-end>
+    </table>
+  </dtml-if>
+</dtml-in>
+
+  </td>
+</tr>
+</form>
+</table>
+
+<br>
+
+<table cellspacing="0" cellpadding="0" border="0">
+<form method="POST">
+<input type="hidden" name="apply" value="">
+<tr>
+  <td style="padding: 0 0 0 0">
+    <table cellspacing="0" cellpadding="3" border="0">
+    <tr>
+      <td class="smallHeader" colspan="8" nowrap>
+        <dtml-var "msg('List documents created')">:
+      </td>
+    </tr>
+    <tr>
+      <td><dtml-var "msg('since')">:</td>
+      <td>
+        <dtml-var "datetime_form( this(), REQUEST, prefix='created_from', date=created_from, date_only=1 )">
+      </td>
+      <td><dtml-var "msg('till')">:</td>
+      <td>
+        <dtml-var "datetime_form( this(), REQUEST, prefix='created_till', date=created_till, date_only=1 )">
+      </td>
+      <td style="padding-left:10px;" nowrap>
+        <input type="submit" name="apply_filter" value="<dtml-var "msg('Apply')">" onClick="javascript:SubmitForm(this);">
+      </td>
+      <td style="padding-left:10px;" nowrap>
+        <input type="button" name="back" value="<<" title="<dtml-var "msg('Back in one day')">" onClick="javascript:SubmitForm(this);">&nbsp;
+        <input type="button" name="forward" value=">>" title="<dtml-var "msg('Forward in one day')">" onClick="javascript:SubmitForm(this);">
+      </td>
+      <td style="padding-left:10px">
+        <input type="checkbox" id="unlimit_search" name="unlimit_search" value="1" <dtml-if unlimit_search>checked</dtml-if> />
+      </td>
+      <td style="width:90%">
+        <label for="unlimit_search"><dtml-var "msg('use default unlimit search')"></label>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</form>
+</table>
+
+</div>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

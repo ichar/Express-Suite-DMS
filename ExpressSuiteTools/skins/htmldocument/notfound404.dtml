@@ -1,0 +1,5 @@
+<dtml-var simple_html_header>
+
+<dtml-var "msg('Document dosnt exists')">
+
+<dtml-var simple_html_footer>

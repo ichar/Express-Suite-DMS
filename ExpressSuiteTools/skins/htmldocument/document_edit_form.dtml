@@ -1,0 +1,24 @@
+<dtml-var document_html_header>
+
+<dtml-if "_.string.find(HTTP_USER_AGENT, 'MSIE') < 0">
+  <dtml-call "REQUEST.set('noWYSIWYG', 1)">
+</dtml-if>
+
+<dtml-let IsManager="_.SecurityCheckPermission('Manage portal', this())"
+          category="portal_metadata.getCategoryById(Category())"
+          selected_template="_.has_key('selected_template') and selected_template or None"
+          IsEditFieldsOnly="category.getEditMode(selected_template)"
+>          
+  <dtml-if "IsEditFieldsOnly and not REQUEST.get('noWYSIWYG')">
+
+<iframe name="workfield" src="<dtml-var "relative_url(action='document_template_form', params={'BackgroundColor':'#F2F2F2'})">" scrolling="auto" width="100%" height="100%" frameborder="0"></iframe>
+
+  <dtml-else>
+
+<dtml-var document_html_editor>
+
+  </dtml-if>
+
+</dtml-let>
+
+<dtml-var document_html_footer>

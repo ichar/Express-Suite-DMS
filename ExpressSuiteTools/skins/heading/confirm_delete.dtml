@@ -1,0 +1,131 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<script type="text/javascript">
+<!--
+function onSubmitForm( frm ) {
+  frm.delete_button.disabled = true;
+  frm.cancel_button.disabled = true;
+  return true;
+}
+//-->
+</script>
+
+<form name="confirm_delete_form" action="folder_delete" target="workspace" method="POST" onSubmit="return onSubmitForm(this);">
+<dtml-if ids>
+<p class="DesktopStatusBar"><dtml-var "msg('Do you really want to delete these objects?')"></p>
+<br>
+<input style="width:80px;" id="delete_button" type="submit" value="<dtml-var "msg('Remove')">">
+<input style="width:80px;" id="cancel_button" type="button" value="<dtml-var "msg('Cancel')">" onclick="location.href='&dtml-absolute_url;/folder_contents'">
+<br>
+<br>
+<br>
+
+<table width="100%" border="0">
+  <dtml-in ids>
+    <dtml-let removed_item="_.getitem(_['sequence-item'])"
+              this_uid="removed_item.getUid()"
+              links_from="portal_links.searchLinks(source_uid=this_uid)"
+              links_to="portal_links.searchLinks(dest_uid=this_uid)"
+              obj="_.len(ids)==1 and removed_item or None"
+              view_url="removed_item.relative_url(action='view')+'?expand=1'"
+    >
+      <dtml-with "removed_item">
+<tr>
+  <td>
+    <a href="&dtml-view_url;" target="_blank">
+        <dtml-try>
+    <img src="&dtml-portal_url;/<dtml-var get_icon>" border="0">
+        <dtml-except>
+    <img src="&dtml-portal_url;/doc_icon_disabled.gif" alt="" border="0">
+        </dtml-try>
+    </a>
+  </td>
+  <td class="small" style="width:100%;" align="left">
+    <strong>
+        <dtml-if "obj is None">
+    <a href="&dtml-view_url;" target="_blank"><dtml-var Title html_quote></a>
+        <dtml-else>
+    <dtml-var "Title()">
+        </dtml-if>
+    </strong>
+        <dtml-if "implements('isPrincipiaFolderish') and objectIds()">
+    &nbsp;<font color="red">[<dtml-var "msg('Folder is not empty!')">]</font>
+        </dtml-if>
+  </td>
+</tr>
+      </dtml-with>
+
+<tr>
+  <td style="padding-top:10px;" colspan="2">
+      <dtml-if "obj is not None">
+        <dtml-if "obj.implements('isDocument') and _.hasattr(obj,'CookedBody')">
+<iframe src="<dtml-var "obj.absolute_url(action='CookedBody')">?view=1" width="100%" height="800" scrolling="auto" frameborder="1"></iframe>
+        </dtml-if>
+      </dtml-if>
+
+      <dtml-in links_from prefix="link">
+        <dtml-if link_start>
+(<dtml-var "msg('Links from this document')">)<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<font color="purple"><dtml-var "msg('These links will be removed')">:</font>
+<ul style="margin-top:5px;">
+        </dtml-if>
+
+        <dtml-let link=getObject sibling="link.getDestinationObject()">
+<li>
+          <dtml-if "sibling">
+<a href="<dtml-var "sibling.absolute_url()" html_quote>" target="_blank"><dtml-var "sibling.Title()" html_quote></a>
+          <dtml-else>
+<dtml-var "link.getDestinationMetadata('Title')" html_quote>
+          </dtml-if>
+(<dtml-var "msg(portal_links.getProperRelation(relation_type, relation_direction, source_uid==this_uid), add=0)">)
+          <dtml-unless "sibling">
+<font color="#FF0000"><dtml-var "msg(link.isDestinationRemoved() and 'Object was removed.' or 'Object is inaccessible.')"></font>
+          </dtml-unless>
+</li>
+        </dtml-let>
+        <dtml-if link_end>
+</ul>
+</p>
+        </dtml-if>
+      </dtml-in>
+
+      <dtml-if links_to>
+        <dtml-in links_to prefix="link">
+	      <dtml-if link_start>
+(<dtml-var "msg('Links to this document')">)<br>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<font color="blue"><dtml-var "msg('These links will be broken')">:</font>
+<ul style="margin-top:5px;">
+          </dtml-if >
+
+          <dtml-let source_doc="getObject().getSourceObject()">
+            <dtml-if "source_doc">
+<li>
+<a href="<dtml-var "source_doc.absolute_url()" html_quote>" target="_blank"><dtml-var "source_doc.Title()" html_quote></a>
+            <dtml-else>
+<li><dtml-var "getObject().getSourceMetadata('Title')" html_quote> <font color="#FF0000"><dtml-var "msg('Document was removed')"></font>
+            </dtml-if>
+(<dtml-var "msg(portal_links.getProperRelation(relation_type, relation_direction, source_uid==this_uid), add=0)">)
+</li>
+          </dtml-let>
+        </dtml-in>
+</ul>
+<p>
+      </dtml-if links_to>
+  </td>
+</tr>
+    </dtml-let>
+  </dtml-in>
+</table>
+
+<dtml-else>
+  <dtml-call "RESPONSE.redirect(absolute_url()+'/folder?portal_status_message=Please+select+one+or+more+items+first')">
+  <dtml-return "folder(this(), REQUEST)">
+</dtml-if>
+
+<input type="hidden" name="ids:tokens" value="<dtml-var "' '.join( ids )">">
+</form>
+</div>
+
+<dtml-var simple_html_footer>

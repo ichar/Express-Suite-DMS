@@ -1,0 +1,136 @@
+<dtml-revision $Revision: 1.6.26.1 $>
+
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+    function swapRegNum( state ){
+        var destList  = window.document.forms['csv']['csv_columns'];
+        var len = destList.options.length;
+        if (state)
+          addOptionTo(destList, "<dtml-var "msg(getColumnById('ID').Title(), add=None)"> (<dtml-var "msg(getColumnById('ID').Type(), add=None)">)", "ID")
+        else
+          for(var i = (len-1); i >= 0; i--)
+            if ((destList.options[i] != null) && (destList.options[i].value == 'ID')) {
+                                destList.options[i] = null;
+                                break;
+            }
+    }
+    
+    function upSelected()
+    {
+        var destList  = window.document.forms['csv']['csv_columns'];
+        var len = destList.options.length;
+
+
+
+        if ( destList.options[0].selected != true ) {
+            for(var i = 1; i < len; i++) {
+                if ((destList.options[i] != null) && (destList.options[i].selected == true)) {
+                    bufText = destList.options[i - 1].text;
+                                        bufValue = destList.options[i - 1].value;
+
+                                        destList.options[i - 1].text = destList.options[i].text;
+                                        destList.options[i - 1].value = destList.options[i].value;
+
+                                        destList.options[i].text = bufText;
+                                        destList.options[i].value = bufValue;
+
+                                        destList.options[i - 1].selected = true;
+                                        destList.options[i].selected = false;
+                }
+            }
+                }
+    }
+    function downSelected()
+    {
+        var destList  = window.document.forms['csv']['csv_columns'];
+        var len = destList.options.length;
+
+        if ( destList.options[len - 1].selected != true ) {
+            for(var i = len; i >= 0; i--) {
+                if ((destList.options[i] != null) && (destList.options[i].selected == true)) {
+                    bufText = destList.options[i + 1].text;
+                    bufValue = destList.options[i + 1].value;
+
+                                        destList.options[i + 1].text = destList.options[i].text;
+                                        destList.options[i + 1].value = destList.options[i].value;
+
+                                        destList.options[i].text = bufText;
+                                        destList.options[i].value = bufValue;
+
+                                        destList.options[i].selected = false;
+                                        destList.options[i + 1].selected = true;
+                }
+            }
+                }
+    }
+
+
+//-->
+</script>
+
+<div class="Desktop">
+<h2><dtml-var registry_icon.gif>&nbsp;&dtml-title_or_id;</h2>
+
+<p>&dtml-description;</p>
+
+<p><h1><dtml-var "msg('Import entries from CSV file')">:</h1>
+
+<form name="csv" method="post" action="&dtml-absolute_url;" enctype="multipart/form-data" onSubmit="selectAll(window.document.forms['csv']['csv_columns']);return true;">
+<p>
+<dtml-var "msg('Note: number of columns and their order should correspond with number and order of columns in an imported file.')">
+<dtml-var "msg('Data types in corresponding columns must coincide too.')"><br>
+<dtml-var "msg('For boolean type you should use only values 0 and 1.')">
+<p>
+<table>
+  <tr>
+    <td>
+  <select id="csv_columns"
+          name="csv_columns:list"
+          size="15"
+          width="14"
+          multiple
+  >
+            <dtml-in listColumns prefix="clmn">
+              <dtml-with clmn_item>
+              <dtml-if allowsInput>
+              <option value="<dtml-var getId>"><dtml-var "msg(Title(), add=None)"> (<dtml-var "msg(Type(), add=None)">)</option>
+              </dtml-if>
+              </dtml-with>
+            </dtml-in>
+  </select>
+    </td>
+    <td>
+      <input type=checkbox 
+         <dtml-if "getColumnById('ID').allowsInput()">
+           onClick="swapRegNum(!this.checked);"
+         <dtml-else>
+           checked disabled
+         </dtml-if>
+           value="1" name="use_internal_reg_numbers" 
+      ><dtml-var "msg('Generate registration number automatically.')"><br>
+  <input type=button onClick="upSelected();" value="<dtml-var "msg('Move up')">"><br>
+  <input type=button onClick="downSelected();" value="<dtml-var "msg('Move down')">">
+    <div class="form-element">
+  </div>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+<input type="checkbox" name="ignore_titles" value="1"><dtml-var "msg('First row contains titles.')">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+<dtml-var "msg('File')">
+<input type="file" name="csv_file" size="35">
+    </td>
+  </tr>
+</table>
+
+
+
+<p><input type="submit" name="importFromCSV:method" value="<dtml-var "msg('Insert file')">">
+</form>
+<dtml-var simple_html_footer>

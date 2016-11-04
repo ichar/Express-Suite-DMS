@@ -1,0 +1,101 @@
+<dtml-if "portal_membership.protection(context='scheduler', REQUEST=REQUEST)">
+
+<dtml-var scheduler_html_header>
+
+<dtml-with portal_scheduler>
+
+<span class="form-help"><dtml-msg scheduler.queue.explain></span>
+
+<br><br>
+
+<dtml-let schedule="getSchedule()"
+          queue="schedule.getEventQueue()"
+          expiration_interval="queue.getExpirationInterval()"
+          expires="queue.expires"
+          schedule_name="'%s. %s at %s' % (Title(), getId(), getSchedulerName())"
+>
+
+<form action="manage_queue" method="post">
+
+<table cellspacing="0" cellpadding="0" border="0">
+<form action="manage_queue" method="post">
+<tr>
+  <td style="display:block;"><h3 style="padding: 0 0 10px 0;"><dtml-var schedule_name></h3></td>
+</tr>
+</table>
+
+<span class="form-text">
+<dtml-msg scheduler.queue.items count="_.len(queue)">
+</span>
+
+<br>
+
+<span class="form-label"><dtml-msg scheduler.queue.refresh_interval>:</span>
+<span class="form-text">
+  <dtml-var "expiration_interval.minutes"> <dtml-msg "minute(s)">
+  <dtml-var "expiration_interval.seconds"> <dtml-msg "second(s)">
+</span>
+
+<br>
+
+<span class="form-label"><dtml-msg scheduler.queue.expiration_time>:</span>
+<span class="form-text">
+  <dtml-var "expires and expires.strftime('%x %X') or '?'">
+</span>
+
+<br>
+
+<span class="form-label"><dtml-msg scheduler.queue.system_time>:</span>
+<span class="form-text">
+  <dtml-var "_.DateTime().strftime('%x %X')">
+</span>
+
+<br><br>
+
+<input type="submit" name="refresh" value=" <dtml-msg scheduler.queue.refresh> ">
+<input type="submit" value=" <dtml-msg "Update this page"> ">
+
+<dtml-in "queue.queue">
+  <dtml-if sequence-start>
+  <br><hr>
+  <table cellspacing="2" cellpadding="2" border="0">
+  <tr>
+    <td class="form-label"><dtml-msg scheduler.queue.start_time></td>
+    <td class="form-label"><dtml-msg Id></td>
+    <td class="form-label"><dtml-msg Title></td>
+  </tr>
+  </dtml-if>
+
+  <dtml-try>
+    <dtml-let element="schedule[ _['sequence-item'] ]"
+              x="element.title and element.title.split('$')"
+              url="_.len(x)>1 and x[1] or None"
+              name="x[0]"
+              info="element.getAction()"
+    >
+  <tr>
+    <td class="form-element"><dtml-var "_['sequence-key'].strftime('%x %X')"></td>
+    <td class="form-element"><dtml-var sequence-item></td>
+    <td class="form-element">
+      <a class="navigate" target="_blank" href="&dtml-url;"><dtml-var name></a>,
+      method_name: <dtml-var "info['method_name']">(<dtml-var "info['args']">, <dtml-var "info['kwargs']">),
+      physical_path: <dtml-var "info['physical_path']"><br>
+    </td>
+  </tr>
+    </dtml-let>
+  <dtml-except></dtml-try>
+  <dtml-if sequence-end>
+  </tr>
+  </table>
+  </dtml-if>
+</dtml-in>
+
+</form>
+
+</dtml-let>
+
+</dtml-with>
+
+<dtml-var simple_html_footer>
+
+</dtml-if>

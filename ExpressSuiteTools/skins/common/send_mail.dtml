@@ -1,0 +1,26 @@
+<dtml-revision $Revision: 1.7 $>
+
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-var simple_html_header>
+
+<dtml-try>
+
+<dtml-sendmail mailhost="MailHost">
+Content-Type: text/plain; charset="windows-1251"
+Content-Transfer-Encoding: 8bit
+From: <dtml-var from>
+To: <dtml-var to>
+Subject: &dtml-subj;
+Date: <dtml-var "ZopeTime().rfc822()">
+
+&dtml-mail_text;
+</dtml-sendmail>
+  <p class="DesktopStatusBar"><dtml-var "msg('Message sent')"></p>
+
+<dtml-except>
+  <p class="DesktopStatusBar"><dtml-var "msg('Error while sending message')">:<br>
+  &dtml-error_value;
+  </p>
+</dtml-try>
+
+<dtml-var simple_html_footer>

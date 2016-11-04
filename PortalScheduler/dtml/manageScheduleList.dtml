@@ -1,0 +1,17 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+<table cellspacing=2 width=100%>
+<tr bgcolor=#cfcfcf>
+	<td align=center>
+		<b>SCHEDULES</b>
+	</td>
+
+<dtml-in getUrlList>
+<tr bgcolor=#eeeeee>
+	<td align=center>
+		<dtml-var sequence-item>
+	</td>
+</tr>
+</dtml-in>
+</table>
+<dtml-var manage_page_footer>

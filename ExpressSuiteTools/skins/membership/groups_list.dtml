@@ -1,0 +1,9 @@
+<dtml-let style="'text-decoration:underline;cursor:hand;'" title="msg('Groups Information')" callback="_.has_key('callback') and callback or ''" menu="'toolbar=yes,scrollbars=yes,status=yes,resizable=yes'">
+  <dtml-if "not _.has_key('attr') or attr=='SD'">
+<a OnClick="return OpenGroupsListWnd('SD','&dtml-menu;,top=40,left=60,width=620,height=611','&dtml-callback;')" style="&dtml-style;"><img title="&dtml-title;" src="addgroup.gif" width=16 height=16></a>
+  <dtml-elif "attr=='DA'">
+<a OnClick="return OpenGroupsListWnd('DA','&dtml-menu;,top=100,left=100,width=780,height=402','&dtml-callback;')" style="&dtml-style;"><img title="&dtml-title;" src="adddepartment.gif" width=16 height=16></a>
+  <dtml-else>
+<a OnClick="return OpenGroupsListWnd('', '', '&dtml-callback;')" style="&dtml-style;"><img title="&dtml-title;" src="addgroup.gif" width=16 height=16></a>
+  </dtml-if>
+</dtml-let>

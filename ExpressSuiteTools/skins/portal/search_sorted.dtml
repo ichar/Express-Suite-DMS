@@ -1,0 +1,14 @@
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td width="99%">
+    <a class="&dtml-ac;" href="&dtml-sort_url;&sort_on=&dtml-sorted;" class="button">
+      <strong><dtml-var "msg(title, add=0)"></strong>
+    </a>
+  <td>
+  <td align="center" style="padding: 0 3px 0 3px;">
+    <dtml-if "sort_on==sorted">
+      <dtml-if sort_direction><dtml-var sort_up.gif><dtml-else><dtml-var sort_down.gif></dtml-if>
+    </dtml-if>
+  </td>
+</tr>
+</table>

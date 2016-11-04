@@ -1,0 +1,27 @@
+<dtml-let view_type="view_type">
+
+<table class="ContentsList" cellspacing="0" cellpadding="0" width="100%" border="0">
+  <dtml-if "documents and directives">
+<tr>
+  <td colspan="5" align="center"><img src="spacer.gif" height="5"></td>
+</tr>
+<tr class="Title">
+  <td colspan="5" align="center" class="small"><dtml-var "msg('Folder content')"></td>
+</tr>
+<tr>
+  <td colspan="5" align="center"><img src="spacer.gif" height="5"></td>
+</tr>
+  </dtml-if>
+
+  <dtml-let is_directive="0">
+<tr>
+  <td colspan="5" align="center"><img src="spacer.gif" height="8"></td>
+</tr>
+    <dtml-var folder_item_default>
+<tr>
+  <td colspan="5" align="center"><img src="spacer.gif" height="8"></td>
+</tr>
+  </dtml-let>
+</table>
+
+</dtml-let>

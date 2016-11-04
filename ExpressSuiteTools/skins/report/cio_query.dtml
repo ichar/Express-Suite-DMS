@@ -1,0 +1,313 @@
+<dtml-let period_options="not _.has_key('period_options') and 1 or period_options"
+          diagram_options="_.has_key('diagram_options') and _.int(diagram_options) or 0"
+          finalized_and_answered_options="_.has_key('finalized_and_answered_options') and finalized_and_answered_options or 0"
+          commissions_options="_.has_key('commissions_options') and commissions_options or 0"
+          any_commissions="_.has_key('any_commissions') and 1 or 0"
+          any_members="_.has_key('any_members') and 1 or 0"
+          report_type_options="_.has_key('report_type_options') and report_type_options or 0"
+          query_options="_.has_key('query_options') and query_options or 0"
+          align="_.has_key('align') and align or 'left'"
+          spec="_.has_key('spec') and spec or 'cellspacing=3 cellpadding=0'"
+          no_line="_.has_key('no_line') and 1 or 0"
+          archive_search="not _.has_key('archive_search') and 1 or archive_search"
+>
+  <dtml-unless no_line>
+<hr style="border:thin dotted White;" noshade width="100%" size="1">
+  </dtml-unless>
+
+<table border="0" <dtml-var spec> />
+  <dtml-if period_options>
+<tr>
+  <td class="queryHeader" align="&dtml-align;" valign="top" style="padding-top:3px;" nowrap><dtml-var "msg('Calendar period')">&nbsp;</td>
+  <td width="100%">
+    <input type="hidden" id="period" name="period" value="&dtml-period;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><input type="radio" name="option_period" id="default" value="0" onclick="javascript:change_option(this,'period');" <dtml-if "period==0">checked</dtml-if> /></td>
+      <td nowrap><label for="default"><dtml-var "msg('current documents')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="option_period" id="day" value="1" onclick="javascript:change_option(this,'period');" <dtml-if "period==1">checked</dtml-if> /></td>
+      <td nowrap><label for="day"><dtml-var "msg('last day')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="option_period" id="week" value="2" onclick="javascript:change_option(this,'period');" <dtml-if "period==2">checked</dtml-if> /></td>
+      <td nowrap><label for="week"><dtml-var "msg('last week')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="option_period" id="two_week" value="3" onclick="javascript:change_option(this,'period');" <dtml-if "period==3">checked</dtml-if> /></td>
+      <td nowrap><label for="two_week"><dtml-var "msg('last two week')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="option_period" id="month" value="4" onclick="javascript:change_option(this,'period');" <dtml-if "period==4">checked</dtml-if> /></td>
+      <td nowrap><label for="month"><dtml-var "msg('last month')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="option_period" id="quarter" value="5" onclick="javascript:change_option(this,'period');" <dtml-if "period==5">checked</dtml-if> /></td>
+      <td nowrap><label for="quarter"><dtml-var "msg('last quarter')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="option_period" id="half_year" value="6" onclick="javascript:change_option(this,'period');" <dtml-if "period==6">checked</dtml-if> /></td>
+      <td nowrap><label for="half_year"><dtml-var "msg('half year')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" name="option_period" id="year" value="7" onclick="javascript:change_option(this,'period');" <dtml-if "period==7">checked</dtml-if> /></td>
+      <td nowrap><label for="year"><dtml-var "msg('last year')"></label></td>
+    </tr>
+    <tr><td colspan="2"><hr style="border:thin White;" size="1"></td></tr>
+    <tr>
+      <td><input type="checkbox" id="enable_archive_search" name="archive_search" <dtml-if archive_search>checked</dtml-if> value="1" /></td>
+      <td nowrap><label for="enable_archive_search"><dtml-var "msg('enable archive search')"></label>&nbsp;</td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if finalized_and_answered_options>
+<tr>
+  <td class="queryHeader" align="&dtml-align;" valign="top" style="padding-top:5px;" nowrap><dtml-var "msg('Finalized report options')"></td>
+  <td width="100%">
+    <input type="hidden" id="not_finalized_only" name="not_finalized_only" value="&dtml-not_finalized_only;">
+    <input type="hidden" id="not_answered_only" name="not_answered_only" value="&dtml-not_answered_only;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><input type="checkbox" name="option_not_finalized_only" id="p1" onclick="javascript:change_option(this, 'not_finalized_only');" <dtml-if "not_finalized_only==1">checked</dtml-if> /></td>
+      <td nowrap><label for="p1"><dtml-var "msg('not finalized only')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="checkbox" name="option_not_answered_only" id="p2" onclick="javascript:change_option(this, 'not_answered_only');" <dtml-if "not_answered_only==1">checked</dtml-if> /></td>
+      <td nowrap><label for="p2"><dtml-var "msg('not answered only')"></label></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if query_options>
+<tr>
+  <td class="queryHeader" align="&dtml-align;" nowrap><dtml-var "msg('Company')"></td>
+  <td>
+    <select id="company" name="company:list">
+    <option value="" <dtml-var "not company and 'selected' or ''">><dtml-msg "all records"></option>
+      <dtml-in companies sort="title" mapping>
+    <option value="&dtml-id;" <dtml-var "id in company and 'selected' or ''">><dtml-var "msg(title, add=None)"></option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td class="queryHeader" align="&dtml-align;" nowrap><dtml-var "msg('Documents category')">&nbsp;</td>
+  <td>
+    <select id="category" name="category:list" multiple size="8" style="width:278px">
+    <option value="" <dtml-var "not category and 'selected' or ''">><dtml-msg "all records"></option>
+    <dtml-in categories mapping>
+    <option value="&dtml-id;" <dtml-var "id in category and 'selected' or ''">><dtml-var "msg(title, add=None)"></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+    <dtml-if "_.has_key('owners')">
+<tr>
+  <td class="queryHeader" align="&dtml-align;"><dtml-msg "Document/Task owner"></td>
+  <td style="padding-top:5px;">
+    <input type="hidden" name="w" value="">
+      <dtml-var "user_list(this(), 
+                 name='owner',
+                 allowed_users=portal_membership.listMemberIds(),
+                 selected_users=owners,
+                 size=10,
+                 all_style='width:278px',
+                 IsUserAdvanced=1
+      )">
+  </td>
+</tr>
+    </dtml-if>
+<tr>
+  <td class="queryHeader" align="&dtml-align;"><dtml-var "msg('Task type')"></td>
+  <td>
+    <dtml-let brains_types="portal_metadata.listBrainsTypes(sort=1)">
+    <select id="brains_type" name="brains_type:list">
+    <option value="" <dtml-var "not brains_type and 'selected' or ''">><dtml-msg "all records"></option>
+      <dtml-in brains_types mapping>
+    <option value="&dtml-id;" <dtml-var "id in brains_type and 'selected' or ''">><dtml-var "msg(title)"></option>
+      </dtml-in>
+    </select>
+    </dtml-let>
+  </td>
+</tr>
+    <dtml-unless any_commissions>
+<tr>
+  <td class="queryHeader" align="&dtml-align;"><dtml-var "msg('Commissions type')"></td>
+  <td>
+      <dtml-let comments="portal_comments.listComments(context='task.directive', sort=1)">
+    <select id="commissions" name="commissions:list" multiple size="6">
+    <option value="" <dtml-var "not commissions and 'selected' or ''">><dtml-msg "all records"></option>
+        <dtml-in comments>
+    <option value="&dtml-getId;" <dtml-var "getId() in commissions and 'selected' or ''">><dtml-var "msg(Title(), add=None)"></option>
+        </dtml-in>
+    </select>
+      </dtml-let>
+  </td>
+</tr>
+    </dtml-unless>
+  </dtml-if>
+
+  <dtml-if commissions_options>
+<tr>
+  <td>&nbsp;</td>
+  <td>
+    <input type="hidden" id="ctype" name="ctype" value="&dtml-ctype;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><input id="incoming" name="option_ctype" type="radio" value="incoming" <dtml-if "ctype=='incoming'">checked</dtml-if> onclick="javascript:change_option(this, 'ctype');"></td>
+      <td nowrap><label for="incoming"><dtml-var "msg('incoming commissions')"></label></td>
+    </tr>
+    <tr>
+      <td><input id="outgoing" name="option_ctype" type="radio" value="outgoing" <dtml-if "ctype=='outgoing'">checked</dtml-if> onclick="javascript:change_option(this, 'ctype');"></td>
+      <td nowrap><label for="outgoing"><dtml-var "msg('outgoing commissions')"></label></td>
+    </tr>
+    <tr>
+      <td><input id="supervising" name="option_ctype" type="radio" value="supervising" <dtml-if "ctype=='supervising'">checked</dtml-if> onclick="javascript:change_option(this, 'ctype');"></td>
+      <td nowrap><label for="supervising"><dtml-var "msg('supervising commissions')"></label></td>
+    </tr>
+    <dtml-if any_commissions>
+    <tr>
+      <td><input id="any" name="option_ctype" type="radio" value="any" <dtml-if "ctype=='any'">checked</dtml-if> onclick="javascript:change_option(this, 'ctype');"></td>
+      <td nowrap><label for="any"><dtml-var "msg('any commissions')"></label></td>
+    </tr>
+    </dtml-if>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if query_options>
+<tr>
+  <td class="queryHeader" align="&dtml-align;"><dtml-var "msg('Task State')"></td>
+  <td>
+    <select id="state" name="state:list">
+    <option value="" <dtml-var "not state and 'selected' or ''">><dtml-msg "all records"></option>
+    <dtml-in states mapping>
+    <option value="&dtml-id;" <dtml-var "id in state and 'selected' or ''">><dtml-var "msg(title, add=None)"></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+    <dtml-unless any_members>
+<tr>
+  <td class="queryHeader" align="&dtml-align;"><dtml-msg "Task responsible members"></td>
+  <td style="padding-top:5px;">
+    <input type="hidden" name="x" value="">
+      <dtml-let group="portal_membership.getMemberProperties(name='commissions')"
+                allowed_users="group and _.list(portal_membership.getGroupMembers(group))">
+        <dtml-var "user_list(this(), 
+                   name='responsible',
+                   allowed_users=allowed_users,
+                   selected_users=involved_users,
+                   size=10,
+                   all_style='width:278px',
+                   IsUserAdvanced=1
+        )">
+      </dtml-let>
+  </td>
+</tr>
+    </dtml-unless>
+  </dtml-if>
+
+  <dtml-if report_type_options>
+<tr>
+  <td class="queryHeader" align="&dtml-align;"><dtml-var "msg('Report type')"></td>
+  <td>
+  <dtml-let reports="({'id':'summary', 'title':'summary'}, {'id':'statistics', 'title':'statistics'})">
+    <select id="rtype" name="rtype">
+    <dtml-in reports mapping>
+    <option value="&dtml-id;" <dtml-var "id==rtype and 'selected' or ''">><dtml-var "msg(title, add=None)"></option>
+    </dtml-in>
+    </select>
+  </dtml-let>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if "diagram_options==1">
+<tr>
+  <td class="queryHeader" align="&dtml-align;" nowrap><dtml-var "msg('Documents category')">&nbsp;</td>
+  <td>
+    <select id="category" name="category:list" multiple size="8" style="width:278px">
+    <option value="" <dtml-var "not category and 'selected' or ''">><dtml-msg "all records"></option>
+    <dtml-in categories mapping>
+    <option value="&dtml-id;" <dtml-var "id in category and 'selected' or ''">><dtml-var "msg(title, add=None)"></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td></td>
+  <td align="&dtml-align;" style="padding-top:10px;" nowrap><h3><dtml-var "msg('Diagram options')">:</h3></td>
+</tr>
+<tr>
+  <td class="queryHeader" align="&dtml-align;" valign="top" style="padding-top:3px;" nowrap><dtml-var "msg('Implements')">&nbsp;</td>
+  <td>
+    <table cellspacing="0" cellpadding="0" border="0">
+    <dtml-in implements_values mapping>
+    <tr>
+      <td><input type="checkbox" name="implements:list" id="&dtml-id;" value="&dtml-value;" <dtml-if "value in implements">checked</dtml-if> /></td>
+      <td nowrap><label for="&dtml-id;"><dtml-var "msg(title)"></label></td>
+      <dtml-if sequence-start>
+      <td valign="top" rowspan="5" style="padding-left:40px;">
+        <input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelect('implements', this.form);" style="width:140px;">
+      </td>
+      </dtml-if>
+    </tr>
+    </dtml-in>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td class="queryHeader" align="&dtml-align;" valign="top" style="padding-top:3px;" nowrap><dtml-var "msg('Scale')">&nbsp;</td>
+  <td>
+    <table cellspacing="0" cellpadding="0" border="0">
+    <dtml-let scale_values="(
+		{'id':'scale_by_days', 'title':'by days', 'value':1}, 
+		{'id':'scale_by_weeks', 'title':'by weeks', 'value':7}, 
+		{'id':'scale_by_ten_days', 'title':'by ten days', 'value':10}, 
+		{'id':'scale_by_months', 'title':'by months', 'value':30},
+		{'id':'scale_by_quarters', 'title':'by quarters', 'value':90},
+		{'id':'scale_by_half_years', 'title':'by half years', 'value':180},
+		{'id':'scale_by_years', 'title':'by years', 'value':360},
+		)">
+      <dtml-in scale_values mapping>
+    <tr>
+      <td><input type="radio" name="scale" id="&dtml-id;" value="&dtml-value;" <dtml-if "scale==value">checked</dtml-if> /></td>
+      <td nowrap><label for="&dtml-id;"><dtml-var "msg(title)"></label></td>
+    </tr>
+      </dtml-in>
+    </dtml-let>
+    </table>
+  </td>
+</tr>
+  <dtml-elif "diagram_options==2">
+<tr>
+  <td class="queryHeader" align="&dtml-align;" nowrap><dtml-var "msg('User groups')">&nbsp;</td>
+  <td>
+    <select id="group" name="group:list" multiple size="16">
+    <option value="" <dtml-var "not group and 'selected' or ''">><dtml-msg "all records"></option>
+    <dtml-in groups sort="title" mapping>
+    <option value="&dtml-id;" <dtml-var "id in group and 'selected' or ''">><dtml-var title></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if diagram_options>
+<tr>
+  <td class="queryHeader" align="&dtml-align;" valign="top" style="padding-top:3px;" nowrap><dtml-var "msg('Diagram step')">&nbsp;</td>
+  <td>
+    <input type="text" name="cols" value="&dtml-cols;" size="5" style="text-align:center;">
+  </td>
+</tr>
+  </dtml-if>
+</table>
+</dtml-let>

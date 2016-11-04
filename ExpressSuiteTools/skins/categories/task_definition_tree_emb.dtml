@@ -1,0 +1,13 @@
+<b><dtml-var text_message>:</b><br>
+<dtml-let category_id=getId>
+<dtml-in "this().taskTemplateContainerAdapter.getTaskDefinitionTreeItems( category_id, template_id, id_parent )">
+  <nobr><dtml-var "'&nbsp;' * _['sequence-item']['level']">
+    <a href="task_template_task_definition_info?template_id=&dtml-template_id;&id_task_definition=<dtml-var "_['sequence-item']['id_task_definition']">">
+      <dtml-var "_['sequence-item']['name']"> (<dtml-var "task_definition_get_type_title( this(), task_definition_type_title=_['sequence-item']['task_definition_type_title'])">)
+    </a>
+  </nobr>
+  <br>
+<dtml-else>
+  <dtml-var "msg('None')">
+</dtml-in>
+</dtml-let>

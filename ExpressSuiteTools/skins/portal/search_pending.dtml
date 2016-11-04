@@ -1,0 +1,113 @@
+<dtml-var simple_html_header>
+
+<dtml-let results="portal_catalog({'state':'pending'})">
+
+<dtml-unless "REQUEST.has_key('batch_length')">
+  <dtml-call "REQUEST.set('batch_length',25)">
+</dtml-unless>
+
+<dtml-unless "batch_length > 0">
+  <dtml-call "REQUEST.set('batch_length',_.len(results))">
+</dtml-unless>
+
+<p>
+<dtml-var "msg('Items found')">: <dtml-var expr="_.len(results)" thousands_commas>.
+</p>
+
+<dtml-in results size="batch_length" start="batch_start" >
+ <dtml-let objURL="getURL() + '/view'"
+           isattachment="'isAttachment' in implements"
+ >
+
+ <dtml-if sequence-start>
+<table cellpadding="2" cellspacing="1" width="100%" border="0">
+ <tr class="row_odd">
+  <td width="16"><br></td>
+  <td width="40%"><strong><dtml-var "msg('Title')"></strong></td>
+  <td><strong><dtml-var "msg('Folder')"></strong></td>
+  <td><strong><dtml-var "msg('Type')"></strong></td>
+  <td><strong><dtml-var "msg('Creation date')">&nbsp;</strong></td>
+  <td><strong><dtml-var "msg('Modification date')">&nbsp;</strong></td>
+  </tr>
+ </dtml-if>
+
+ <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td>
+   <dtml-if getIcon>
+   <a href="&dtml-objURL;" target="<dtml-if "isattachment">_object_<dtml-var "id"><dtml-else>workspace</dtml-if>">
+   <img border="0"
+    src="<dtml-if "meta_type not in ['File Attachment']">&dtml-server_url;<dtml-else>&dtml-portal_url;</dtml-if>/<dtml-var getIcon>"
+    alt="[&dtml.missing-Type;]"
+    title="[&dtml.missing-Type;]"></a>
+   </dtml-if>
+  </td>
+  <td>
+   <dtml-if "isattachment">
+     <dtml-let attachment="getObject()"
+               parent="attachment and attachment.aq_parent"
+               title_or_id="parent and (parent.Title() or parent.getId()) or attachment.title_or_id()"
+               url="parent and (parent.absolute_url() + '/view') or attachment.absolute_url()">
+           <a href="<dtml-var "url">" target="workspace"><dtml-var "title_or_id"></a>&nbsp;/&nbsp;
+     </dtml-let>
+   </dtml-if>
+   <a href="&dtml-objURL;" target="<dtml-if "isattachment">_object_<dtml-var "id"><dtml-else>workspace</dtml-if>"><dtml-if name="Title"><dtml-var name="Title" size="75" html_quote><dtml-else>(<dtml-var "msg('No title')">)</dtml-if></a>
+  </td>
+  <td>
+    <dtml-let obj="_['sequence-item'].getObject()"
+              parent="obj and obj.aq_parent"
+              title="parent and parent.Title() or '---'">
+    <dtml-var "title">
+    </dtml-let>
+  </td>
+  <td>
+    <dtml-var "msg(Type, add=0)">
+  </td>
+  <td>
+    <dtml-if CreationDate>&dtml-CreationDate;</dtml-if>
+  </td>
+  <td>
+    <dtml-if Date>&dtml-Date;</dtml-if>
+  </td>
+ </tr>
+ <dtml-if name="Description">
+ <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td>&nbsp;</td>
+  <td colspan="4"><em>
+   <dtml-var name="Description"
+   missing="msg('No description')" size="100" html_quote>
+   </em></td>
+ </tr>
+ </dtml-if>
+ <dtml-comment>dtml-else>(dtml-var "msg('No description')">)</dtml-comment>
+ <dtml-if sequence-end>
+  </table>
+ </dtml-if>
+ </dtml-let>
+
+<dtml-else>
+ <p> <dtml-var "msg('No items were found')"> </p>
+</dtml-in>
+
+<table width="100%">
+<tr><td>
+
+<dtml-in results size="batch_length" start="batch_start" previous>
+<dtml-let prevURL="absolute_url( action='search_pending', params={ 'batch_length':batch_length, 'batch_start':_['previous-sequence-start-number'] } )">
+  <p> <a href="&dtml-prevURL;"> <dtml-var "msg('Previous page') + ' (%d)' % (_['previous-sequence-size'])">  </a> </p>
+</dtml-let>
+</dtml-in>
+
+</td>
+<td align="right">
+
+<dtml-in results size="batch_length" start="batch_start" next>
+<dtml-let nextURL="absolute_url( action='search_pending', params={ 'batch_length':batch_length, 'batch_start':_['next-sequence-start-number'] } )">
+  <p> <a href="&dtml-nextURL;"> <dtml-var "msg('Next page') + ' (%d)' % (_['next-sequence-size'])">  </a> </p>
+</dtml-let>
+</dtml-in>
+
+</td></tr>
+</table>
+
+</dtml-let>
+<dtml-var simple_html_footer>

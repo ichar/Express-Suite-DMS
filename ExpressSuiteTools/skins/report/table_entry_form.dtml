@@ -1,0 +1,87 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<h1><dtml-var title_or_id></h1>
+
+<dtml-comment>New entry form</dtml-comment>
+
+<dtml-let parent_url="aq_parent.absolute_url()">
+<form id="entry_edit" method="post" action="editEntry" enctype="multipart/form-data">
+
+<table cellspacing="1" cellpadding="3">
+<tr class="row_title">
+  <td class="small" colspan="2">
+    <dtml-var "msg('Entry contents')">
+  </td>
+</tr>
+
+  <dtml-in listColumns>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg(Title(), add=None)"></td>
+  <td>
+    <dtml-let field=getId type=Type>
+      <dtml-if "isSetAllowed(field)">
+        <dtml-call "REQUEST.set('show_apply_button', 1)">
+        <dtml-if "field=='Creator' and _.SecurityCheckPermission('Modify portal content', this())">
+      <select name="entry_creator" size="1" >
+          <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+          <option value="<dtml-var user_id>" <dtml-var "get('Creator')==user_id and 'selected' or ''">>
+            <dtml-var user_name>
+          </option>
+          </dtml-in>
+      </select>
+        <dtml-else>
+          <dtml-var "entry_field_edit(this(), name=field, type=type, value=get(field, ''))">
+        </dtml-if>
+      <dtml-elif "entry.isGetAllowed(field)">
+        <dtml-var "entry_field_view(this(), name=field, type=type, value=get(field, ''))">
+      </dtml-if>
+    </dtml-let>
+  </td>
+</tr>
+  </dtml-in>
+
+  <dtml-if "REQUEST.get('show_apply_button', 0)">
+<tr class="row_title">
+  <td class="small" colspan="2"><dtml-var "msg('Comment')"><br> <textarea name="comment:text" rows="4" cols="80"></textarea></td>
+</tr>
+<tr>
+  <td colspan="2">
+    <input type="hidden" name="record_id" value="&dtml-record_id;"/>
+    <input type="submit" name="save" value="<dtml-var "msg('Save entry')">"/>
+    <input type="button" onClick="JavaScript:location.href='&dtml-parent_url;'" value="<dtml-var "msg('Cancel')">"/>
+  </td>
+</tr>
+  <dtml-else>
+<tr>
+  <td>
+    <input type="button" onClick="JavaScript:location.href='&dtml-parent_url;'" value="<dtml-var "msg('Back')">"/>
+  </td>
+</tr>
+  </dtml-if>
+</table>
+</form>
+</dtml-let>
+
+<dtml-in getHistory mapping reverse>
+  <dtml-if sequence-start>
+<table cellspacing="3">
+<tr>
+  <td class="smallHeader"><dtml-var "msg('Modifications log')"></td>
+</tr>
+  </dtml-if>
+<tr>
+  <td class="small">
+    <dtml-var date fmt="%Y-%m-%d %H:%M">
+    <b><dtml-var "member_name(this(), member=actor, brief=1)"></b>
+    <em><dtml-var "msg(action, add=0)"></em> : 
+    <em><dtml-var text></em>
+  </td>
+</tr>
+  <dtml-if sequence-end>
+</table>
+  </dtml-if>
+</dtml-in>
+
+<dtml-var simple_html_footer>

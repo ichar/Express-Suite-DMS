@@ -1,0 +1,106 @@
+<dtml-in "documents">
+
+<dtml-let obj="getObject()">
+
+<dtml-if "obj is not None">
+  <dtml-let  base_url="getURL()"
+             implements="_['implements'] or []"
+             IsDocument="meta_type=='HTMLDocument' and 1 or 0"
+             IsCard="meta_type=='HTMLCard' and 1 or 0"
+             IsRegistry="meta_type=='Registry' and 1 or 0"
+             IsFolder="meta_type=='Heading' and 1 or 0"
+             should_be_registered="IsDocument and category in getCustomDefinitions('should_be_registered') and state not in ('evolutive','OnWork',) and 1 or 0"
+             IsReg="should_be_registered and registry_ids and 1 or 0"
+
+             x="base_url+'/inFrame?link='"
+             view_url="x+'view'"
+             options_url="'%s/%s' % (base_url, IsRegistry and 'registry_options_form' or IsFolder and 'folder_edit_form' or 'view')"
+             title="Title or obj.Title() or ''"
+             description="obj.Description().strip()"
+             metadata_url="(IsDocument or IsCard) and x+'metadata_edit_form'"
+  >
+
+<tr valign="top">
+  <td width="25">
+    <dtml-if "not isRoot">
+      <dtml-unless hide_buttons>
+    <input type="checkbox" name="ids:list" value="&dtml-id;" id="cb_&dtml-id;" />
+      </dtml-unless>
+    </dtml-if>
+  </td>
+  <td align="center" width="18">
+    <a href="&dtml-options_url;" target="workspace"><dtml-var content_icon></a>
+  </td>
+
+  <td class="smallHeader" valign="top">
+    <table cellspacing="0" cellpadding="0" width="100%" border="0">
+    <tr>
+      <td class="smallHeader" valign="top">
+        <a href="&dtml-view_url;" target="workspace"<dtml-if "_.len(title) > 120"> title="&dtml.html_quote-Title;"</dtml-if>><dtml-if title><dtml-var title size=120 html_quote><dtml-else>&dtml-id;</dtml-if></a>
+    <dtml-let locks="obj.wl_lockValues(killinvalids=1)"
+              creator_id="_.len(locks) and obj.getLockCreator(locks[0])">
+      <dtml-if "obj.wl_isLocked()">
+        <img src="&dtml-portal_url;/lock.gif" width="12" height="15" alt="" title="<dtml-var "msg('Locked by')"> <dtml-var "portal_membership.getMemberName(creator_id)" html_quote>">
+      </dtml-if>
+      <dtml-if "portal_membership.getInterfacePreferences('external_editor_buttons')">
+        <dtml-try>
+          <dtml-var external_edit_link>
+        <dtml-except>
+          &nbsp;
+        </dtml-try>
+      </dtml-if>
+    </dtml-let>  
+      </td>
+    </tr>
+
+    <dtml-if "description and portal_membership.getInterfacePreferences('show_description')">
+    <tr>
+      <td class="small" valign="top" style="font-size:10px;padding-top:4px">
+      <dtml-if metadata_url>
+        <a class="navigate" href="&dtml-metadata_url;" target="workspace">&dtml-description;</a>
+      <dtml-else>
+        &dtml-description;
+      </dtml-if>
+      </td>
+    </tr>
+    </dtml-if>
+
+    <dtml-if IsReg>
+    <tr>
+      <td class="small" valign="top" style="padding-top:2px" nowrap>
+        <font size=1><dtml-var "registry_info(obj, mode=2)"></font>
+	  </td>
+    </tr>
+    </dtml-if>
+    </table>
+  </td>
+
+  <td align="left" class="Description">
+    <dtml-var "member_name(this(), member=_['Creator'])">
+  </td>
+	
+  <td class="Description" style="font-size:10px;color:purple" align="center" nowrap>
+    <dtml-var "IsRegistry and obj.getLastSequenceNumber() or 'isSearchProfile' in implements and '-' or obj.getContentsSize() or 0">
+  </td>
+
+  <td class="Description" style="font-size:10px;">
+    <dtml-let time="_.DateTime(_['ModificationDate'])" fDate=rDate>
+    <nobr><dtml-var "time" fmt="%Y-%m-%d"></nobr><br><nobr><dtml-var "time" fmt="%H:%M"></nobr>
+    </dtml-let>
+  </td>
+
+  <td align="center">
+    <dtml-if "'isPrintable' in implements">
+    <a target="_blank" href="<dtml-var "getURL()">/printPreview">
+      <img valign="absmiddle" name="print" src='&dtml-portal_url;/print_page.gif' alt='<dtml-var "msg('Print preview')">' width="18" height="18">
+    </a>
+    </dtml-if>
+  </td>
+</tr>
+
+  </dtml-let>
+</dtml-if>
+
+</dtml-let>
+
+</dtml-in>

@@ -1,0 +1,693 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title><dtml-var "msg(REQUEST.get('PageTitle','Commissions In Progress'))" html_quote></title>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+
+<style type="text/css">
+tr.row_expired {
+    background-color: #FFA8A8;
+}
+tr.row_back {
+    background-color: #E7E7E7;
+}
+td.small {
+    font-family: verdana;
+    font-size: 13px;
+    font-weight: bold;
+}
+td.smallHeader {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+    border: 1px solid black;
+}
+td.smallFooter {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid black;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+.header {
+    font-family: tahoma;
+    font-size: 20px;
+    /*font-weight: bold;*/
+    cursor: default;
+    color: black;
+}
+.comment {
+    font-family: verdana;
+    font-size: 10px;
+    cursor: default;
+    color: black;
+    padding-left: 1px;
+}
+.information {
+    font-family: verdana;
+    font-size: 13px;
+    cursor: default;
+    color: black;
+}
+td.queryHeader {
+    font-size: x-small;
+    font-weight: bold;
+    padding: 0 5px 0 35px;
+}
+td.inline {
+    padding: 0 5px 0 5px;
+}
+td.workarea {
+    font-size: 10px;
+    padding: 5px 5px 5px 5px;
+}
+td.expiration {
+    background-color: #FFCECE;
+    font-size: 11px;
+    padding: 5px 5px 5px 5px;
+    color: #CC0000;
+}
+td.description {
+    font-size: 10px;
+    padding: 5px 7px 5px 7px;
+}
+td.statistics {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+td.h_cell {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid gray;
+    text-align: center;
+    padding: 2px 5px 2px 5px;
+    background-color: #CBCBE8;
+}
+td.exp_cell {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid gray;
+    text-align: center;
+    padding: 2px 20px 2px 20px;
+    background-color: #FFCECE;
+}
+td.p_info {
+    font-family: arial;
+    font-size: 12px;
+    border: 1px solid gray;
+}
+td.p_view {
+    font-family: arial;
+    font-size: 12px;
+    border: 1px solid gray;
+}
+td.p_cell {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: normal;
+    border: 1px solid gray;
+    text-align: center;
+    padding: 2px 5px 2px 5px;
+}
+td.p_total {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+    border: 1px solid gray;
+    padding: 3px 5px 3px 5px;
+    background-color: #CBCBE8;
+}
+span.p_member {
+    font-family: arial;
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0 10px 0 7px;
+}
+span.r_member {
+    font-family: verdana;
+    font-size: 12px;
+    font-weight: bold;
+}
+show {
+    font-size: x-small;
+    color: #3366CC;
+}
+</style>
+</head>
+
+<script type="text/javascript">
+<!-- 
+function change_option( obj, option ) {
+    if (typeof(obj) != 'object')
+        return;
+    var value = (option == 'period' || option == 'ctype' ? obj.value : (obj.checked ? '1' : '0'));
+    document.all[option].value = value;
+}
+
+function setCookie( name, value ) {
+    var expires = new Date(2030,1,20);
+    var path = '/';
+    var newCookie = name + '=' + escape(value) + ';expires=' + expires.toGMTString() + ';path=' + path;
+    document.cookie = newCookie;
+}
+
+function save_report_settings() {
+    save_option('period', document.all.period, 'value', 0);
+    //save_option('not_finalized_only', document.all.not_finalized_only, 'value', 0);
+    //save_option('not_answered_only', document.all.not_answered_only, 'value', 0);
+    save_option('ctype', document.all.ctype, 'value', 1);
+    save_option('company', document.all.company, 'select', 1);
+    save_option('category', document.all.category, 'select', 1);
+    save_option('owner', document.all.owner_selected_users, 'multi-select', 1);
+    save_option('brains_type', document.all.brains_type, 'select', 1);
+    save_option('commissions', document.all.commissions, 'select', 1);
+    save_option('state', document.all.state, 'select', 1);
+    save_option('responsible', document.all.responsible_selected_users, 'multi-select', 1);
+    save_option('rtype', document.all.rtype, 'select', 0);
+    alert('<dtml-var "msg('Has been saved')">');
+}
+
+function save_option( name, obj, type, check ) {
+    if( typeof(obj) != 'object' ) return;
+    if( type == 'select' ) {
+      var value = '';
+      var n = 0;
+      for (var i = 0; i < obj.length; i++) {
+        if( obj.options[i].selected ) { 
+          if( check && i==0 ) break;
+          if( value ) value += ' ';
+          value += obj.options[i].value;
+          n += 1;
+        }
+      }
+	} else if( type == 'multi-select' ) {
+      var value = '';
+      for (var i = 0; i < obj.length; i++) {
+        if( value ) value += ' ';
+        value += obj.options[i].value;
+      }
+	} else value = obj.value;
+    //if( ( check && !value ) ) return;
+    setCookie('commissions_in_progress_'+name, value);
+}
+
+function DoImgClick() {
+    var query = document.all.query;
+    var s=(query.style.display == 'none' ? 'block' : 'none');
+    query.style.display = s;
+}
+
+function addOptionTo( list, text, value ) {
+    var len = list.length;
+    var opt = list.document.createElement("OPTION");
+    opt = list.options[len] = opt;
+    opt.text = text;
+    opt.value = value;
+    return opt;
+}
+
+function addSelectionToList( src_list, dest_list, type_of_list ) {
+    var len = dest_list.length;
+    var prefix = ( type_of_list ? type_of_list+':' : '' );
+    for(var i = 0; i < src_list.length; i++) {
+        if ((src_list.options[i] != null) && (src_list.options[i].selected)) {
+            //Check if this value already exist in the dest_list or not
+            //if not then add it otherwise do not add it.
+            var found = false;
+            for(var count = 0; count < len; count++) {
+                if (dest_list.options[count] != null) {
+                    var value = dest_list.options[count].value;
+                    value = value.replace(prefix+'');
+                    if (src_list.options[i].value == value) {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (found != true) {
+                addOptionTo(dest_list, src_list.options[i].text, prefix+src_list.options[i].value);
+                len++;
+            }
+        }
+    }
+}
+
+function deleteSelectionFromList( dest_list )	{
+    var len = dest_list.options.length;
+    for(var i = (len-1); i >= 0; i--) {
+        if ((dest_list.options[i] != null) && (dest_list.options[i].selected == true)) {
+            dest_list.options[i] = null;
+        }
+    }
+}
+
+function SearchStrInSelect( str, select ) {
+    var strn=0, strl=0;
+    for (var i = 0; i < select.length; i++) {
+        select.options[i].selected = false;
+        var curl = 0;
+        var inpStr = str.toUpperCase();
+        var selStr = select.options[i].text.toUpperCase();
+        for (var l = 0; l < str.length+1; l++) {
+            curl = l;
+            if (inpStr.charAt(l) != selStr.charAt(l)) break;
+        }
+        if (curl > strl) { strl=curl; strn=i; }
+    }
+    if (!select.multiple || str.length) select.options[strn].selected = true;
+}
+
+function OpenUserInfoWnd( user, params ) {
+    var url = '&dtml-portal_url;/user_info_form?userid=' + user;
+    params = 'toolbar=no,scrollbars=no,status=yes,top=40,left=100,width=450,height=520,resizable=no';
+    window.open( url, '_blank', params );
+}
+
+function selectAll( list ) {
+    var len = list.length;
+    for(var i = 0; i < len; i++) { list.options[i].selected=true; }
+}
+
+function PrintPreview() {
+    var frm = document.reportForm;
+    frm.print_preview.value = 1;
+    frm.cio.value = 0;
+    frm.target = '_blank';
+    onSubmitForm( frm );
+}
+
+function Refresh() {
+    var frm = document.reportForm;
+    frm.print_preview.value = '';
+    frm.target = '_self';
+    DisableForm( frm );
+    onSubmitForm( frm );
+}
+
+function MainMenu() {
+    var url = 'cio';
+    var params = '';
+    window.open( url, '_top', params );
+}
+
+function DisableForm( frm ) {
+    frm.refresh.disabled=true;
+    frm.save.disabled=true;
+    frm.preview.disabled=true;
+    try {
+      frm.menu.disabled=true;
+    }
+    catch (error) {}
+}
+
+function onSubmitForm( frm ) {
+    var obj = frm.owner_selected_users;
+    if( obj.options.length ) selectAll(obj); else frm.w.name = 'owner';
+    var obj = frm.responsible_selected_users;
+    if( obj.options.length ) selectAll(obj); else frm.x.name = 'responsible';
+    frm.submit();
+}
+
+var shown = 'block';
+
+function displayDataOfCategory( id, display ) {
+   var obj = document.getElementById(id);
+   var icon = document.getElementById(id+'_icon');
+   if( typeof(obj) != 'object' ) return;
+   if( !display ) display = ( obj.style.display == 'block' ? 'none' : 'block' );
+   obj.style.display = display;
+   if( typeof(icon) != 'object' ) return;
+   icon.src = ( display == 'block' ? 'row_e.gif' : 'row_c.gif' );
+}
+
+function showCategories() {
+   var rows = document.getElementsByTagName('div');
+   if( !rows ) return;
+   if( shown == 'block' ) shown='none'; else shown='block';
+   for (var i = 0; i < rows.length; i++) {
+     if( rows[i].name == 'row_of_category' ) displayDataOfCategory( rows[i].id, shown );
+   }
+}
+//-->
+</script>
+
+<dtml-let container="this()"
+          archive_search="_.int(REQUEST.get('archive_search') or 0)"
+          instances="[ x for x in getPortalConfiguration().getAttribute('URLs', context=container)
+              if archive_search or not x['id'].startswith('arc') ]"
+          company_logo="getPortalConfiguration().getAttribute('company_logo', context=container)"
+          companies="getDepartmentDictionary().listCompanies()"
+          categories="getPortalConfiguration().getAttribute('categories', context=container, with_base=1)"
+          states="getPortalConfiguration().getAttribute('task_states', context=container)"
+          common_url="portal_properties.common_url()"
+          member="portal_membership.getAuthenticatedMember()"
+          uname="member.getUserName()"
+
+          period="portal_followup.getOptionValue('period', 'int', 'commissions_in_progress', REQUEST)"
+          ctype="portal_followup.getOptionValue('ctype', 'string', 'commissions_in_progress', REQUEST, 'incoming')"
+          company="portal_followup.getOptionValue('company', 'list', 'commissions_in_progress', REQUEST)"
+          category="portal_followup.getOptionValue('category', 'list', 'commissions_in_progress', REQUEST)"
+          owners="portal_followup.getOptionValue('owner', 'list', 'commissions_in_progress', REQUEST)"
+          brains_type="portal_followup.getOptionValue('brains_type', 'list', 'commissions_in_progress', REQUEST)"
+          commissions="portal_followup.getOptionValue('commissions', 'list', 'commissions_in_progress', REQUEST)"
+          state="portal_followup.getOptionValue('state', 'list', 'commissions_in_progress', REQUEST)"
+          involved_users="portal_followup.getOptionValue('responsible', 'list', 'commissions_in_progress', REQUEST)"
+          rtype="portal_followup.getOptionValue('rtype', 'string', 'commissions_in_progress', REQUEST, 'summary')"
+
+          search_text="REQUEST.get('search_text', None) or ''"
+          print_preview="REQUEST.get('print_preview') and '1' or ''"
+
+          bgcolor="'#E7E7E7'"
+          x_p="period > 20 and period-20 or period > 10 and period-10 or period < 10 and period or 0"
+          days="x_p == 7 and 360 or x_p == 6 and 180 or x_p == 5 and 90 or x_p == 4 and 30 or x_p == 3 and 14 or x_p == 2 and 7 or 0"
+          date_till="_.DateTime()+1"
+          date_from="days and date_till-days or None"
+          not_finalized_only="_.int(REQUEST.get('p1', REQUEST.get('not_finalized_only')) or 0)"
+          not_answered_only="_.int(REQUEST.get('p2', REQUEST.get('not_answered_only')) or 0)"
+          enabled_only="REQUEST.get('enabled_only')"
+          check_up="REQUEST.get('check_up')"
+          finalized="REQUEST.get('finalized')"
+          in_time="REQUEST.get('in_time')"
+          with_delay="REQUEST.get('with_delay')"
+          disabled="REQUEST.get('disabled')"
+          cio="_.int(REQUEST.get('cio','0')) or 0"
+
+          report_name="rtype=='summary' and msg('Commissions In Progress Report') or msg('Commissions In Progress Statistics')"
+          pids="' '.join(company)"
+          gids="' '.join(category)"
+          oids="' '.join(owners)"
+          cids="' '.join(commissions)"
+          bids="' '.join(brains_type)"
+          sids="' '.join(state)"
+          uids="' '.join(involved_users)"
+
+          item_color="'FFFFFF'"
+          show_color="'FFFACD'"
+>
+
+<dtml-call "REQUEST.set('not_finalized_only', not_finalized_only)">
+<dtml-call "REQUEST.set('not_answered_only', not_answered_only)">
+
+<script type="text/javascript">
+<!-- 
+function show( url ) {
+  <dtml-if cio>
+    params = 'menubar=yes,toolbar=yes,location=no,scrollbars=yes,status=yes,resizable=yes';
+    window.open( url, '_top', params );
+  <dtml-else>
+    params = 'menubar=yes,toolbar=yes,location=no,scrollbars=yes,status=yes,top=40,left=10,resizable=yes';
+    window.open( url, '_blank', params );
+  </dtml-if>
+}
+
+function pointer( obj, mouse ) {
+    color = (mouse == 'over' ? '#FF8448' : '&dtml-show_color;');
+    obj.bgColor = color;
+}
+//-->
+</script>
+
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="&dtml-bgcolor;">
+
+<table width="100%" cellspacing="5" cellpadding="5" border="0">
+<form name="reportForm" method="post">
+<input type="hidden" name="BackgroundColor" value="&dtml-bgcolor;">
+<input type="hidden" id="print_preview" name="print_preview" value="&dtml-print_preview;">
+<input type="hidden" name="search_text" value="&dtml-search_text;">
+<input type="hidden" name="enabled_only" value="&dtml-enabled_only;">
+<input type="hidden" name="cio" value="&dtml-cio;">
+
+<dtml-unless print_preview>
+<tr>
+  <td align="left" valign="top">
+    <img src="&dtml-common_url;&dtml-company_logo;">
+  </td>
+  <td align="left" style="width:100%;padding-top:5px;" valign="top">
+    <dtml-var cio_report_name>
+  </td>
+  <td align="right" valign="top" style="padding-left:1px;">
+    <img src="&dtml-portal_url;/docflow-logo-ex.gif">
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding: 10px 5px 10px 5px;" nowrap>
+    <input type="button" name="refresh" onClick="javascript:Refresh();" value="<dtml-var "msg('Refresh')">" style="width:95px;">
+    <input type="button" name="save" onClick="javascript:save_report_settings();" value="<dtml-var "msg('Save settings')">" style="width:165px;">
+    <input type="button" name="preview" onClick="javascript:PrintPreview();" value="<dtml-var "msg('Print preview')">" style="width:125px;">
+    <input type="button" onClick="javascript:showCategories();" value=" ... " <dtml-if "rtype != 'summary'">disabled</dtml-if> />
+  <dtml-if cio>
+    <input type="button" name="menu" onClick="javascript:MainMenu();" value="<dtml-var "msg('Main menu')">" style="width:120px;">
+  </dtml-if>
+  </td>
+  <td align="right">
+  <dtml-if "rtype=='summary' and _.len(instances) > 1">
+    <table cellspacing="0" cellpadding="1" border="0">
+    <tr>
+    <dtml-in instances mapping>
+      <td id="&dtml-id;_sign" style="display:block;">
+        <table cellspacing="2" cellpadding="1" border="0" style="border:1pt solid #000080;">
+        <tr>
+          <td bgcolor="#8080C0"><img title="&dtml-id;" src="&dtml-portal_url;/spacer.gif" height="10"></td>
+	    </tr>  
+        </table>
+      </td>
+    </dtml-in>
+    </tr>
+    </table>
+  </dtml-if>
+  </td>
+</tr>
+</table>
+</dtml-unless>
+
+<div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<dtml-if print_preview>
+  <dtml-let options="1">
+    <dtml-var cio_preview_options>
+  </dtml-let>
+</dtml-if>
+
+<dtml-unless print_preview>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 5px 1px;">
+    <table width="100%" cellspacing="1" cellpadding="5" border="0">
+    <tr>
+      <td class="small" width="20" align="center" valign="middle">
+        <img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="javascript:DoImgClick('query');" 
+         onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'" title="<dtml-var "msg('Commissions query')">">
+      </td>
+      <td class="small" align="left" style="padding-left:7px">
+        <a target="workfield" onclick="javascript:DoImgClick('query');"><font face="arial" style="font-size:11px;cursor:hand;"><strong><dtml-var "msg('Query options in detail')"></strong></font></a>
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 0 0 5px 2px;">
+  <dtml-let commissions_options="1" finalized_and_answered_options="0" report_type_options="1" query_options="1" align="'left'">
+    <div id="query" style="display:none">
+    <dtml-var cio_query>
+    </div>
+  </dtml-let>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+</dtml-unless>
+
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td bgcolor="white" background="&dtml-portal_url;/right_fr.gif">&nbsp;</td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+
+<dtml-if "rtype=='summary'">
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 5px 1px;">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_title">
+      <td class="smallHeader" width="20" align="center" valign="middle"><dtml-var "msg('#')"></td>
+      <td class="smallHeader"><dtml-var "msg('Commission Title (Brief Description)')">, <dtml-var "msg('Executor\'s report')"></td>
+      <td class="smallHeader" width="80" align="center"><dtml-var "msg('Issue Date')"></td>
+      <td class="smallHeader" width="140" align="left"><dtml-var "msg('Involved members')"></td>
+      <td class="smallHeader" bgcolor="#FFA8A8" width="80" align="center"><dtml-var "msg('Expiration Date')"></td>
+      <td class="smallHeader" width="80" align="center"><dtml-var "msg('Task State')"><br><dtml-var "msg('In time (days)')"></td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10"></td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td width="100%" bgcolor="&dtml-bgcolor;">
+  <dtml-in instances mapping>
+    <div id="&dtml-id;_data"></div>
+    <iframe scrolling="no" frameborder="0" height="0" width="100%" style="display:none" 
+            src="&dtml-url;/commissions_instance?period=&dtml-period;&p1=&dtml-not_finalized_only;&p2=&dtml-not_answered_only;&category:tokens=&dtml-gids;&commissions:tokens=&dtml-cids;&ctype=&dtml-ctype;&state:tokens=&dtml-sids;&owners:tokens=&dtml-oids;&brains_type:tokens=&dtml-bids;&company:tokens=&dtml-pids;&involved_users:tokens=&dtml-uids;<dtml-if print_preview>&print_preview=1</dtml-if><dtml-if "enabled_only is not None">&enabled_only=&dtml-enabled_only;</dtml-if><dtml-if in_time>&in_time=1</dtml-if><dtml-if with_delay>&with_delay=1</dtml-if><dtml-if on_work>&on_work=1</dtml-if><dtml-if finalized>&finalized=1</dtml-if><dtml-if check_up>&check_up=1</dtml-if><dtml-if disabled>&disabled=1</dtml-if><dtml-if search_text>&search=&dtml-search_text;</dtml-if>"></iframe>
+  </dtml-in>
+  </td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td width="100%">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_total">
+      <td class="smallFooter" width="20" align="center" valign="middle">&nbsp;</td>
+      <td class="smallFooter" style="text-align:left; padding-left:6px;" colspan="4" nowrap><b><dtml-msg "Total results">:&nbsp;&nbsp;&nbsp;<span id="counter">0</span></b></td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10"></td>
+</tr>
+<dtml-else>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 5px 1px;">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#E7E7E7" border="0">
+    <tr class="row_title">
+      <td class="h_cell" rowspan="2" width="20" align="center" valign="middle">&nbsp;<dtml-var "msg('#')">&nbsp;</td>
+      <td class="h_cell" style="text-align:left;" rowspan="2"><dtml-var "msg('Involved members info')"></td>
+      <td class="h_cell" rowspan="2" align="center"><dtml-var "msg('Check up')"><br><dtml-var "msg('# items')"></td>
+      <td class="exp_cell" colspan="2" align="center" style><dtml-var "msg('Including')"><br><dtml-var "msg('Now is expired')"></td>
+      <td class="h_cell" rowspan="2" align="center"><dtml-var "msg('Finalized successfully')"><br><dtml-var "msg('# items')"></td>
+      <td class="h_cell" colspan="2" align="center"><dtml-var "msg('Including')"><br><dtml-var "msg('Finalized with delay')"></td>
+      <td class="h_cell" rowspan="2" align="center"><dtml-var "msg('Disabled')"><br><dtml-var "msg('# items')"></td>
+    </tr>
+    <tr class="row_title">
+      <td class="exp_cell" align="center"><dtml-var "msg('# items')"></td>
+      <td class="exp_cell" align="center"><dtml-var "msg('%')"></td>
+      <td class="h_cell" align="center"><dtml-var "msg('# items')"></td>
+      <td class="h_cell" align="center"><dtml-var "msg('%')"></td>
+    </tr>
+  <dtml-let results="portal_followup.getCommissionsStatistics(REQUEST=REQUEST)"
+            query="'%s&ctype=%s&company:tokens=%s&category:tokens=%s&commissions:tokens=%s&state:tokens=%s&brains_type:tokens=%s&rtype=summary' % (cio and '&cio=1' or '', ctype, pids, gids, cids, sids, bids)"
+            p_query="'&p1=%s&p2=%s' % (not_finalized_only, not_answered_only)"
+            period_query="'&period=%s' % period"
+            base_url="'commissions_in_progress?print_preview=1%s' % query"
+  >
+    <dtml-in results mapping>
+      <dtml-if sequence-start>
+    <tr>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">1</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">2</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">3</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">4</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">5</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">6</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">7</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">8</td>
+      <td align="center" valign="middle" style="padding: 1px 0 1px 0;">9</td>
+    </tr>
+      </dtml-if>
+      <dtml-let index="_['sequence-index']+1"
+                IsTotal="member=='total'"
+                IsNotAnswered="not IsTotal and not_answered==total"
+                IsExpired="not IsTotal and p_expired > 75.0 and 1 or 0"
+                s_class="IsTotal and 'smallFooter' or 'statistics'"
+
+                responsible_query="not IsTotal and '&responsible:tokens=%s' % member or uids and '&responsible:tokens=%s' % uids or ''"
+                item_url="'%s&p2=%s%s' % (base_url, not_answered_only, responsible_query)"
+
+                href_check_up="'%s&p1=1&period=%s&check_up=1&enabled_only=1' % (item_url, period)"
+                href_expired="'%s&p1=0&period=%s&expired=1&enabled_only=1' % (item_url, period+10)"
+                href_finalized="'%s&p1=0&period=%s&finalized=1' % (item_url, period+20)"
+                href_with_delay="'%s&p1=0&period=%s&finalized=1&with_delay=1' % (item_url, period+20)"
+                href_disabled="'%s&p1=1&period=%s&disabled=1&enabled_only=0' % (item_url, period)"
+      >
+    <tr class="<dtml-if IsTotal>row_total<dtml-elif sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+        <dtml-if IsTotal>
+          <dtml-let x_check_up="'%s/%s' % (total[0][4]+total[0][5], check_up)"
+                    x_finalized="'%s/%s' % (total[0][1], finalized)"
+                    x_with_delay="'%s/%s' % (total[0][3], with_delay)"
+                    x_expired="'%s/%s' % (total[0][5], expired)"
+                    x_disabled="'%s/%s' % (total[0][6], disabled)"
+          >
+      <td class="smallFooter">&nbsp;</td>
+      <td class="smallFooter" style="text-align:left; padding-left:6px;" nowrap><b><dtml-msg expr=name>:</b></td>
+      <td class="p_cell" <dtml-if check_up>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_check_up;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> title="<dtml-msg "tasks/commissions">" /><strong>&dtml-x_check_up;</strong></td>
+      <td class="p_cell" <dtml-if expired>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_expired;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> title="<dtml-msg "expired tasks/commissions, not answered">" nowrap><strong><dtml-if "expired > 0"><font color="#C00000">&dtml-x_expired;</font> (&dtml-not_answered;)<dtml-elif "not_answered > 0">&dtml-x_expired; (&dtml-not_answered;)<dtml-else>0</dtml-if></strong></td>
+      <td class="&dtml-s_class;" <dtml-if "IsNotAnswered or IsExpired">bgcolor="#FFDDDD" style="border: 1px solid #AA6060; font-weight:bold;"</dtml-if>>&dtml-p_expired;</td>
+      <td class="p_cell" <dtml-if finalized>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_finalized;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> title="<dtml-msg "tasks/commissions">" /><strong><dtml-if finalized><font color="green">&dtml-x_finalized;</font><dtml-else>&dtml-x_finalized;</dtml-if></strong></td>
+      <td class="p_cell" <dtml-if with_delay>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_with_delay;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> title="<dtml-msg "tasks/commissions">" /><strong><font color="blue">&dtml-x_with_delay;</font></strong></td>
+      <td class="&dtml-s_class;"><strong><dtml-if "_.float(p_with_delay) > 10"><font color="black">&dtml-p_with_delay;</font><dtml-else>&dtml-p_with_delay;</dtml-if></strong></td>
+      <td class="p_cell" <dtml-if disabled>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_disabled;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> title="<dtml-msg "tasks/commissions">" /><strong><font color="black">&dtml-x_disabled;</font></strong></td>
+          </dtml-let>
+        <dtml-else>
+      <td align="center"><dtml-var index></td>
+      <td class="small" align="left" nowrap
+          <dtml-if "IsNotAnswered or IsExpired">
+          bgcolor="#FFDDDD" style="border: 1px solid #AA6060;"
+          <dtml-elif "total==in_time">
+          bgcolor="#DDEEDD" style="border: 1px solid #60AA60;"
+          </dtml-if>
+	  >
+          <dtml-if print_preview>
+        <span class="r_member"><dtml-var "portal_membership.getMemberBriefName(member, 'LFM')"></span>
+          <dtml-else>
+        <strong><dtml-var "member_name(container, member=member, brief=1)"></strong>&nbsp;
+          </dtml-if>
+      </td>
+      <td class="p_cell" <dtml-if check_up>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_check_up;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> />&dtml-check_up;</td>
+      <td class="p_cell" <dtml-if expired>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_expired;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> title="<dtml-msg "expired commissions, not answered">" nowrap><dtml-if "expired > 0"><font color="#C00000">&dtml-expired;</font> (&dtml-not_answered;)<dtml-elif "not_answered > 0">&dtml-expired; (&dtml-not_answered;)<dtml-else>0</dtml-if></td>
+      <td class="&dtml-s_class;" <dtml-if "IsNotAnswered or IsExpired">bgcolor="#FFDDDD" style="border: 1px solid #AA6060; font-weight:bold;"</dtml-if> />&dtml-p_expired;</td>
+      <td class="p_cell" <dtml-if finalized>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_finalized;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> /><dtml-if finalized><font color="green">&dtml-finalized;</font><dtml-else>&dtml-finalized;</dtml-if></td>
+      <td class="p_cell" <dtml-if with_delay>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_with_delay;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> /><font color="blue">&dtml-with_delay;</font></td>
+      <td class="&dtml-s_class;"><dtml-if "_.float(p_with_delay) > 10"><font color="black"><strong>&dtml-p_with_delay;</strong></font><dtml-else>&dtml-p_with_delay;</dtml-if></td>
+      <td class="p_cell" <dtml-if disabled>bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show('&dtml-href_disabled;');" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');"</dtml-if> />&dtml-disabled;</td>
+        </dtml-if>
+    </tr>
+        <dtml-if sequence-end>
+    <tr><td height="1"><img src="&dtml-portal_url;/spacer.gif" height="1"></td></tr>
+    <tr class="row_back">
+      <td></td>
+      <td class="p_total" nowrap><dtml-msg "Total managed commissions">:</td>
+      <td class="p_total" align="center"><dtml-var check_up></td>
+      <td colspan="8">&nbsp;</td>
+    </tr>
+    <tr class="row_back">
+      <td></td>
+      <td class="p_total"><span style="color:#cc0000"><dtml-msg "Total expired commissions">:</span></td>
+      <td class="p_total" align="center"><dtml-var expired></td>
+      <td colspan="8">&nbsp;</td>
+    </tr>
+    <tr class="row_back">
+      <td></td>
+      <td class="p_total"><span style="color:blue"><dtml-msg "Total without answer">:</span></td>
+      <td class="p_total" align="center"><dtml-var not_answered></td>
+      <td colspan="8">&nbsp;</td>
+    </tr>
+    <tr><td height="1"><img src="&dtml-portal_url;/spacer.gif" height="1"></td></tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-in>
+  </dtml-let>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+</dtml-if>
+</table>
+
+</div>
+
+</dtml-let>
+
+</body>
+</html>

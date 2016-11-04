@@ -1,0 +1,67 @@
+<dtml-if "REQUEST.get('task_definition_type', None) is None ">
+  <dtml-call "REQUEST.set('task_definition_type', 'followup_request')">
+</dtml-if>
+
+<form action="action_template_task_definition" method="POST" name="taskDefinitionForm" onSubmit="return taskDefinitionFormScriptOnSubmit(this);">
+<table bgcolor="#cccccc" cellpadding="5" cellspacing="1" border="0">
+<tr>
+<td bgcolor="#E5E5E5">
+  <table>
+  <tr class="row_title">
+    <td colspan="2" class="smallHeader"><dtml-var "msg('Adding main action template')"></td>
+  </tr>
+  <tr class="row_even">
+    <td><dtml-var "msg('Action type')">:</td>
+    <td>
+      <dtml-var "task_definition_type_list_emb( this(), from_page=from_page, REQUEST=REQUEST )">
+    </td>
+  </tr>
+  <tr class="row_even">
+    <td><dtml-var "msg('Id')">:</td>
+    <td><input type="text" name="template_id" size="79" value="<dtml-var "REQUEST.get('task_definition_type', None)=='routing_object' and 'move_' or ''">"></td>
+  </tr>
+  <tr class="row_even">
+    <td><dtml-var "msg('Template title')">:</td>
+    <td><input type="text" name="name" size="79" value=""></td>
+  </tr>
+  <tr>
+    <td colspan="2"><strong><dtml-var "msg('Template fields')">:</strong></td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <table bgcolor="#cccccc" cellpadding="5" cellspacing="1" border="0">
+      <tr>
+        <td bgcolor="#E5E5E5">
+          <table>
+            <dtml-var "this().taskDefinitionFactory.getTaskDefinitionFormByTaskType(task_definition_type, mode='add')">
+          </table>
+        </td>
+      </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2">
+      <input type="submit" value="<dtml-var "msg('Add')">">
+    </td>
+  </tr>
+  </table>
+  <input type="hidden" name="task_definition_type" value="<dtml-var task_definition_type>">
+  <input type="hidden" name="action" value="add_root_task_definition">
+</td>
+</tr>
+</table>
+</form>
+
+<script>
+function taskDefinitionFormScriptOnSubmit( form ) {
+    if ( !validateIdentifierStrong(form.elements['template_id'], '<dtml-var "msg('Object id is invalid')">') )
+        return false;
+<dtml-var "this().taskDefinitionFactory.getTaskDefinitionFormScriptOnSubmit( task_definition_type )">
+}
+
+function taskDefinitionFormScriptOnLoad( form ) {
+<dtml-var "this().taskDefinitionFactory.getTaskDefinitionFormScriptOnLoad( task_definition_type )">
+}
+taskDefinitionFormScriptOnLoad( this.taskDefinitionForm );
+</script>

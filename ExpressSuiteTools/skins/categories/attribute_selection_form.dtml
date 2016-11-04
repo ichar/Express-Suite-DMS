@@ -1,0 +1,79 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'Attribute Selection')">
+
+<dtml-var simple_html_header>
+
+<dtml-let callback="REQUEST.get('callback_form')"
+          attr_field="REQUEST.get('attr_field').split(':')"
+          category="attr_field[0]"
+          field="attr_field[1]"
+          attr="portal_metadata.getCategoryById(category).getAttributeDefinition(field)"
+          attr_title="attr is not None and attr.Title() or ''"
+          results="portal_catalog.searchAttributeValues(REQUEST, category, field)"
+>
+
+<dtml-if callback>
+<script type="text/javascript">
+<!--
+function SaveAndReturn(value) {
+    //var value = '<dtml-var "REQUEST.get('attr_field')">';
+    value = value.replace('\\n','\n')
+    opener.&dtml-callback_function;('&dtml-callback_form;', '<dtml-var "REQUEST.get('value_field')">', value);
+    window.close();
+}
+
+function setStyle(obj, mode) {
+    if( typeof(obj) != 'object' ) return;
+    if( !mode || mode=='over' ) {
+      obj.style.cursor = 'hand';
+	  obj.style.color = 'blue';
+	} else {
+      obj.style.cursor = 'auto';
+	  obj.style.color = 'black';
+	}
+}
+//-->
+</script>
+</dtml-if>
+
+<div style="padding: 0 0 10px 5px">
+<h4 align="left" style="padding: 10px 0 0 0"><dtml-var "msg('Selected attribute')"><dtml-if attr_title>&nbsp;&quot;&dtml-attr_title;&quot;</dtml-if></h4>
+
+<dtml-if "not results">
+<table width="100%" border="0">
+<tr>
+  <td class="smallHeader" align="left" valign="center" style="padding: 5px 23px 5px 23px; border: 1pt solid gray;" colspan="2" nowrap>
+    <dtml-var "msg('Attribute values not found')">
+  </td>
+  <td style="width:100%">&nbsp;</td>
+</tr>
+</table>
+
+<h3 style="padding:0 0 0 0">&nbsp;</h3>
+</dtml-if>
+
+<input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+</div>
+
+<dtml-if results>
+<table class="FormLayout" cellspacing="4" cellpadding="4" bgcolor="#FFFFFF" width="100%" border="0">
+  <dtml-in results>
+    <dtml-let item=sequence-item
+              value="(item.replace('\n','\\n')).replace('\x27','\x22')"
+    >
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center">&dtml-sequence-index;</td>
+  <td align="left" style="width:100%" onclick="javascript:SaveAndReturn('&dtml-value;');" onmouseover="javascript:setStyle(this,'over');" onmouseout="javascript:setStyle(this,'out');">
+    &dtml-item;
+  </td>
+</tr>
+    </dtml-let>
+  </dtml-in>
+</table>
+</dtml-if>
+
+</dtml-let>
+
+<br>
+
+<dtml-var simple_html_footer>

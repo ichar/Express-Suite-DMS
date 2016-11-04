@@ -1,0 +1,49 @@
+<dtml-revision $Revision: 1.0 $>
+
+<html>
+<head>
+<meta http-equiv="content-type" content="<dtml-var "_.has_key('RESPONSE') and RESPONSE.headers.get('content-type') or 'text/html'">">
+<title><dtml-var "msg('Search a document in archive')"></title>
+</head>
+<body>
+
+<dtml-let uid="REQUEST.get('uid','')">
+  <dtml-if uid>
+
+<script type="text/javascript">
+<!--
+function ChangeStorage() {
+    window.open('<dtml-var "portal_properties.remote_url()">/portal_links/locate?uid=<dtml-var uid>', "_top");
+    //window.open('<dtml-var "'%s/docflow_search' % portal_url">', "_top");
+}
+//-->
+</script>
+
+<table width="100%" cellspacing="5" cellpadding="5" bgcolor="#ffffff" border="0">
+<tr>
+  <td align="center" style="padding: 100px 80px 40px 80px;">
+    <table align="center" cellspacing="5" bgcolor="#004040" border="0">
+    <tr>
+      <td class="smallHeader" align="center" style="padding: 40px 80px 40px 80px; border: 1pt solid white;">
+        <strong>
+        <font color="#ffffff">
+        <p><dtml-var "msg('DOCFLOW SYSTEM')"><p>
+        <p><dtml-var "msg('Sorry, the document has not been found for a given link.')"></p>
+        <p><dtml-var "msg('Do you want to search it in archive?')"></p>
+        </font>
+        </strong>
+        <br>
+        <input type="button" onClick="javascript:ChangeStorage();" value="<dtml-var "msg('Yes')">" style="width:80px;">
+        <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('No')">" style="width:80px;">
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+  </dtml-if>
+</dtml-let>
+
+</body>
+</html>

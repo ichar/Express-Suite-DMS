@@ -1,0 +1,33 @@
+<HTML>
+  <HEAD>
+    <TITLE><dtml-var "msg('Registration number forming parameters')"></TITLE>
+  </HEAD>
+  <BODY>
+    <dtml-var "msg('Date format')">:
+    <ul>
+      <li>\y - <dtml-var "msg('Year without century as a decimal number')">.
+      <li>\Y - <dtml-var "msg('Year with century as a decimal number')">.
+      <li>\m - <dtml-var "msg('Month as a decimal number')"> (01..12).
+      <li>\d - <dtml-var "msg('Day of the month as a decimal number')"> (01..31).
+      <li>\H - <dtml-var "msg('Hour as a decimal number')"> (00..23).
+      <li>\M - <dtml-var "msg('Minute as a decimal number')"> (00..59).
+    </ul>
+    <dtml-var "msg('Other parameters')">:
+    <ul>
+      <li>\Fnum - <dtml-var "msg('Nomenclative number of the folder that contains the document')">. <dtml-var "msg('It may be specified in the folder\'s properties')">.
+      <li>\Fpfx - <dtml-var "msg('Postfix of the folder that contains the document')">. <dtml-var "msg('It may be specified in the folder\'s properties')">.
+      <li>\Cpfx - <dtml-var "msg('Postfix of the category the document belongs to')">. <dtml-var "msg('It may be stated by creating in the document\'s category property with \'postfix\' id')">.
+      <li>\Rdpt - <dtml-var "msg('Current registry \'department\' property')">.
+      <li>\Seq[:nn#] - <dtml-var "msg('Counter value, where nn - optional parameter, number of digits of the counter')">.
+      <li>\Sqd[:nn#] - <dtml-var "msg('Special counter value, where nn - optional parameter, number of digits of the counter')">. <dtml-var "msg('This counter starts from 1 each new day')">.
+    </ul>
+    <p><dtml-var "msg('Example')">:
+    <p><dtml-var "msg('If today is aug 19, 2003, the registry option \'Department\' is set to')"> "<dtml-var "msg('legal department')">",
+    <dtml-var "msg('the counter value is 123 (what is usually corresponds with 122 registered documents)')">,
+    <dtml-var "msg('and registration number forming rule is')">:
+    <p><dtml-var "msg('Incoming')"> N\Seq:5# <dtml-var "msg('of')"> \d.\m.\Y <dtml-var "msg('in the department')"> "\Rdpt"'</p>
+    <p><dtml-var "msg('then registration number will be rendered as follows')">:
+    <p><dtml-var "msg('Incoming')"> N00123 <dtml-var "msg('of')"> 19.08.2003 <dtml-var "msg('in the department')"> "<dtml-var "msg('legal department')">"</p>
+    <p align="center"><a href="javascript:window.close()"><dtml-var "msg('Close')"></a></p>
+  </BODY>
+</HTML>

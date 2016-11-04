@@ -1,0 +1,110 @@
+<dtml-comment>
+$Id: document_presentation_form.dtml,v 1.15.10.1 2003/12/16 12:45:15 oevsegneev Exp $
+</dtml-comment>
+
+<dtml-var simple_html_header>
+
+<dtml-let document_level="getPresentationLevel() or 0"
+          published=isPublished
+          site=getSite
+          member="portal_membership.getAuthenticatedMember()"
+          uname="member.getUserName()"
+>
+<dtml-if "published and _.SecurityCheckPermission( 'Publish portal content', this() )">
+
+<form name="presentation_form" action="document_presentation" method="POST" target="workspace" id="presentation_form">
+<table>
+<tr>
+  <td class="smallHeader" colspan="3">
+   <dtml-var "msg('Site presentation mode')">:
+  </td>
+</tr>
+
+<dtml-in "site.listPresentationLevels()" prefix="l" mapping>
+<tr>
+  <td class="small" colspan="3">
+    <input type="radio" name="presentation_level" value="&dtml-l_index;" id="presentation_level&dtml-l_index;"<dtml-if "document_level==_['l_index']"> checked</dtml-if> />
+    <label for="presentation_level&dtml-l_index;"><dtml-var "msg(title)"></label>
+  </td>
+</tr>
+</dtml-in>
+
+<tr>
+  <td class="small" colspan="3">
+    <input type="checkbox" name="is_index" value="1" id="is_index"
+        <dtml-var "isIndexDocument() and 'checked' or ''">
+    />
+    <label for="is_index"><dtml-var "msg('Main folder document')"></label>
+  </td>
+</tr>
+
+<tr>
+  <td class="small" colspan="3">
+<dtml-if "meta_type == 'HTMLDocument' and isQuestAvailable()">
+    <input type="checkbox" name="is_questionnaire" value="0"
+        <dtml-var "isQuestionnaire() and 'checked' or ''">
+    />
+    <label for="is_questionnaire"><dtml-var "msg('Questionnaire')"></label>
+  </td>
+</tr>
+
+<tr>
+  <td class="small" width="15%"></td>
+  <td class="small">
+    <dtml-var "msg('e-mail')"><br>
+  </td>
+  <td class="small">
+    <input type="text" name="quest_email" value="<dtml-var "getQuestEmails('string')">" size="20"><br>
+  </td>
+</tr>
+
+<tr>
+  <td class="small" width="15%"></td>
+  <td class="small">
+   <dtml-var "msg('Action')">
+  </td>
+  <td class="small">
+    <input type="checkbox" name="do_quest_action" value="0" <dtml-var "isQuestAction() and 'checked' or ''"> />
+  </td>
+</tr>
+<tr>
+  <td class="small" width="15%"></td>
+  <td class="small">
+   <dtml-var "msg('Action')">
+  </td>
+  <td class="small">
+
+    <input type="hidden" name="document_uid" value="<dtml-var "getQuestAction() and getQuestAction().getUid()">">
+    <input type="text"
+           name="document_title"
+           size="20"
+           value="<dtml-var "getQuestAction() and getQuestAction().Title()" html_quote>"
+           disabled
+    />
+
+    <input type="button" value="<dtml-var "msg('Browse...')">" onClick="return OpenDocumentSelectionWnd(this.form.id, 'callbackFunctionTemplate')">
+    <script>
+      function callbackFunctionTemplate( formId, uid, title ){
+        document.forms[formId]['document_uid'].value = uid
+        document.forms[formId]['document_title'].value = title
+      }
+    </script>
+  </td>
+
+</dtml-if>
+  </td>
+</tr>
+
+<tr>
+  <td class="small" colspan="3">
+    <input type="submit" value="<dtml-var "msg('Change settings')">">
+  </td>
+</tr>
+
+</table>
+</form>
+
+</dtml-if>
+</dtml-let>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,1973 @@
+<dtml-let lock_creator=getLockCreator
+          editMode="1"
+          ppp="not isEditableBody() and '<BR>' or ''"
+          IsCustomDocument="shouldBeCleanedBeforePaste(context=this()) and 1 or 0">
+
+<table width="100%" height="100%" cellspacing="0" cellpadding="0" bgcolor="#F2F2F2" border="0">
+  <dtml-if "lock_creator and (portal_membership.getAuthenticatedMember().getUserName() != lock_creator)">
+<tr>
+  <td class="TextField" height="100%" width="100%">
+    <table cellpadding="0" cellspacing="5" width="100%" height="100%" border="0" height="100%">
+    <tr>
+      <td valign="top" bgcolor="white">
+        <h1><dtml-msg "You cannot edit this document now because it is being edited by another user"></h1>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  <dtml-elif associated_with_attach>
+<tr>
+  <td class="TextField" height="100%" width="100%">
+    <table cellpadding="5" cellspacing="0" width="100%" height="100%" border="0">
+    <tr>
+      <td valign="top">
+        <p>
+        <dtml-var "msg('The document is associated with attached file')">
+        <dtml-with "this()[ associated_with_attach ]">
+         "&dtml-title_or_id;".
+          <br><br>
+          <dtml-if "_.SecurityCheckPermission('Modify portal content', this())">
+            <dtml-var "msg('To edit the attachment follow this link')">:
+            <dtml-var "_.hasattr(this(),'externalEditLink_') and portal_actions.getActionIcon('external_edit') or ''">
+          <dtml-else>
+            <dtml-var "msg('You are not allowed to edit the attachment')">.
+          </dtml-if>
+          </dtml-with>
+         </p>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  <dtml-else>
+
+<form name="wysiwyg_editor" action="&dtml-absolute_url;/document_edit" method="post" enctype="multipart/form-data"
+  <dtml-unless noWYSIWYG>
+ onsubmit="setMode(true); copyValue(this); this.submitted=true; document.getElementById('saveButton').disabled=true; return(true);"
+  </dtml-unless>
+>
+<input type="hidden" name="SafetyBelt" value="&dtml-SafetyBelt;">
+<input type="hidden" name="text_format" value="html">
+
+    <dtml-if "REQUEST.get('noWYSIWYG','')">
+<tr>
+  <td class="TextField" height="100%">
+    <table cellspacing="0" cellpadding="5" height="100%" width="100%" border="0">
+    <tr>
+      <td align="right">
+        <input type="submit" name="OK" value="<dtml-var "msg('Save document')">">
+      </td>
+    </tr>
+    <tr>
+      <td height="100%">
+        <textarea name="text:text" rows="20" cols="100" style="width:100%;height:100%;"><dtml-var ppp><dtml-var EditableBody html_quote></textarea>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+    <dtml-else>
+<tr>
+  <td align="right">
+
+<script type="text/javascript">
+<!--
+var bLoad=false;
+var selectedTable;
+var selectedTableUID;
+var IsSymbolsPanelVisible=false;
+var leaveText = '<dtml-msg "If you click OK now, your changes will be lost!">';
+
+var editorImages = [
+	'style_over.gif', 'style_click.gif',
+	'font_over.gif', 'font_click.gif',
+	'size_over.gif', 'size_click.gif',
+	'color_over.gif', 'color_click.gif',
+	'cellcolor_over.gif', 'cellcolor_click.gif'
+    ];
+	
+preloadImages( editorImages );
+
+oEdit = public_description = new Editor;
+
+function Editor() {
+  this.put_html=put_html;
+  this.get_html=get_html;
+  this.testHTML=testHTML;
+  this.TextMode = true;
+  this.put_TextMode = put_TextMode;
+  this.get_TextMode = get_TextMode;
+}
+
+function put_TextMode(v) {
+  this.TextMode = (v==true);
+  document.all.tb3.style.display = this.TextMode ? "" : "none";
+}
+
+function get_TextMode() {
+  return this.TextMode;
+}
+
+function testHTML( bAllowHead, extras ) {
+  mW.click();
+  var badStuff=new Array("IFRAME","SCRIPT","LAYER","ILAYER","OBJECT","APPLET","EMBED","FORM","INPUT","BUTTON","TEXTAREA"),
+      headStuff=new Array("HTML","BODY","TITLE","BASE","LINK","META","STYLE"),
+      hasStuff=new Array(),
+	  bodyTags=idEdit.document.body.all,
+	  i=0;
+  for (i=0; i < badStuff.length; i++)
+    if( bodyTags.tags(badStuff[i]).length > 0 )
+      hasStuff[hasStuff.length] = badStuff[i];
+  if (!bAllowHead)
+    for (i=0; i < headStuff.length; i++)
+      if( bodyTags.tags(headStuff[i]).length > 0 )
+        hasStuff[hasStuff.length] = headStuff[i];
+  if (extras != null)
+    for (i=0; i<extras.length; i++)
+      if( bodyTags.tags(extras[i]).length > 0 )
+        hasStuff[hasStuff.length] = extras[i];
+  for (i=0; i < bodyTags.tags("FONT").length; i++)
+      if( bodyTags.tags("FONT")[i].style.backgroundColor=="#ffffff" ) {
+          bodyTags.tags("FONT")[i].style.backgroundColor="";
+          if( bodyTags.tags("FONT")[i].outerHTML.substring(0,6) == "<FONT>" )
+              bodyTags.tags("FONT")[i].outerHTML=bodyTags.tags("FONT")[i].innerHTML;
+      }
+  var str="";
+  if (hasStuff.length>0) {
+    str="Please remove the following HTML Tags from your message and resubmit:";
+    for (i=0;i<hasStuff.length;i++)
+       str+="\n "+hasStuff[i];
+    str+= "\nRemember, when using HTML Mode you may need to escape \nthe brackets surrounding tags (< and >) with &lt; and &gt;";
+    setTimeout("mH.click()",0);
+  }
+  return str;
+}
+
+function get_html() {
+  if( typeof(idEdit) != 'object' ) return;
+  if( bMode )
+    return idEdit.document.body.innerHTML;
+  else
+    return idEdit.document.body.innerText;
+}
+
+function put_html(sVal) {
+  if( typeof(idEdit) != 'object' ) return;
+  if( bMode )
+    idEdit.document.body.innerHTML=sVal;
+  else
+    idEdit.document.body.innerText=sVal;
+  if( bMode )
+    idEdit.document.body.innerHTML=sVal;
+  else
+    idEdit.document.body.innerText=sVal;
+}
+
+var richTemplate =
+'<html> \
+ <head> \
+   <style type="text/css"> \
+     body { \
+       font-family: &dtml-getFontFamily;; \
+       color: black; \
+       font-size: 12px; \
+     } \
+     table { \
+       font-size: 100%; \
+     } \
+   </style>' +
+
+'</head> \
+ <body lang="&dtml-Language;"></body> \
+ </html>';
+
+var sourceTemplate = '<html><body style="font-family: courier, monospace; background: #f5f5f5"></body></html>';
+
+var bMode = true,
+    sel = null,
+    strErr = "<dtml-msg "Formatting toolbar is inaccessible while editing initial text">.";
+
+function setMode(bNewMode) {
+  if (bNewMode!=bMode) {
+    if (bNewMode) {
+      var sContents=idEdit.document.body.innerText;
+      idEdit.document.open();
+      idEdit.document.write(richTemplate);
+      idEdit.document.close();
+      idEdit.document.body.innerHTML=sContents;
+    } else {
+      var fonts=idEdit.document.body.all.tags("FONT");
+      for (var i=0;i<fonts.length;i++)
+        if (fonts[i].style.backgroundColor!="")
+          fonts[i].outerHTML=fonts[i].innerHTML;
+      var sContents=idEdit.document.body.innerHTML;
+      idEdit.document.open();
+      idEdit.document.write(sourceTemplate);
+      idEdit.document.close();
+      idEdit.document.body.innerText=sContents;
+    }
+    bMode=bNewMode;
+    setupEventHandlers();
+    setToolbarState(bMode, true);
+//	alert(bMode);
+  }
+  focusEditor();
+}
+
+function showHideButton() {
+  var tbody = idEdit.document.getElementById('facsimile_table');
+  if (! tbody) {
+    facsimile_containment.style.display="none";
+  } else {
+    var tr_name = tbody.rows.length;
+    if (tr_name == 1) wysiwyg_editor.facsimile_delete_button.disabled = true;
+  }
+}
+//-->
+</script>
+
+<div id=idBox style="z-index:5; text-align:left; visibility: hidden;">
+
+<TABLE id="editor_toolbar_table" width="100%" class="htmlEditToolbar" cellspacing=0 cellpadding=0 style="padding-top: 2pt; padding-right: 3pt; margin-bottom: 0pt" border="0">
+<TR>
+  <TD id="htmlOnly" align="right" valign="middle" nowrap>
+<SPAN UNSELECTABLE=on title="<dtml-msg "Apply paragraph style">"><img name="style" style="cursor:hand" onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick="change(this,3);format('formatBlock',tStyle[tStyle.selectedIndex].value)"
+ src="&dtml-portal_url;/style.gif" align="absmiddle" width="18" height="18"></SPAN>
+ <!-- Изменено 13.10.2006 -->
+<SELECT name="tStyle" class="htmlEditSelect" ONCHANGE="format('formatBlock',this[this.selectedIndex].value);">
+ <OPTION CLASS="htmlEditHeading" SELECTED><dtml-msg "None"></OPTION>
+ <OPTION VALUE="<P>"><dtml-msg "Paragraph"></OPTION>
+ <OPTION VALUE="<H1>"><dtml-msg "Header"> 1</OPTION>
+ <OPTION VALUE="<H2>"><dtml-msg "Header"> 2</OPTION>
+ <OPTION VALUE="<H3>"><dtml-msg "Header"> 3</OPTION>
+ <OPTION VALUE="<H4>"><dtml-msg "Header"> 4</OPTION>
+ <OPTION VALUE="<H5>"><dtml-msg "Header"> 5</OPTION>
+ <OPTION VALUE="<H6>"><dtml-msg "Align center in table"></OPTION>
+ <OPTION VALUE="<PRE>"><dtml-msg "Formatted"></OPTION>
+ <OPTION VALUE="removeFormat" STYLE="color: darkred"><dtml-msg "Reset format"></OPTION>
+</SELECT>
+ <!-- /Изменено 13.10.2006 -->
+<img src="&dtml-portal_url;/divider.gif" align="absmiddle" width="4" height="18">
+<SPAN UNSELECTABLE=on title="<dtml-msg "Apply font type">"><img name="font" style="cursor:hand" onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick="change(this,3);format('fontname',tFont[tFont.selectedIndex].value)"
+ src="&dtml-portal_url;/font.gif" align="absmiddle" width="18" height="18"></SPAN>
+<SELECT name="tFont" class="htmlEditSelect" ONCHANGE="format('fontname',this[this.selectedIndex].value);">
+        <OPTION CLASS="htmlEditHeading" SELECTED><dtml-msg "None"></OPTION>
+        <OPTION VALUE="arial,geneva,sans-serif">Arial</OPTION>
+        <OPTION VALUE="verdana,arial,geneva,sans-serif">Verdana</OPTION>
+        <OPTION VALUE="times,serif">Times</OPTION>
+        <OPTION VALUE="courier,monospace">Courier</OPTION>
+</SELECT>
+<img src="&dtml-portal_url;/divider.gif" align="absmiddle" width="4" height="18">
+<SPAN UNSELECTABLE=on title="<dtml-msg "Apply font size">">
+<img name="size" style="cursor:hand" onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick="change(this,3);format('fontSize',tSize[tSize.selectedIndex].value)"
+ src="&dtml-portal_url;/size.gif" align="absmiddle" width="18" height="18"></SPAN>
+<SELECT name="tSize" class="htmlEditSelect"  ONCHANGE="format('fontSize',this[this.selectedIndex].value);">
+        <OPTION CLASS="htmlEditHeading"><dtml-msg "None"></OPTION>
+        <OPTION VALUE="1">1</OPTION>
+        <OPTION VALUE="2">2</OPTION>
+        <OPTION VALUE="3">3</OPTION>
+        <OPTION VALUE="4">4</OPTION>
+        <OPTION VALUE="5">5</OPTION>
+        <OPTION VALUE="6">6</OPTION>
+        <OPTION VALUE="7">7</OPTION>
+</SELECT>
+<img src="&dtml-portal_url;/divider.gif" align="absmiddle" width="4" height="18">
+<SPAN UNSELECTABLE=on title="<dtml-msg "Apply font color">"><img name="color" style="cursor:hand" onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick="change(this,3);format('forecolor',tForeColor[tForeColor.selectedIndex].text)"
+ src="&dtml-portal_url;/color.gif" align="absmiddle" width="18" height="18"></SPAN>
+<SELECT name="tForeColor" class="htmlEditSelect"  ONCHANGE="if (SelectorColor(this)==1) format('forecolor',this[this.selectedIndex].text);">
+  		<OPTION><dtml-msg "None"></OPTION>
+  		<OPTION><dtml-msg "More colors"></OPTION>
+</SELECT>
+<img src="&dtml-portal_url;/divider.gif" align="absmiddle" width="4" height="18">
+<SPAN UNSELECTABLE=on title="<dtml-msg "Apply cell background color">"><img name="cellcolor" style="cursor:hand" onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick='change(this,3);setCellBackground("cell");'
+ src="&dtml-portal_url;/cellcolor.gif" align="absmiddle" width="18" height="18"></SPAN>
+<SELECT name="BGselector" onChange="SelectorColor(this);">
+  		<OPTION><dtml-msg "None"></OPTION>
+  		<OPTION><dtml-msg "More colors"></OPTION>
+</SELECT>
+  </TD>
+</TR>
+<TR>
+  <TD align="right">
+    <table width="100%" cellspacing="3" cellpadding="0" border="0">
+    <tr>
+  <dtml-if "_.SecurityCheckPermission('Modify portal content', this())">
+    <td id="facsimile_containment" align="right" width="100%" nowrap>
+      <table cellspacing="3" cellpadding="0" border="0">
+      <tr>
+        <td style="padding: 3px 3px 0 0"><h3><dtml-msg "Facsimile action">:</h3></td>
+        <td><input type="button" value=" << " title="<dtml-var "msg('Delete facsimile')">" onClick="javascript: DeleteFacsimile();" name="facsimile_delete_button"></td>
+        <td><input type="button" value=" >> " title="<dtml-var "msg('Insert facsimile')">" onClick="javascript: InsertFacsimile();" name="facsimile_insert_button"></td>
+      </tr>
+      </table>
+    </td>
+    <dtml-if "listCategoryAttributes()">
+    <td width="100%" align="right"><input type="button" title="<dtml-msg "Insert attribute field in the document">" value=" ---> " onClick="javascript:InitFieldDlg();"></td>
+    </dtml-if>
+  </dtml-if>
+    <td align="right">
+
+<dtml-with wysiwyg_toolbar.gif>
+<script type="text/javascript">
+<!--
+var editor_locked = false;
+
+function LockEditor() {
+  editor_locked = true;
+}
+
+function UnlockAndFocusEditor() {
+  editor_locked = false;
+  focusEditor();
+}
+
+function focusEditor() {
+  if( !editor_locked ) idEdit.focus();
+}
+
+function getToolbar() {
+ <!-- Изменено 13.10.2006 -->
+
+var buttons=new Array(3,19,19,19,3,19,19,3,19,19,19,19,19,19,3,19,19,19,19,3,19,19,19,19,3,19,19,19);
+var action=new Array("","copy","cut","paste","","undo","redo","","bold","italic","underline","strikethrough","superscript","subscript","","justifyleft","justifycenter","justifyright","justifyfull","","insertorderedlist","insertunorderedlist","outdent","indent","","createLink","insertImage","setMode");
+var tooltip=new Array("","<dtml-msg "Copy">","<dtml-msg "Cut">","<dtml-msg "Paste">","","<dtml-msg "Undo">","<dtml-msg "Redo">","","<dtml-msg "Bold">","<dtml-msg "Italic">","<dtml-msg "Underline">","<dtml-msg "Strikethrough">","<dtml-msg "Superscript">","<dtml-msg "Subscript">","","<dtml-msg "Justify left">","<dtml-msg "Justify center">","<dtml-msg "Justify right">","<dtml-msg "Justify full">","","<dtml-msg "Ordered list">","<dtml-msg "Unordered list">","<dtml-msg "Outdent">","<dtml-msg "Indent">","","<dtml-msg "Hyperlink">","<dtml-msg "Image properties">","<dtml-msg "HTML source">");
+var buttons2=new Array(3,19,19,3,19,19,19,3,19,19,19,3,19,19,19,19,3,19,19,19,19,3,19,19,19,3,19,19,19);
+var action2=new Array("","InitInsertTableDlg()","tablePropsDlgInit()","","table_row_insert_click_up('idEdit',this)","table_row_insert_click_down('idEdit',this)","deleteRow()","","addColumn(0)","addColumn(1)","table_column_delete_click('idEdit',this)","","table_cell_merge_right_click('idEdit',this)","table_cell_split_vertical_click('idEdit',this)","table_cell_merge_down_click('idEdit',this)","table_cell_split_horizontal_click('idEdit',this)","","setCellVAlign('top')","setCellVAlign('middle')","setCellVAlign('bottom')","setCellWidth()","","setTableIndent('left')","setTableIndent('center')","setTableIndent('right')","","SymbolsPanel","","");
+var tooltip2=new Array("","<dtml-msg "Add table">","<dtml-msg "Table properties">","","<dtml-msg "Add row before">","<dtml-msg "Add row after">","<dtml-msg "Delete row">","","<dtml-msg "Add column before">","<dtml-msg "Add column after">","<dtml-msg "Delete column">","","<dtml-msg "merge cells horizontaly">","<dtml-msg "split cells horizontaly">","<dtml-msg "merge cells verticaly">","<dtml-msg "split cells verticaly">","","<dtml-msg "Vertical align top">","<dtml-msg "Vertical align middle">","<dtml-msg "Vertical align bottom">","<dtml-msg "Cell width">","","<dtml-msg "Table align left">","<dtml-msg "Table align center">","<dtml-msg "Table align right">","","<dtml-msg "Insert symbol">","<dtml-msg "Search">","");
+
+var left=48,width=0;
+var s="<table id='toolbar' width='488px' cellspacing='0' cellpadding='0' border='0'><tr><td rowspan='2'>";
+s+="<SPAN STYLE='position:relative;height:50;width:48'><SPAN STYLE='position:absolute;margin:0px;padding:0;height:50;top:0;left:0;width:49;clip:rect(0 48 50 0);overflow:hidden'><input type='image' BORDER=0 SRC='<dtml-var absolute_url>' STYLE='position:absolute;z-index:8;top:0;left:0' WIDTH=488 HEIGHT=144";
+s+=" onmouseover='this.style.top=-48' onmouseout='this.style.top=0' ONCLICK='this.style.top=-96; handlerOnSave(true);' id='saveButton'";
+s+="TITLE=\"<dtml-var "msg('Save')">\"></SPAN></SPAN></td><td>";
+
+var left=48,width=0;
+var s="<table id='toolbar' width='488px' cellspacing='0' cellpadding='0' border='0'><tr><td rowspan='2'>";
+s+="<SPAN STYLE='position:relative;height:50;width:48'><SPAN STYLE='position:absolute;margin:0px;padding:0;height:50;top:0;left:0;width:49;clip:rect(0 48 50 0);overflow:hidden'><input type='image' BORDER=0 SRC='<dtml-var absolute_url>' STYLE='position:absolute;z-index:8;top:0;left:0' WIDTH=488 HEIGHT=144";
+s+=" onmouseover='this.style.top=-48' onmouseout='this.style.top=0' ONCLICK='this.style.top=-96; handlerOnSave(true);' id='saveButton'";
+s+="TITLE=\"<dtml-var "msg('Save')">\"></SPAN></SPAN></td><td>";
+
+for (var i = 0; i < buttons.length; i++) {
+  width+=buttons[i];
+  s+="<SPAN STYLE='position:relative;height:26;width: " + buttons[i] + "'><SPAN STYLE='position:absolute;margin:0px;padding:0;height:26;top:0;left:0;width:" + (buttons[i]) + ";clip:rect(0 "+buttons[i]+" 25 "+0+");overflow:hidden'><IMG BORDER=0 SRC='<dtml-var absolute_url>' STYLE='position:absolute;z-index:8;top:0;left:-" + left + "' WIDTH=488 HEIGHT=144";
+  if (buttons[i]!=3) {
+    switch (action[i]) {
+      case "createLink":
+        s+=" onmouseover='focusEditor();this.style.top=-48' onmouseout='this.style.top=0' ONCLICK=\"";
+        s+="focusEditor();InitURLdlg();this.style.top=0\" ";
+        s+="TITLE=\"" + tooltip[i] + "\"";
+      case "insertImage":
+        s+=" onmouseover='focusEditor();this.style.top=-48' onmouseout='this.style.top=0' ONCLICK=\"";
+        s+="focusEditor();ImgPropsDlgInit();/*format('insertImage',null,true);*/this.style.top=0\" ";
+        s+="TITLE=\"" + tooltip[i] + "\"";
+      case "setMode":
+        s+=" onmouseover='focusEditor();this.style.top=-48;' onmouseout='if (bMode) this.style.top=0; else this.style.top=-96;' ONCLICK=\"";
+        s+="focusEditor();if (bMode) this.style.top=0; else this.style.top=-96; setMode(!bMode)\" ";
+        s+="TITLE=\"" + tooltip[i] + "\"";
+      default:
+        s+=" onmouseover='focusEditor();this.style.top=-48' onmouseout='this.style.top=0' ONCLICK=\"";
+        s+="focusEditor();format('" + action[i] + "');this.style.top=0\" ";
+        s+="TITLE=\"" + tooltip[i] + "\"";
+    }
+  }
+  s+="></SPAN></SPAN>";
+  left+=buttons[i];
+}
+
+s+="</td></tr><tr><td>";
+left=48,width=0;
+for (var i=0;i<buttons2.length;i++) {
+  width+=buttons2[i];
+  s+="<SPAN STYLE='position:relative;height:26;width: " + buttons2[i] + "'><SPAN STYLE='position:absolute;margin:0px;padding:0;height:26;top:0;left:0;width:" + (buttons2[i]) + ";clip:rect(0 "+buttons2[i]+" 25 "+0+");overflow:hidden'><IMG BORDER=0 SRC='<dtml-var absolute_url>' STYLE='position:absolute;z-index:8;top:-25;left:-" + left + "' WIDTH=488 HEIGHT=144";
+  if (buttons2[i]!=3) {
+    switch (action2[i]) {
+      case "SymbolsPanel":
+        s+=" onmouseover='focusEditor();this.style.top=-73;' onmouseout='if (IsSymbolsPanelVisible) this.style.top=-121; else this.style.top=-25;' ONCLICK=\"";
+        s+="if (IsSymbolsPanelVisible) { this.style.top=-25; IsSymbolsPanelVisible=false; hideObject(tools2)} else { this.style.top=-121; IsSymbolsPanelVisible=true; showObject(tools2)}\" ";
+        s+="TITLE=\"" + tooltip2[i] + "\"";
+      default:
+        s+=" onmouseover='focusEditor();this.style.top=-73' onmouseout='this.style.top=-25' ONCLICK=\"focusEditor();";
+        s+=action2[i] + ";this.style.top=-25\" ";
+        s+="TITLE=\"" + tooltip2[i] + "\"";
+    }
+  }
+  s+="></SPAN></SPAN>";
+  left+=buttons2[i];
+}
+s+="</td></tr></table>";
+return "<DIV ID=tb2 class=htmlEditToolbar STYLE=\"width: " + (width+3) + "\" ONSELECTSTART=\"return false\" ONDRAGSTART=\"return false\">" + s + "</DIV>";
+}
+
+document.write(getToolbar());
+//-->
+</script>
+</dtml-with>
+
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3">
+
+<script type="text/javascript">
+<!--
+//Функции для объединения/разбиения ячейек таблицы
+
+//Вычисление матрицы таблицы
+function formCellMatrix(ct) {
+  var tm = new Array();
+  for (var i=0; i<ct.rows.length; i++)
+    tm[i]=new Array();
+
+  for (var i=0; i<ct.rows.length; i++) {
+    jr=0;
+    for (var j=0; j<ct.rows(i).cells.length;j++) {
+      while (tm[i][jr] != undefined) 
+        jr++;
+      for (var jh=jr; jh<jr+(ct.rows(i).cells(j).colSpan?ct.rows(i).cells(j).colSpan:1);jh++) {
+        for (var jv=i; jv<i+(ct.rows(i).cells(j).rowSpan?ct.rows(i).cells(j).rowSpan:1);jv++) {
+          if (jv==i) {
+            tm[jv][jh]=ct.rows(i).cells(j).cellIndex;
+          }
+          else {
+            tm[jv][jh]=-1;
+          }
+        }
+      }
+    }
+  }
+  return(tm);
+}
+
+//Текущее положение в строке
+function getTD(editor) {
+  if (window.frames[editor+''].document.selection.type != "Control") {
+    var tControl = window.frames[editor+''].document.selection.createRange();
+    tControl = tControl.parentElement();
+    while ((tControl.tagName != 'TD') && (tControl.tagName != 'TH') && (tControl.tagName != 'TABLE') && (tControl.tagName != 'BODY')) {
+      tControl = tControl.parentElement;
+    }
+    if ((tControl.tagName == 'TD') || (tControl.tagName == 'TH'))
+      return(tControl);
+    else
+      return(null);
+  } else {
+    return(null);
+  }
+}
+
+//Текущее положение в столбце
+function getTR(editor) {
+  if (window.frames[editor+''].document.selection.type != "Control") {
+    var tControl = window.frames[editor+''].document.selection.createRange();
+    tControl = tControl.parentElement();
+    while ((tControl.tagName != 'TR') && (tControl.tagName != 'TABLE') && (tControl.tagName != 'BODY')) {
+      tControl = tControl.parentElement;
+    }
+    if (tControl.tagName == 'TR')
+      return(tControl);
+    else
+      return(null);
+  } else {
+    return(null);
+  }
+}
+
+//Вычисляем редактируемую таблицу
+function getTable(editor) {
+  if (window.frames[editor+''].document.selection.type == "Control") { 
+    var tControl = window.frames[editor+''].document.selection.createRange();
+    if (tControl(0).tagName == 'TABLE')
+      return(tControl(0));
+    else
+      return(null);
+  } else {
+    var tControl = window.frames[editor+''].document.selection.createRange();
+    tControl = tControl.parentElement();
+    while ((tControl.tagName != 'TABLE') && (tControl.tagName != 'BODY')) {
+      tControl = tControl.parentElement;
+    }
+    if (tControl.tagName == 'TABLE')
+      return(tControl);
+    else
+      return(null);
+  }
+}
+
+//Объединение ячеек по вертикали вниз
+function table_cell_merge_down_click(editor, pos) {
+  var ct = getTable('idEdit'); // текущая таблица
+  var cr = getTR('idEdit'); // текущий столбец
+  var cd = getTD('idEdit'); // текущая строка
+
+  if (cd && cr && ct) {
+    // получение реальной позиции на данных полученных из матрицы
+    var tm = formCellMatrix(ct);
+    for (var j=0; j<tm[cr.rowIndex].length; j++) {
+      if (tm[cr.rowIndex][j] == cd.cellIndex) {
+        crealIndex=j;
+        break;
+      }
+    }
+    ccrs = cd.rowSpan?cd.rowSpan:1;
+    cccs = cd.colSpan?cd.colSpan:1;
+      
+    if (cr.rowIndex+ccrs<ct.rows.length) {
+      ncellIndex = tm[cr.rowIndex+ccrs][crealIndex];
+      if (ncellIndex != -1 && (crealIndex==0 || (crealIndex>0 && (tm[cr.rowIndex+ccrs][crealIndex-1]!=tm[cr.rowIndex+ccrs][crealIndex])))) {
+        ncrs = ct.rows(cr.rowIndex+ccrs).cells(ncellIndex).rowSpan?ct.rows(cr.rowIndex+ccrs).cells(ncellIndex).rowSpan:1;
+        nccs = ct.rows(cr.rowIndex+ccrs).cells(ncellIndex).colSpan?ct.rows(cr.rowIndex+ccrs).cells(ncellIndex).colSpan:1;
+
+        if (cccs == nccs) {
+          cd.innerHTML += ct.rows(cr.rowIndex+ccrs).cells(ncellIndex).innerHTML;
+          ct.rows(cr.rowIndex+ccrs).deleteCell(ncellIndex);
+          cd.rowSpan = ccrs+ncrs;
+        }
+      }
+    }
+  }
+}
+  
+//Объединение ячеек по горизонтали вправо
+function table_cell_merge_right_click(editor, pos) {
+  var ct = getTable('idEdit');
+  var cr = getTR('idEdit');
+  var cd = getTD('idEdit');
+
+  if (cd && cr && ct) {
+    var tm = formCellMatrix(ct);
+    for (var j=0; j<tm[cr.rowIndex].length; j++) {
+      if (tm[cr.rowIndex][j] == cd.cellIndex) {
+        realIndex=j;
+        break;
+      }
+    }
+    if (cd.cellIndex+1<cr.cells.length) {
+      ccrs = cd.rowSpan?cd.rowSpan:1;
+      cccs = cd.colSpan?cd.colSpan:1;
+      ncrs = cr.cells(cd.cellIndex+1).rowSpan?cr.cells(cd.cellIndex+1).rowSpan:1;
+      nccs = cr.cells(cd.cellIndex+1).colSpan?cr.cells(cd.cellIndex+1).colSpan:1;
+      j=realIndex;
+
+      while(tm[cr.rowIndex][j] == cd.cellIndex) j++;
+      if (tm[cr.rowIndex][j] == cd.cellIndex+1) {
+        if (ccrs == ncrs) {
+          cd.colSpan = cccs+nccs;
+          cd.innerHTML += cr.cells(cd.cellIndex+1).innerHTML;
+          cr.deleteCell(cd.cellIndex+1);
+        }
+      }
+    }
+  }   
+}
+
+//разбиение ячеек по вертикали
+function table_cell_split_horizontal_click(editor, pos) {
+  var ct = getTable('idEdit');
+  var cr = getTR('idEdit');
+  var cd = getTD('idEdit');
+
+  if (cd && cr && ct) {
+    var tm = formCellMatrix(ct);
+    for (var j=0; j<tm[cr.rowIndex].length; j++) {
+      if (tm[cr.rowIndex][j] == cd.cellIndex) {
+        realIndex=j;
+        break;
+      }
+    }
+      
+    if (cd.rowSpan>1) {
+      i = realIndex;
+      while (tm[cr.rowIndex+1][i] == -1) i++;
+      if (i == tm[cr.rowIndex+1].length) 
+        ni = ct.rows(cr.rowIndex+1).cells.length;
+      else
+        ni = tm[cr.rowIndex+1][i];
+          
+      var newc = ct.rows(cr.rowIndex+1).insertCell(ni);
+      cd.rowSpan--;
+      var nc = cd.cloneNode();
+      newc.replaceNode(nc);
+  
+      cd.rowSpan = 1;
+    } else {
+      ct.insertRow(cr.rowIndex+1);
+
+      for (var i=0; i<cr.cells.length; i++) {
+        if (i != cd.cellIndex) {
+          rs = cr.cells(i).rowSpan>1?cr.cells(i).rowSpan:1;
+          cr.cells(i).rowSpan = rs+1;
+        }
+      }
+
+      for (var i=0; i<cr.rowIndex; i++) {
+        var tempr = ct.rows(i);
+        for (var j=0; j<tempr.cells.length; j++) {
+          if (tempr.cells(j).rowSpan > (cr.rowIndex - i))
+            tempr.cells(j).rowSpan++;
+        }
+      }
+        
+      var newc = ct.rows(cr.rowIndex+1).insertCell(0);
+      var nc = cd.cloneNode();
+      newc.replaceNode(nc);
+    }
+  } 
+}
+
+//разбиение ячеек по горизонтали
+function table_cell_split_vertical_click(editor, pos) {
+  var ct = getTable('idEdit');
+  var cr = getTR('idEdit');
+  var cd = getTD('idEdit');
+
+  if (cd && cr && ct) {
+    var tm = formCellMatrix(ct);
+    for (var j=0; j<tm[cr.rowIndex].length; j++) {
+      if (tm[cr.rowIndex][j] == cd.cellIndex) {
+        realIndex=j;
+        break;
+      }
+    }
+    //status = cd.colSpan; // Проверка значения colSpan текущей ячейки
+    if (cd.colSpan > 1) {
+      var newc = ct.rows(cr.rowIndex).insertCell(cd.cellIndex+1);
+      cd.colSpan--;
+      var nc = cd.cloneNode();
+      newc.replaceNode(nc);
+      cd.colSpan = 1;
+    } else {
+      if (cd.colSpan >= 2) { 
+        var newc = ct.rows(cr.rowIndex).insertCell(cd.cellIndex+1);
+        var nc = cd.cloneNode();
+        newc.replaceNode(nc);
+
+        for (var i=0; i<tm.length; i++) {
+          if (i!=cr.rowIndex && tm[i][realIndex] != -1) {
+            cs = ct.rows(i).cells(tm[i][realIndex]).colSpan >1?ct.rows(i).cells(tm[i][realIndex]).colSpan:1;
+            ct.rows(i).cells(tm[i][realIndex]).colSpan = cs+1;
+          }
+        }
+      }
+    }
+  }
+}
+
+//Удаление столбца таблицы
+function table_column_delete_click(editor, pos) {
+  var ct = getTable('idEdit');
+  var cr = getTR('idEdit');
+  var cd = getTD('idEdit');
+
+  if (cd && cr && ct) {
+    var tm = formCellMatrix(ct);
+    if (tm[0].length<=1) {
+      ct.removeNode(true);
+    } else {
+      for (var j=0; j<tm[cr.rowIndex].length; j++) {
+        if (tm[cr.rowIndex][j] == cd.cellIndex) {
+          realIndex=j;
+          break;
+        }
+      }
+
+      for (var i=0; i<ct.rows.length; i++) {
+        if (tm[i][realIndex] != -1) {
+          if (ct.rows(i).cells(tm[i][realIndex]).colSpan>1)
+            ct.rows(i).cells(tm[i][realIndex]).colSpan--;
+          else
+            ct.rows(i).deleteCell(tm[i][realIndex]);
+        }
+      }
+    }
+  }   
+}
+
+//Добавление строки ниже
+function table_row_insert_click_down(editor, pos) {
+  var ct = getTable(editor);
+  var cr = getTR(editor);
+
+  if (ct && cr) {
+    var newr = ct.insertRow(cr.rowIndex+1);
+    for (var i=0; i<cr.cells.length; i++) {
+      if (cr.cells(i).rowSpan > 1) {
+        cr.cells(i).rowSpan++;
+      } else {
+        var newc = cr.cells(i).cloneNode();
+        newr.appendChild(newc);
+      }
+    }
+
+    for (var i=0; i<cr.rowIndex; i++) {
+      var tempr = ct.rows(i);
+      for (var j=0; j<tempr.cells.length; j++) {
+        if (tempr.cells(j).rowSpan > (cr.rowIndex - i))
+          tempr.cells(j).rowSpan++;
+      }
+    }
+  } 
+}
+
+//Добавление строки выше
+function table_row_insert_click_up(editor, pos) {
+  var ct = getTable(editor);
+  var cr = getTR(editor);
+
+  if (ct && cr) {
+    var newr = ct.insertRow(cr.rowIndex);
+    for (var i=0; i<cr.cells.length; i++) {
+      if (cr.cells(i).rowSpan > 1) {
+        cr.cells(i).rowSpan++;
+      } else {
+        var newc = cr.cells(i).cloneNode();
+        newr.appendChild(newc);
+      }
+    }
+
+    for (var i=0; i<cr.rowIndex; i++) {
+      var tempr = ct.rows(i);
+      for (var j=0; j<tempr.cells.length; j++) {
+        if (tempr.cells(j).rowSpan > (cr.rowIndex - i))
+          tempr.cells(j).rowSpan++;
+      }
+    }
+  } 
+}
+  
+//Конец объединения/разбиения
+
+function format(what, opt, ui) {
+  if (what == 'formatBlock' && opt == 'removeFormat') {
+    what = opt;
+    opt = null;
+  }
+  ui = (ui==true);
+
+  if (opt==null)
+    idEdit.document.execCommand(what,ui);
+  else
+    idEdit.document.execCommand(what,ui,opt);
+  if (idEdit.document.selection.type!="Control")
+    { var s=idEdit.document.selection.createRange(),p=s.parentElement()
+      if ((p.tagName=="FONT") && (p.style.backgroundColor!=""))
+        p.outerHTML=p.innerHTML;
+    }
+
+  focusEditor();
+  sel=null;
+}
+
+// Возвращает текущее выделение в окне редактирования
+function currentSelection() {
+  return idEdit.document.selection.createRange();
+}
+
+// Возвращает первый элемент с указанным тегом начианая со start
+function getEl(sTag,start) {
+  while ((start!=null) && (start.tagName!=sTag))
+    start = start.parentElement;
+  return start;
+}
+
+// Возвращает первый элемент с указанным тегом из коллекции start
+/*
+function getElText(sTag,start) {
+  for
+  alert(start.length)
+    if ((start!=null) && (start.tagName!=sTag))
+    for (var i=0;i<start.length;i++)
+      alert(start.length)
+      alert(start.item(i))
+
+    while ((start!=null) && (start.tagName!=sTag))
+      alert
+      start = start.parentElementitem
+    return start
+}
+*/
+
+function getEdEl(sTag,start) {
+  while ((start!=null) && (start.tagName!=sTag))
+  { if (start == idEdit) return start;
+      start = start.parentElement;
+  }
+  return start;
+}
+
+// Добавление таблицы
+function addTable(rows, cols, thEnabled) {
+  // Устанавливаем фокус на окне редактирования
+  focusEditor();
+  if (rows < 1 || cols < 1) return;
+  sel.select();
+
+  var tableStr = "<table class=xxx style=\"BORDER-COLLAPSE: collapse\" width=88% align=center cellSpacing=0 cellPadding=0 border=1>";
+  //var tableStr = "<table class=xxx width=88% align=center cellSpacing=1 cellPadding=1 borderColor=#000000 style='border: 1px solid;' border=1>";
+
+  if (thEnabled) {
+    tableStr += "<tr>";
+    for (j = 0; j < cols; j++) {
+      tableStr += "<td class=xxx align=middle><strong>&nbsp;</strong></td>";
+    }
+    tableStr += "</tr>";
+  }
+
+  for (i = 0; i < rows; i++) {
+    tableStr += "<tr>";
+    for (j = 0; j < cols; j++) {
+      tableStr += "<td class=xxx>&nbsp;</td>";
+    }
+    tableStr += "</tr>";
+  }
+  tableStr += "</table>";
+
+  sel.pasteHTML(tableStr);
+  return false;
+}
+
+// Добавление строки таблицы
+function addRow(pos) {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  var elTable = sel.parentElement();
+
+  elTable = IsInTable(elTable);
+  if (elTable != 0) {
+    elTable = getEl("TABLE",elTable);
+
+    if (elTable != null) {
+      var row = sel.parentElement();
+      row = getEl("TR", row);
+
+      if (row != null) {
+        var ind = row.rowIndex + pos;
+        if (ind < 0) {
+          ind = 0;
+        }
+        else {
+          if (ind > elTable.rows.length - 1) {
+            ind = -1;
+          }
+        }
+
+        elTable.insertRow(ind);
+        if (ind < 0)
+          ind = elTable.rows.length - 1;
+
+        // Добавленая строка
+        var cells = row.cells;
+        // Клонирование ячеек текущей строки в добавленную
+        row = elTable.rows[ind];
+        for (i = 0; i < cells.length; i++) {
+          row.insertCell(i);
+          //alert(cells[i].innerHTML);
+          //alert(row.cells[i].outerHTML);
+          //row.cells[i].setAttribute('class', 'xxx');
+          row.cells[i].className = "xxx";
+          row.cells[i].innerHTML = "&nbsp;";
+        }
+        //row.cells[i] = cells[i]
+      }
+    }
+  }
+  idEdit.focus();
+}
+
+// Удаление строки таблицы
+function deleteRow() {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  var elTable = sel.parentElement();
+
+  elTable = IsInTable(elTable);
+  if (elTable != 0) {
+    elTable = getEl("TABLE",elTable);
+
+    if (elTable != null) {
+      var row = sel.parentElement();
+      row = getEl("TR", row);
+      if (row != null)
+		if (elTable.rows.length == 1) {
+          elTable.outerHTML = '';
+        } else {
+          elTable.deleteRow(row.rowIndex);
+        }
+    }
+  }
+  idEdit.focus()
+}
+
+// Добавление столбца таблицы
+function addColumn(pos) {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  var col = sel.parentElement();
+  var cpos = col.cellIndex + pos;
+
+  // Корректировка позиции колонки
+  col = IsInTable(col);
+  if (col != 0) {
+    var cpos = col.cellIndex + pos;
+    if (cpos >= col.length) cpos = -1;
+    var elTable = getEl("TABLE", col);
+    for (i = 0; i < elTable.rows.length; i++) {
+      var row = elTable.rows[i];
+      //var tagName = row.cells[0].tagName;
+      row.insertCell(cpos);
+      //if (tagName == 'TH') row.cells[cpos].
+      row.cells[cpos].className = "xxx";
+      row.cells[cpos].innerHTML = "&nbsp;";
+    }
+  }
+  focusEditor();
+}
+
+// Удаление столбца таблицы
+function deleteColumn() {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  var col = sel.parentElement();
+
+  col = IsInTable(col);
+  if (col != 0) {
+    var pos = col.cellIndex;
+    var elTable = getEl("TABLE", col);
+    for (i = 0; i < elTable.rows.length; i++) {
+      elTable.rows[i].deleteCell(pos);
+    }
+  }
+  focusEditor();
+}
+
+function IsInTable(sel) {
+  if (idEdit.document.selection.type=="Control") return 0;
+  if (sel.tagName == 'TD' || sel.tagName == 'TH') return sel;
+
+  var subsel = getEdEl("TD", sel);
+  if (subsel != null)
+    if (subsel.tagName != null)
+      if (subsel.tagName == 'TD' || subsel.tagName == 'TH' ) return subsel;
+
+  var subsel = getEdEl("TH", sel);
+  if (subsel != null)
+    if (subsel.tagName != null)
+      if (subsel.tagName == 'TH' || subsel.tagName == 'TD' ) return subsel;
+
+  return 0;
+}
+
+function setCellBackground(where) {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  var col = sel.parentElement();
+  var pos = col.cellIndex;
+
+  focusEditor();
+  col=IsInTable(col);
+  if (col != 0) var cellIndex = col.cellIndex; else return;
+
+  var row = col;
+  var elem = row;
+  row = getEl("TR", row);
+  var list = wysiwyg_editor.BGselector;
+  var color = list.options[list.selectedIndex].text;
+
+  if (row != null) {
+    if (where == "cell") {
+      if (color == "<dtml-msg "None">") {
+        row.cells[cellIndex].removeAttribute('bgColor',0);
+      } else {
+        row.cells[cellIndex].bgColor = color;
+      }
+    } else if (where == "row") {
+      for (i = 0; i <= row.cells.length - 1; i++) {
+	    if(color == "<dtml-msg "None">") {
+          row.cells[i].removeAttribute('bgColor',0);
+	    } else {
+          row.cells[i].bgColor = color;
+        }
+      }
+    } else {
+      var elTable = getEl("TABLE", elem);
+      var posX = elem.cellIndex;
+      var row = getEl("TR", elem);
+      var trs = elTable.rows.length;
+
+      for (var y = 0; y < trs; y++) {
+	    if (color == "<dtml-msg "None">") {
+          elTable.rows[y].cells[posX].removeAttribute('bgColor',0);
+	    } else {
+          elTable.rows[y].cells[posX].bgColor = color;
+        }
+      }
+    }
+  }
+  focusEditor();
+}
+
+function setCellVAlign(VAlignType) {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  var cell = sel.parentElement();
+
+  focusEditor();
+  if (cell != null) {
+    cell=IsInTable(cell);
+    if (cell != 0) cell.vAlign=VAlignType; else return;
+    focusEditor();
+  }
+}
+
+function setCellWidth() {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  var cell = sel.parentElement();
+  var flag = 0;
+
+  focusEditor();
+  if (cell != null) {
+    cell=IsInTable(cell);
+	if (cell != 0) {
+      var cWidth = prompt("Ширина ячейки (% или px)", cell.width);
+      if (cWidth != null) cell.width = cWidth;
+    }
+	focusEditor();
+  }
+}
+
+function insertSymbol(symb) {
+  if (idEdit.document.selection.type=="Control") return;
+  var sel = currentSelection();
+  focusEditor();
+  sel.pasteHTML(symb);
+  focusEditor();
+}
+
+function initLists() {
+  var mainColors = new Array ('000000','993300','333300','003300','003366',
+                              '000080','333399','333333','800000','FF6600',
+                              '808000','008000','008080','0000FF','808099',
+                              '808080','FF0000','FF9900','99CC00','339966',
+                              '33CCCC','3366FF','800080','999999','FF00FF',
+                              'FFCC00','FFFF00','00FF00','00FFFF','00CCFF',
+                              '993366','C0C0C0','FF99CC','FFCC99','FFFF99',
+                              'CCFFCC','CCFFFF','99CCFF','CC99FF','FFFFFF');
+  var sColor = 0;
+  for (var i=0; i<mainColors.length; i++)	// grays
+  { sColor = "#"+mainColors[i];
+    addColorInList(wysiwyg_editor.bgColor, sColor,-1);
+    addColorInList(wysiwyg_editor.borderColor, sColor,-1);
+    addColorInList(wysiwyg_editor.BGselector, sColor,-1);
+    addColorInList(wysiwyg_editor.tForeColor, sColor,-1);
+  }
+}
+
+function addColorInList(oSelect, oColor,indexOption) { 
+  if (typeof(oSelect) != 'object') return;
+  var oOption = document.createElement("OPTION");
+  oOption.text = oColor;
+  oOption.style.backgroundColor = oColor;
+  if (indexOption==-1)
+    oSelect.add(oOption);
+  else
+    oSelect.add(oOption,indexOption);
+}
+
+function showObject(obj) { obj.style.display="inline"; }
+function hideObject(obj) { obj.style.display="none"; }
+
+function InitInsertTableDlg() {
+  if (!bMode) {alert(strErr);focusEditor();return}
+  if (idEdit.document.selection.type=="Control") return;
+  sel= idEdit.document.selection.createRange();
+  hideObject(editor_toolbar_table);
+  showObject(TabSizeDlg);
+  wysiwyg_editor.AddHeader.checked=false;
+  wysiwyg_editor.TablColumns.focus();
+}
+
+function InitURLdlg() {
+  if (!bMode) { alert(strErr);focusEditor();return; }
+  sel = currentSelection();
+
+  if (idEdit.document.selection.type == 'Control') {
+    if (!sel.length || sel.item(0).tagName != 'IMG') return;
+    var link = getEl("A", sel.item(0));
+  }
+  else
+    var link = getEl("A", sel.parentElement());
+    
+  if (link) {
+    wysiwyg_editor.title.value = link.title;
+    wysiwyg_editor.linkURL.value = link.href;
+    wysiwyg_editor.linkTarget.selectedIndex = link.target == '_blank' ? 0 : 1;
+  } else {
+    wysiwyg_editor.title.value = '';
+    wysiwyg_editor.linkURL.value = 'http://';
+    wysiwyg_editor.linkTarget.selectedIndex = 0;
+  }
+
+  hideObject(editor_toolbar_table);
+  showObject(UrlDlg);
+  wysiwyg_editor.title.focus();
+}
+
+function createLink(href, target) {
+  sel.select();
+  format('Unlink');
+
+  if (!href || href == 'http://') return;
+    
+  if (idEdit.document.selection.type == 'None') {
+    var text = document.createTextNode(wysiwyg_editor.title.value || href);
+    var link = document.createElement('A');
+    link.href = href;
+    link.target = target;
+    link.appendChild(text);
+        
+    currentSelection().pasteHTML(link.outerHTML);
+  } else {
+    format('CreateLink', href);
+    sel = currentSelection();
+
+    if (idEdit.document.selection.type == 'Control') {
+      if (!sel.length || sel.item(0).tagName != 'IMG') return;
+      var link = getEl('A', sel.item(0));
+    } else
+      var link = getEl('A', sel.parentElement());
+
+    if (link) {
+      link.target = target;
+      link.title = wysiwyg_editor.title.value;
+    }
+  }
+
+  sel = null;
+}
+
+// Lucky 04.06.2003
+
+function ImgPropsDlgInit() {
+  var sel = currentSelection();
+
+  if (idEdit.document.selection.type=="Control") {
+    selectedImg = sel.item(0);
+    if (selectedImg.tagName != "IMG")
+      return;
+  } else {
+    sel = sel.parentElement();
+    focusEditor();
+    selectedImg = getEl("IMG", sel);
+  }
+
+  if (selectedImg != null) {
+    hideObject(editor_toolbar_table);
+    showObject(ImgPropDlg);
+
+    var ImgAltText = selectedImg.alt;
+    var ImgHSpace = selectedImg.hspace;
+    var ImgVSpace = selectedImg.vspace;
+    var ImgBorder = selectedImg.border;
+    var ImgAlign = selectedImg.align;
+
+    if (ImgHSpace == "") ImgHSpace = 0;
+    if (ImgVSpace == "") ImgVSpace = 0;
+    if (ImgBorder == "") ImgBorder = 0;
+
+    wysiwyg_editor.Img_AltText.value = ImgAltText;
+    wysiwyg_editor.Img_HSpace.value = ImgHSpace;
+    wysiwyg_editor.Img_VSpace.value = ImgVSpace;
+    wysiwyg_editor.Img_Border.value = ImgBorder;
+
+    if (ImgAlign == "") {
+      wysiwyg_editor.Img_Align.value = "None";
+    } else {
+      wysiwyg_editor.Img_Align.value = ImgAlign;
+    }
+    wysiwyg_editor.Img_AltText.focus();
+  }
+}
+
+function ImgPropsModify() {
+  var error = 0;
+  if (isNaN(wysiwyg_editor.Img_HSpace.value) || wysiwyg_editor.Img_HSpace.value < 0 || wysiwyg_editor.Img_HSpace.value == "") {
+    alert("Задайте в 'Horizontal space' целое положительное число или 0");
+    error = 1;
+    wysiwyg_editor.Img_HSpace.select();
+    wysiwyg_editor.Img_HSpace.focus();
+  } else if (isNaN(wysiwyg_editor.Img_VSpace.value) || wysiwyg_editor.Img_VSpace.value < 0 || wysiwyg_editor.Img_VSpace.value == "") {
+    alert("Задайте в 'Vertical space' целое положительное число или 0");
+    error = 1;
+    wysiwyg_editor.Img_VSpace.select();
+    wysiwyg_editor.Img_VSpace.focus();
+  } else if (isNaN(wysiwyg_editor.Img_Border.value) || wysiwyg_editor.Img_Border.value < 0 || wysiwyg_editor.Img_Border.value == "") {
+    alert("Задайте в 'Border' целое положительное число или 0");
+    error = 1;
+    wysiwyg_editor.Img_Border.select();
+    wysiwyg_editor.Img_Border.focus();
+  }
+
+  if (error != 1) {
+    selectedImg.alt = wysiwyg_editor.Img_AltText.value;
+    selectedImg.hspace = wysiwyg_editor.Img_HSpace.value;
+    selectedImg.vspace = wysiwyg_editor.Img_VSpace.value;
+    selectedImg.border = wysiwyg_editor.Img_Border.value;
+    if (wysiwyg_editor.Img_Align.value != "None") {
+      selectedImg.align = wysiwyg_editor.Img_Align.value;
+    } else {
+      selectedImg.removeAttribute('align', 0);
+    }
+  }
+}
+
+// Lucky
+
+function tablePropsDlgInit() {
+  var sel = currentSelection();
+  if (idEdit.document.selection.type=="Control") return;
+  sel = sel.parentElement();
+  focusEditor();
+  selectedTable = getEl("TABLE", sel);
+
+  if (selectedTable != null) {
+    hideObject(editor_toolbar_table);
+	showObject(TProps);
+
+	var tableBgColor = selectedTable.bgColor;
+	var tableSpacing = selectedTable.cellSpacing;
+	var tablePadding = selectedTable.cellPadding;
+	var tableBorder =  selectedTable.border;
+	var tableBorderColor = selectedTable.borderColor;
+	var tableWidth = selectedTable.width;
+
+	if (tableSpacing == "") tableSpacing = 2;
+	if (tablePadding == "") tablePadding = 1;
+	if (tableBorder == "") tableBorder = 0;
+
+	wysiwyg_editor.table_padding.value = tablePadding;
+	wysiwyg_editor.table_spacing.value = tableSpacing;
+	wysiwyg_editor.table_border.value = tableBorder;
+	wysiwyg_editor.table_width.value = tableWidth;
+
+	TablePropsPrintColor(wysiwyg_editor.bgColor, tableBgColor);
+	TablePropsPrintColor(wysiwyg_editor.borderColor, tableBorderColor);
+
+   	wysiwyg_editor.table_border.focus();
+  }
+}
+
+function TablePropsModify() {
+  var error = 0;
+  if (isNaN(wysiwyg_editor.table_padding.value) || wysiwyg_editor.table_padding.value < 0 || wysiwyg_editor.table_padding.value == "") {
+	alert("Задайте в 'Cell Padding' целое положительное число или 0");
+	error = 1;
+	wysiwyg_editor.table_padding.select();
+	wysiwyg_editor.table_padding.focus();
+  } else if (isNaN(wysiwyg_editor.table_spacing.value) || wysiwyg_editor.table_spacing.value < 0 || wysiwyg_editor.table_spacing.value == "") {
+	alert("Задайте в 'Cell Spacing' целое положительное число или 0");
+	error = 1;
+	wysiwyg_editor.table_spacing.select();
+	wysiwyg_editor.table_spacing.focus();
+  } else if (isNaN(wysiwyg_editor.table_border.value) || wysiwyg_editor.table_border.value < 0 || wysiwyg_editor.table_border.value == "") {
+	alert("Задайте в 'Толщине обрамления' целое положительное число или 0");
+	error = 1;
+	wysiwyg_editor.table_border.select();
+	wysiwyg_editor.table_border.focus();
+  }
+
+  if (error != 1) {
+   	selectedTable.cellPadding = wysiwyg_editor.table_padding.value;
+   	selectedTable.cellSpacing = wysiwyg_editor.table_spacing.value;
+   	selectedTable.border = wysiwyg_editor.table_border.value;
+	selectedTable.width = wysiwyg_editor.table_width.value;
+   	if (wysiwyg_editor.bgColor[wysiwyg_editor.bgColor.selectedIndex].text != "<dtml-msg "None">") {
+	  selectedTable.bgColor = wysiwyg_editor.bgColor[wysiwyg_editor.bgColor.selectedIndex].text;
+   	} else {
+      selectedTable.removeAttribute('bgColor',0);
+   	}
+   	if (wysiwyg_editor.borderColor[wysiwyg_editor.borderColor.selectedIndex].text != "<dtml-msg "None">") {
+      selectedTable.borderColor = wysiwyg_editor.borderColor[wysiwyg_editor.borderColor.selectedIndex].text;
+   	} else {
+      selectedTable.removeAttribute('borderColor',0);
+   	}
+  }
+}
+
+function TablePropsPrintColor(oSelect,oColor) {
+  if ((oColor != null) && (oColor != "")) {
+	var oOption = document.createElement("OPTION");
+	oColor = oColor.toUpperCase();
+
+	var num = 0;
+	for (var i=1; i<oSelect.length; i++)
+      if (oSelect.options[i].text.toUpperCase() == oColor)
+        { num = i; break; }
+
+	if (num != 0) oSelect.options[num].selected=true;
+	else {
+	    if (oSelect.length >= 313) oSelect.remove(oSelect.length-1)
+	    oOption.text = oColor;
+	    oOption.style.backgroundColor = oColor;
+	    oSelect.add(oOption);
+	    oSelect.options[oSelect.length-1].selected=true
+    }
+  } else { oSelect.options[0].selected=true; }
+}
+
+function setTableIndent(aligntype) {
+  if (idEdit.document.selection.type=="Control") return
+  var sel = currentSelection();
+  sel = sel.parentElement();
+  var elTable = getEl("TABLE", sel);
+  if (elTable != null) { elTable.align = aligntype; }
+}
+
+function InitFieldDlg() {
+  showObject(FieldDlg);
+  hideObject(editor_toolbar_table);
+  if (wysiwyg_editor.fieldList.length) wysiwyg_editor.fieldList.options[0].selected=true;
+  wysiwyg_editor.fieldList.focus();
+}
+
+function insertField( fld ) {
+  focusEditor();
+  sel=idEdit.document.selection.createRange();
+  sel.select();
+  var selct=idEdit.document.selection.createRange();
+  selct.pasteHTML("{express:field/"+fld+"}");
+  selct.select();
+}
+
+function InsertFacsimile() {
+  if (idEdit.document.getElementById('facsimile_table')) {
+    showObject(facsimile_template);
+    hideObject(editor_toolbar_table); 
+    wysiwyg_editor.appointment.focus();
+  }
+}
+
+function DeleteFacsimile() {
+  var sContents = idEdit.document;
+  var tbody = sContents.getElementById('facsimile_table');
+  //.getElementsByTagName('TBODY')[0];
+  var tr_name = tbody.rows.length;
+  if (tr_name > 1) {
+    tbody.deleteRow(tr_name - 1);
+    if( tr_name == 2 ) wysiwyg_editor.facsimile_delete_button.disabled = true;
+  } else {
+    wysiwyg_editor.facsimile_delete_button.disabled = true;
+  }
+}
+
+function validate_facsimile_input() {
+  var appointment = document.getElementById('appointment').value;
+  var fio = document.getElementById('fio').value;
+  if( !appointment || !fio ) {
+    alert('<dtml-msg "Should be defined appointment and fio attributes. Repeat it please.">')
+    if( !appointment ) wysiwyg_editor.appointment.focus(); else wysiwyg_editor.fio.focus();
+  } else {
+    hideObject(facsimile_template);
+    InsertFacsimileInHTML(appointment, fio);
+    showObject(editor_toolbar_table);
+    focusEditor();
+  }
+}
+
+function cancel_facsimile_input() {
+  hideObject(facsimile_template);
+  showObject(editor_toolbar_table);
+  focusEditor();
+}
+
+function InsertFacsimileInHTML( appointment, fio ) {
+  var template1 = "<!-- Кем подписан --><br><br><FONT face=times size=3><STRONG><SPAN>" + appointment + "</SPAN></STRONG></FONT><br><font color=\"#808080\" face=times style=\"font:x-small\"><span id=com>[кем подписан, должность]</span></font>";
+  var template2 = "<DIV name=\"FACSIMILE:makeTaskToSign:SelfSignature\"><TABLE cellSpacing=0 cellPadding=0 align=left valign=\"top\" border=0><TBODY><TR><TD style=\"width:150px\">&nbsp;</TD><TD style=\"padding-right:40px\" noWrap align=left><FONT face=times size=3><STRONG><SPAN>" + fio + "</SPAN></STRONG></FONT><br><font color=\"#808080\" face=times style=\"font:x-small\"><span id=com>[ФИО]</span></font></TD></TR></TBODY></TABLE></DIV>";
+  var sContents = idEdit.document;
+  var tbody = sContents.getElementById('facsimile_table').getElementsByTagName('TBODY')[0];
+  var row = sContents.createElement("TR");
+  tbody.appendChild(row);
+  var td1 = sContents.createElement("TD");
+  var td2 = sContents.createElement("TD");
+  row.appendChild(td1);
+  row.appendChild(td2);
+  var tr_name = tbody.rows.length;
+  row.name = new Number (tr_name);
+  td1.vAlign = "middle";
+  td2.vAlign = "top";
+  //td2.style.width = "50%"; 
+  td2.style.paddingTop = "40px"; 
+  td2.style.paddingLeft = "40px";
+  td1.innerHTML = template1;
+  td2.innerHTML = template2;
+  if (document.getElementById('facsimile_delete_button').disabled == true) {
+    var delButton = document.getElementById('facsimile_delete_button');
+    delButton.disabled = false;
+  }
+}
+//-->
+</script>
+
+      <table id="tools2" cellspacing="2" cellpadding="0" style="display:none;" border="0">
+      <tr><td align="left" style="padding-left:6px;" colspan="20" nowrap><dtml-msg "Click on symbol to type it">:</td></tr>
+      <tr><td align="left">&nbsp;</td>
+
+<script language="Javascript">
+<!--
+function getSymbols() {
+  var symbs=new Array("&sect;","&#153;","&#216;","&#164;","&copy;","&reg;","$","&euro;","&#133;","&deg;","&divide;","&#931;","&frac14;","&frac12;","&frac34;","&#149;","&#151");
+  var curSymb="";
+  var s="";
+  for (var i=0;i<symbs.length;i++) {
+    curSymb=symbs[i];
+    s+="<td style=\"border:1pt solid gray;\" UNSELECTABLE=on class='symbs' align='center' width='16' onmouseover='this.style.cursor=\"default\"; focusEditor(); this.style.backgroundColor=\"#FFC4FF\"' onmouseout='this.style.backgroundColor=\"\"' ONCLICK=\"insertSymbol('"+curSymb+"');\">";
+    s+=curSymb+"</td>";
+  }
+  //s+="<td>&nbsp;<input type=button value=\"<dtml-msg "Cancel">\" onclick=\"javascript:tools2.style.display='none';\"></td>";
+  return "<DIV ID=tb3 class=htmlEditToolbar ONSELECTSTART=\"return false\" ONDRAGSTART=\"return false\">" + s + "</DIV>";
+}
+document.write(getSymbols());
+//-->
+</script>
+
+      </tr>
+      </table>
+
+    </td>
+  </tr>
+  </table>
+  </TD>
+</TR>
+</TABLE>
+
+</div>
+
+<div id="TProps" style="display:none" onkeydown="Javascript: if (event.keyCode == 13) TablePropsModify(); if (event.keyCode == 27) {hideObject(TProps); showObject(editor_toolbar_table); focusEditor();}" onkeyup="Javascript: if (event.keyCode == 13) {	event.cancelBubble = true; event.returnValue = false; return false; }">
+
+<TABLE width="450px" height="100%" border="0" cellspacing="0" cellpadding="0">
+<TR align="center" valign="middle">
+  <TD>
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+  <tr align="center">
+    <td height="20"><strong><dtml-msg "Table properties"></strong></td>
+  </tr>
+  <tr align="center">
+    <td>
+      <table border="0" cellspacing="0" cellpadding="1" width="98%">
+      <tr>
+        <td><dtml-msg "Cell background">:</td>
+        <td>
+          <SELECT name="bgColor" onchange="SelectorColor(this);">
+            <option><dtml-msg "None"></OPTION>
+            <option><dtml-msg "More colors"></OPTION>
+          </SELECT>
+        </td>
+        <td><dtml-msg "Cell padding">:</td>
+        <td><input type="text" name="table_padding" size="2" maxlength="2"></td>
+      </tr>
+      <tr>
+        <td><dtml-msg "Border width">:</td>
+        <td><input type="text" name="table_border" size="2" value="1" maxlength="2"></td>
+        <td><dtml-msg "Cell spacing">:</td>
+        <td><input type="text" name="table_spacing" size="2" value="2" maxlength="2"></td>
+      </tr>
+      <tr>
+        <td><dtml-msg "Border color">:</td>
+        <td>
+          <SELECT name="borderColor" onchange="SelectorColor(this);">
+            <option><dtml-msg "None"></OPTION>
+            <option><dtml-msg "More colors"></OPTION>
+          </SELECT>
+        </td>
+        <td><dtml-msg "Width">:</td>
+        <td><input type="text" name="table_width" size="5" value="" maxlength="4"></td>
+      </tr>
+      </table>
+    </td>
+  </tr>
+  <tr align="center">
+    <td>
+      <table width="80%" border="0" cellspacing="0" cellpadding="0">
+      <tr align="center" height="30">
+        <td><input type="button" name="modifyTable" value="OK" style="width:80px;" onClick="javascript:{TablePropsModify();hideObject(TProps);showObject(editor_toolbar_table);focusEditor();}"></td>
+        <td><input type="button" name="applyModifyTable" value="<dtml-msg "Apply">" onClick="javascript:TablePropsModify();"></td>
+		<td><input type="button" name="cancelModifyTable" value="<dtml-msg "Cancel">" onClick="javascript:{hideObject(TProps);showObject(editor_toolbar_table);focusEditor();}"></td>
+      </tr>
+	  </table>
+    </td>
+  </tr>
+  </table>
+  </TD>
+</TR>
+</TABLE>
+
+</div>
+
+</td></tr><tr align="right"><td>
+
+<div id="UrlDlg" style="display:none" onkeyup="Javascript: if (event.keyCode == 13) {createLink(wysiwyg_editor.linkURL.value,wysiwyg_editor.linkTarget.value);hideObject(UrlDlg);showObject(editor_toolbar_table);idEdit.focus()}; if (event.keyCode == 27) {hideObject(UrlDlg); showObject(editor_toolbar_table); focusEditor();}">
+
+<TABLE width="450px" height="100%" cellspacing="0" cellpadding="0" border="0">
+<TR align="right" valign="middle">
+  <TD>
+    <table cellspacing="0" cellpadding="1" width="98%" border="0">
+    <tr>
+      <td></td>
+      <td align="center" height="20"><strong><dtml-var "msg('Insert/change hyperlink')"></strong></td>
+    </tr>
+    <tr>
+      <td align="right"><dtml-var "msg('Text')">:</td>
+      <td><input name="title" type="text" size="80"></td>
+    </tr>
+    <tr>
+      <td align="right"><dtml-var "msg('Link')">:</td>
+      <td nowrap>
+	    <input name="linkURL" type="text" size="80">
+	    <input type="button" style="width:60px;" onClick="OpenDocumentSelectionWndPath('functionForSetPath',560)" value="Найти...">
+      </td>
+    </tr>
+    <tr>
+      <td align="right"><dtml-var "msg('Target')">:</td>
+      <td>
+        <SELECT name="linkTarget">
+          <OPTION value="_blank" selected><dtml-var "msg('New window')"></OPTION>
+          <OPTION value="_self"><dtml-var "msg('Same window')"></OPTION>
+        </SELECT>
+      </td>
+    </tr>
+    <tr>
+      <td></td>
+      <td align="center">
+        <input type="button" value="OK" style="width:80px;" onClick="javascript:{createLink(wysiwyg_editor.linkURL.value,wysiwyg_editor.linkTarget.value);hideObject(UrlDlg);showObject(editor_toolbar_table);focusEditor();}">
+        <input type="button" value="<dtml-var "msg('Cancel')">" style="width:80px;" onClick="javascript:{hideObject(UrlDlg);showObject(editor_toolbar_table);focusEditor();}">
+      </td>
+    </tr>
+    </table>
+  </TD>
+</TR>
+</TABLE>
+
+</div>
+
+<div id="FieldDlg" style="display:none" onkeyup="Javascript: if (event.keyCode == 13) { insertField(wysiwyg_editor.fieldList.options[wysiwyg_editor.fieldList.selectedIndex].value); hideObject(FieldDlg); showObject(editor_toolbar_table);idEdit.focus()}; if (event.keyCode == 27) {hideObject(FieldDlg); showObject(editor_toolbar_table); focusEditor();}">
+
+<table border="0" cellspacing="0" cellpadding="3">
+<tr>
+  <td><dtml-msg "Insert field">:</td>
+  <td>
+    <dtml-in listCategoryAttributes>
+      <dtml-if sequence-start>
+    <select name="fieldList">
+      </dtml-if>
+      <dtml-with sequence-key>
+      <option value="&dtml-getId;"><dtml-msg expr=" Title() "></option>
+      </dtml-with>
+      <dtml-if sequence-end>
+    </select>
+      </dtml-if>
+    </dtml-in>
+  </td>
+</tr>
+<tr>
+  <td colspan="2">
+    <input type="button" value="OK" style="width:80px;" onClick="javascript:{hideObject(FieldDlg); insertField(wysiwyg_editor.fieldList.options[wysiwyg_editor.fieldList.selectedIndex].value);showObject(editor_toolbar_table);focusEditor();}">&nbsp;
+    <input type="button" value="<dtml-msg "Cancel">" onClick="javascript:{hideObject(FieldDlg);showObject(editor_toolbar_table);focusEditor();}">
+  </td>
+</tr>
+</table>
+
+</div>
+
+<div id="facsimile_template" style="display:none">
+
+<TABLE border="0" cellspacing="0" cellpadding="3">
+<TR>
+  <TD align="right" style="padding-top:20px"><h3><dtml-msg "Add person's facsimile">:</h3></TD>
+  <TD>
+    <table>
+    <tr>
+      <td><strong><dtml-msg "Appointment"></strong></td>
+      <td><textarea name="appointment" cols="50" rows="3"></textarea></td>
+    </tr>
+    <tr>
+      <td><strong><dtml-msg "FIO"></strong></td>
+      <td><input type="text" name="fio" size="50"></td>
+    </tr>
+    </table>
+  </TD>
+</TR>
+<TR>
+  <TD>&nbsp;</TD>
+  <TD>
+    <input type="button" value="OK" style="width:80px;" onClick="javascript:validate_facsimile_input();">&nbsp;
+    <input type="button" value="<dtml-msg "Cancel">" onClick="javascript:cancel_facsimile_input();">
+  </TD>
+</TR>
+</TABLE>
+
+</div>
+
+</td></tr><tr align="right"><td>
+
+<div id="TabSizeDlg" style="display:none" onkeyup="Javascript: if (event.keyCode == 13) { addTable(wysiwyg_editor.TablRows.value,wysiwyg_editor.TablColumns.value); hideObject(TabSizeDlg);showObject(editor_toolbar_table);idEdit.focus()}; if (event.keyCode == 27) {hideObject(TabSizeDlg); showObject(editor_toolbar_table); focusEditor();}">
+
+<TABLE border="0" cellspacing="0" cellpadding="0">
+<TR>
+  <TD style="padding-right:10px;">
+    <table border="0" cellspacing="3" cellpadding="0">
+    <tr height="20"><td align="center" colspan="3"><strong><dtml-msg "Insert table">:</strong></td></tr>
+    <tr>
+      <td nowrap><dtml-msg "Columns"></td>
+      <td style="padding-right:10px;"><input name="TablColumns" type="text" size="5"></td>
+      <td valign="middle" rowspan="2" nowrap><input id="add_header" name="AddHeader" type=checkbox><label for="add_header"><dtml-msg "Add header cells"></label></td>
+    </tr>
+    <tr>
+      <td nowrap><dtml-msg "Rows"></td>
+      <td><input name="TablRows" type="text" size="5"></td>
+    </tr>
+    <tr align="center">
+      <td colspan="3" style="padding-top:5px;">
+	    <table width="60%" border="0" cellspacing="0" cellpadding="0">
+	    <tr align="center" height="20">
+          <td><input type="button" value="OK" style="width:80px;" onClick="javascript:{addTable(wysiwyg_editor.TablRows.value,wysiwyg_editor.TablColumns.value,(wysiwyg_editor.AddHeader.checked==true)?1:0); hideObject(TabSizeDlg);showObject(editor_toolbar_table);focusEditor();}"></td>
+          <td><input type="button" value="<dtml-msg "Cancel">" onClick="javascript:{hideObject(TabSizeDlg);showObject(editor_toolbar_table);focusEditor();}"></td>
+	    </tr>
+	    </table>
+      </td>
+    </tr>
+    </table>
+  </TD>
+</TR>
+</TABLE>
+
+</div>
+
+</td></tr><tr align="right"><td>
+
+<div id="ImgPropDlg" style="display:none" onkeyup="Javascript: if (event.keyCode == 13) { ImgPropsModify(); hideObject(ImgPropDlg);showObject(editor_toolbar_table);idEdit.focus()}; if (event.keyCode == 27) {hideObject(ImgPropDlg); showObject(editor_toolbar_table); focusEditor();}">
+
+<TABLE width="400px" height="100%" border="0" cellspacing="0" cellpadding="0">
+<TR align="center" valign="middle">
+  <TD>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr align="center">
+      <td height="20"><strong><dtml-msg "Image properties"></strong></td>
+    </tr>
+    <tr align="center">
+      <td>
+	    <table border="0" cellspacing="0" cellpadding="1" width="98%">
+	    <tr><td colspan="2"><dtml-msg "Alternative text">:&nbsp;<input name="Img_AltText" type="text" size="50"></td></tr>
+	    <tr><td align="right"><dtml-msg "Horizontal space">:&nbsp;<input name="Img_HSpace" type="text" size="5"></td>
+	        <td>&nbsp;<dtml-msg "Align">:&nbsp;
+                 <SELECT name="Img_Align" class="htmlEditSelect" ONCHANGE="format('align',this[this.selectedIndex].value);">
+                   <OPTION VALUE="None" CLASS="htmlEditImg" SELECTED><dtml-msg "None"></OPTION>
+                   <OPTION VALUE="left"><dtml-msg "left"></OPTION>
+                   <OPTION VALUE="right"><dtml-msg "right"></OPTION>
+                   <OPTION VALUE="bottom"><dtml-msg "with text bottom"></OPTION>
+                   <OPTION VALUE="middle"><dtml-msg "with text middle"></OPTION>
+                   <OPTION VALUE="top"><dtml-msg "with text top"></OPTION>
+                 </SELECT>
+            </td>
+        </tr>
+        <tr><td align="right"><dtml-msg "Vertical space">:&nbsp;<input name="Img_VSpace" type="text" size="5"></td><td></td></tr>
+	    <tr><td align="right"><dtml-msg "Border">:&nbsp;<input name="Img_Border" type="text" size="5"></td><td></td></tr>
+	    </table>
+      </td>
+    </tr>
+    <tr align="center">
+	  <td>
+	    <table width="80%" border="0" cellspacing="0" cellpadding="0">
+	    <tr align="center" height="30">
+		  <td><input type="button" value="OK" style="width:80px;" onClick="javascript:{ImgPropsModify(); hideObject(ImgPropDlg);showObject(editor_toolbar_table);focusEditor();}"></td>
+		  <td><input type="button" value="<dtml-msg "Cancel">" onClick="javascript:{hideObject(ImgPropDlg);showObject(editor_toolbar_table);focusEditor();}"></td>
+	    </tr>
+	    </table>
+	  </td>
+    </tr>
+    </table>
+  </TD>
+</TR>
+</TABLE>
+
+</div>
+
+</td></tr><tr><td height="100%">
+
+<TABLE cellpadding="0" cellspacing="5" width="100%" height="100%" border="1" height="100%">
+<TR>
+  <TD>
+    <iframe name="idEdit" src="&dtml-portal_url;/spacer.gif" width="100%" height="100%" scrolling="auto" frameborder="0" onActivate="javascript: showHideButton();"></iframe>
+    <textarea name="text" style="display:none">&dtml-ppp;&dtml-EditableBody;</textarea>
+  </TD>
+</TR>
+</TABLE>
+
+<script type="text/javascript">
+<!--
+var originalContent;
+var explicitSave;
+var countOfsetTimeout=0;
+
+//
+// Restores document event handlers with values saved inside eventHandlers
+// object (they are usually disappearing after document.open)
+//
+
+var eventHandlers = {};
+function setupEventHandlers() {
+  for (var name in eventHandlers)
+    idEdit.document[name] = eventHandlers[name];
+}
+
+idEdit.document.open();
+idEdit.document.write(richTemplate);
+idEdit.document.close();
+
+idEdit.document.designMode = 'On';
+
+function initEditor() {
+  if( idEdit.document.readyState != 'complete' ){
+     window.setTimeout("initEditor()", 100);
+     return;
+  }
+/*
+  if(idEdit.document.body.innerHTML.substring(1,26) != 'TABLE id=HB_Mail_Container') {  
+     if( countOfsetTimeout < 1 ) {
+        window.setTimeout("initEditor()", 100);
+        ++countOfsetTimeout;
+        return;
+     }
+  } 
+	//else idEdit.document.body.innerHTML='';
+  else {
+    var str = idEdit.document.body.innerHTML;
+    str = str.replace('100%','0%');
+    str = str.replace('250','0');
+    idEdit.document.body.innerHTML = str;
+  }
+*/
+  bLoad = true;
+  idBox.style.visibility = '';
+  put_html(document.all.text.value);
+  initLists();
+  setupEventHandlers();
+  originalContent = get_html();
+<dtml-if IsCustomDocument>
+  idEdit.document.body.attachEvent('onpaste', handlerOnPaste);
+</dtml-if>
+  focusEditor();
+}
+
+function handlerOnPaste() {
+  var event = idEdit.event;
+  event.returnValue = false;
+  if( ( l = clipboardData.getData("Text").length ) > 1024*100 ) {
+    alert('<dtml-msg "Text is too long (not allowed), size=">' + l);
+    focusEditor();
+    return;
+  }
+  LockEditor();
+  var newWindow = window.open(window.objectBaseURL + "/paste_window", "PasteWindow", 
+    'status=yes,scrollbars=no,top=100,left=60,width=680,height=460');
+  newWindow.focus();
+}
+
+function checkModifiedOnUnload() {
+  if ( explicitSave ) return;
+  if ( originalContent == null || get_html() == originalContent ) return;
+  window.event.returnValue = window.leaveText;
+}
+
+function saveThisDocument() {
+  if ( !handlerOnSave() ) return;
+  document.forms['wysiwyg_editor'].onsubmit();
+  document.forms['wysiwyg_editor'].submit();
+}
+
+function handlerOnSave(force) {
+  if ( explicitSave && !force ) return false;
+  return( explicitSave = true );
+}
+
+function handlerOnKeyDown() {
+  var event = idEdit.event;
+  if (event.ctrlKey && event.keyCode == 83) // Ctrl-S
+      saveThisDocument();
+}
+
+function handlerOnKeyUp() {}
+
+function copyValue(f) {
+  //f.elements.text.value = "" + idEdit.document.body.innerHTML + "";
+  f.elements.text.value = idEdit.document.body.innerHTML;
+}
+
+function copyFilename(f, file) {
+  f.elements.filename.value = "" + file + "";
+}
+
+function SelectorColor(CurrSelect) {
+  SavingCurrSelect=CurrSelect
+  if (CurrSelect.options[CurrSelect.selectedIndex].text != "<dtml-var "msg('More colors')">")
+    return 1;
+  else {
+    SelectorColorDlgInit();
+    return 0;
+  }
+}
+
+function SelectorColorDlgInit() {
+  ReSelect = currentSelection();
+
+  if (SavingCurrSelect.name=='BGselector') {
+    if (idEdit.document.selection.type!="Control") {
+      var col = ReSelect.parentElement();
+      oldColor=col.bgColor;
+    }
+  }
+  if (SavingCurrSelect.name=='tForeColor')
+    oldColor=bgr(sixDigitHexa(NumberOverBase(ReSelect.queryCommandValue("ForeColor"),16) ) );
+  if (SavingCurrSelect.name=='bgColor')
+    oldColor=selectedTable.bgColor;
+  if (SavingCurrSelect.name=='borderColor')
+    oldColor=selectedTable.borderColor;
+
+  result=window.showModalDialog("selector_color",oldColor,"help:no;dialogHeight:395px;dialogWidth:258px;edge:raised");
+  if (result!=-1) OKClick(); else ESCClick();
+}
+
+function OKClick() {
+  if (SavingCurrSelect(0).text!="<dtml-var "msg('None')">") SavingCurrSelect.remove(0);
+  addColorInList(SavingCurrSelect, result ,0);
+  SavingCurrSelect.selectedIndex=0;
+
+  if (SavingCurrSelect.name=='tForeColor') {
+    format('forecolor',SavingCurrSelect[SavingCurrSelect.selectedIndex].text);
+  }
+  focusEditor();
+}
+
+function ESCClick() {
+  SavingCurrSelect.selectedIndex=0;
+  focusEditor();
+}
+
+function NumberOverBase( numer, base ) {
+  sResult='';
+  var hexa=new Array('0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F');
+  while (numer>=base) {
+    sResult = hexa[numer%base]+sResult;
+    numer = Math.floor(numer / base);
+  }
+  sResult=hexa[numer]+sResult;
+  return sResult;
+}
+
+function sixDigitHexa(S) {
+  while (S.length<6){
+    S='0'+S;
+  }
+  return S;
+}
+
+function bgr(S) {
+  return S.slice(4)+S.slice(2,4)+S.slice(0,2);
+}
+
+//
+// "express:" links support
+//
+
+var portalPrefix = 'express:portal';
+var sitePrefix = 'express:site';
+var portalPath = '<dtml-var "portal_url.getPortalPath()">';
+var sitePath = null;
+
+function functionForSetPath( temp_parametr, path, title, ver ) {
+  if ( wysiwyg_editor.title.value == '' ) { wysiwyg_editor.title.value = title; }
+  path = convertObjectPath( path );
+  wysiwyg_editor.linkURL.value = path + (ver ? '/version/' + ver : '');
+}
+
+function convertObjectPath( path ) {
+  //alert(path);
+  if (sitePath && path.substr( 0, sitePath.length ) == sitePath &&
+     (path.length == sitePath.length || path.charAt( sitePath.length ) == '/' )) {
+        prefix = sitePrefix;
+        base = sitePath;
+        return prefix + path.substr( base.length );
+  } else if ( path.length == 23 && !isNaN(path.substr(0,12)) && isNaN(path.substr(12,1)) && !isNaN(path.substr(13)) ) {
+        prefix = portalPrefix;
+        base = portalPath;
+        s = prefix + '/portal_links/locate?uid=' + path;
+  } else {
+       prefix = portalPrefix;
+       s = prefix + path.replace(instance_name+'/','') + '?expand=1';
+  }
+  //alert(base);
+  //alert(path.substr( base.length ));
+  //alert(s);
+  return s;
+}
+
+//
+// Disables (or enables) buttons of editor toolbar ignoring buttons 'save',
+// 'copy', 'cut', 'paste', 'undo', 'redo'. If edit_source argument is true
+// then it ignore 'edit source' button too.
+//
+
+function setToolbarState(enable, edit_source) {
+  var handlers = ['onmouseover', 'onmouseout', 'onclick'];
+  function processButton(button) {
+    if (button.onclick == null) // it is splitter
+      return;
+
+    button.style.filter = !enable ? 'Alpha(opacity=50) Gray' : '';
+
+    for (var j = 0; j < handlers.length; j++) {
+      var handler = handlers[j];
+      if (enable)
+        button[handler] = button['_native_' + handler];
+      else {
+        button['_native_' + handler] = button[handler];
+        button[handler] = function() { return false };
+      }
+    }
+  }
+
+  // setup contains array of objects: 
+  // {'id': <container id>, 'tag': <tag name>, 'start': <...>, 'offset': <end offset>}
+  var setup = [ {'id': 'htmlOnly', 'tag': 'img'}
+              , {'id': 'htmlOnly', 'tag': 'select'}
+              , {'id': 'toolbar',  'tag': 'img', 'start': 7, 'offset': (edit_source ? -30 : null)}
+			  , {'id': 'toolbar',  'tag': 'img', 'start': 32, 'offset': (edit_source ? -1 : null)}
+              ];
+
+  for (var i = 0; i < setup.length; i++) {
+    var elements = document.getElementById( setup[i].id ).getElementsByTagName( setup[i].tag );
+    for (var j = setup[i].start || 0; j < elements.length + (setup[i].offset || 0); j++) {
+      if (setup[i].tag == 'img')
+        processButton(elements[j]); 
+      else
+        elements[j].disabled = !enable;
+    }
+  }
+}
+
+eventHandlers.onkeydown = handlerOnKeyDown;
+eventHandlers.onkeyup = handlerOnKeyUp;
+
+document.body.onload = initEditor;
+window.onbeforeunload = checkModifiedOnUnload;
+//-->
+</script>
+  </td>
+</tr>
+    </dtml-if>
+
+</form>
+
+  </dtml-if>
+</table>
+
+</dtml-let>

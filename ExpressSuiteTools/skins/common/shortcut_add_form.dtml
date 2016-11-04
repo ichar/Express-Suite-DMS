@@ -1,0 +1,75 @@
+<dtml-revision $Revision: 1.2 $>
+
+<dtml-var simple_html_header>
+
+<form id="favorite_edit" action="shortcut_add" method="post" target="workspace" onsubmit="javascript: return Validate(this);">
+
+<script type="text/javascript">
+<!--
+function Validate( frm )
+{
+    if ( validateIdentifier(frm.elements['id'], '<dtml-var "msg('Object id is invalid')">', true) == false)
+        return false;
+
+    if ( ! frm.remote_uid.value ) {
+         alert('<dtml-var "msg('Please specify the remote document')">');
+         return false;
+    }
+
+    return true;
+}
+//-->
+</script>
+
+<table class="FormLayout" width="100%" border="0">
+<tr valign="top">
+  <td colspan=2 nowrap><h3><dtml-var "msg('New Shortcut metadata')"></h3><br></td>
+</tr>
+
+<tr valign="top">
+  <th align="right"><dtml-var "msg('URL')"></th>
+  <td colspan="2" style="padding-top:3px"><dtml-var Identifier></td>
+</tr>
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Id')"></th>
+  <td colspan="3"><input type="text" name="shortcut_id" size="35"></td>
+</tr>
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Title')"></th>
+  <td colspan="3"><input type="text" name="shortcut_title" size="65"></td>
+</tr>
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Description')"></th>
+  <td><textarea name="description:text" rows="5" cols="65">&dtml-description;</textarea></td>
+</tr>
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Associated object')"></th>
+  <td>
+    <input type="text" size="40" name="remote_title"  disabled>
+    <input type="hidden" name="remote_uid"> 
+    <input type="button" value="<dtml-var "msg('Browse...')">" onClick="return OpenDocumentSelectionWnd( this.form.id, 'callbackFunction_shortcut' )"> <br>      
+
+<script type="text/javascript">
+<!--
+function callbackFunction_shortcut( formId, uid, title ){
+  document.forms[formId]['remote_uid'].value = uid
+  document.forms[formId]['remote_title'].value = title
+}
+//-->
+</script>
+
+    <em><dtml-var "msg('Choose the document to associate with the shortcut')"></em>
+  </td>
+</tr>
+<tr valign="top">
+  <td></td>
+  <td align=left><br>
+    <input type="submit" value=" <dtml-var "msg('Apply')"> ">
+    <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;'" value=" <dtml-var "msg('Cancel')"> ">
+  </td>
+</tr>
+</table>
+
+</form>
+
+<dtml-var simple_html_footer>

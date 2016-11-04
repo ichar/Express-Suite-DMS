@@ -1,0 +1,68 @@
+
+<table width="100%" border="0">
+  <tr bgcolor="#cccccc">
+    <td align="center" colspan="<dtml-var "_.len(model( c_id, 'getTemplateIds', 'have_result_codes' ))">">
+      <b><dtml-var "msg('Action template result code')"></b>
+    </td>
+    <td align="center"><b><dtml-var "msg('Conditions')"></b></td>
+    <td align="center"><b><dtml-var "msg('States')"></b></td>
+  </tr>
+  <tr bgcolor="#cccccc">
+    <!-- action templates -->  
+  <dtml-in "model( c_id, 'getTemplateIds', 'have_result_codes' )">
+    <td align="center">
+    <b><dtml-var "model( c_id, 'getTemplateTitleById', _['sequence-item'] )"> (<dtml-var "_['sequence-item']">)</b>
+    <br>
+    <dtml-let id_template_cur="_['sequence-item']">
+      <select name="resultcode_&dtml-id_template_cur;" size="1">
+        <option value="__notexists__">[<dtml-var "msg('None')">]</option>
+        <option value="__running__">[<dtml-var "msg('Running')">]</option>
+        <dtml-in "model( c_id, 'getResultCodesOfTemplate', id_template_cur )">
+          <option value="<dtml-var "_['sequence-item']['id']">"><dtml-var "msg(_['sequence-item']['title'])"></option>
+        </dtml-in>
+      </select>
+      [<a href="javascript:addResultCode( '<dtml-var mode>', '&dtml-id_template_cur;')">+</a>]
+    </dtml-let>
+    </td>
+  </dtml-in>
+    <!-- /action templates -->  
+    <!-- conditions -->  
+    <td align="center">
+      [<a href="javascript:insertText( '<dtml-var mode>', 'and ')">and</a>]
+      <br>
+      [<a href="javascript:insertText( '<dtml-var mode>', 'or ')">or</a>]
+      <br>
+      <nobr>
+        [<a href="javascript:insertText( '<dtml-var mode>', '( ')">(</a>]
+        [<a href="javascript:insertText( '<dtml-var mode>', ') ')">)</a>]
+      </nobr>
+    </td>
+    <!-- /conditions -->  
+    <!-- states -->  
+    <td align="center">
+      <select name="state_id" size="1">
+        <dtml-in states>
+          <dtml-let wf=Workflow
+                    state_id="_['sequence-item']"
+                    state_title="portal_workflow[wf].states[_['sequence-item']].title">
+            <option value="&dtml-state_id;"><dtml-var "msg(state_title)"></option>
+          </dtml-let>
+        </dtml-in>
+      </select>
+      [<a href="javascript:addState( '<dtml-var mode>' )">+</a>]
+    </td>
+    <!-- /states -->  
+  </tr>
+  <tr>
+    <dtml-comment>
+	<td colspan="3">
+	</dtml-comment>
+    <td colspan="<dtml-var "2+_.len(model( c_id, 'getTemplateIds', 'have_result_codes' ))">">
+      <textarea name="python_script" cols="80" rows="5" style="width:100%;"
+         ONSELECT="storeCaret(this);"
+         ONCLICK="storeCaret(this);"
+         ONKEYUP="storeCaret(this);"
+      ><dtml-if "mode=='script2transition_change'"><dtml-var "variant['python_script']"></dtml-if></textarea>
+    </td>
+  </tr>
+</table>

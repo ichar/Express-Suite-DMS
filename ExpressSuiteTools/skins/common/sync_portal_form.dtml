@@ -1,0 +1,160 @@
+<dtml-if "portal_membership.protection(context='services', REQUEST=REQUEST)">
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<script type="text/javascript">
+<!--
+function onSubmitForm( frm ) {
+   var cmds = document.getElementsByTagName('input');
+   if( !cmds ) return true;
+   for (var i = 0; i < cmds.length; i++) {
+     if( cmds[i].type == 'submit' ) document.all[cmds[i].name].disabled = true;
+   }
+   return true;
+}
+//-->
+</script>
+
+<h1><dtml-var "msg('Syncronization portal tools')"></h1><br>
+
+<dtml-with portal_services only>
+  <dtml-in "('memberdata', 'msg',)">
+    <dtml-let id=sequence-item options="getSyncOptions(id)">
+<table class="FormLayout" width="100%" cellspacing="2" cellpadding="2" border="0">
+<form name="sync_&dtml-id;" action="&dtml-absolute_url;/runSyncPortalTools" method="POST" enctype="multipart/form-data" onSubmit="return onSubmitForm(this);">
+<input name="id" type="hidden" value="&dtml-id;">
+<tr>
+  <td class="smallHeader" valign="top" align="left">
+    <dtml-var "msg(options['description'])">
+  </td>
+  <td>&nbsp;</td>
+</tr>
+
+<tr>
+  <td colspan="2"><input type="submit" name="apply_&dtml-id;" value="<dtml-var "msg('Apply')">" style="width:100px"></td>
+</tr>
+<tr>
+  <td colspan="2"><hr></td>
+</tr>
+</form>
+</table>
+    </dtml-let>
+  </dtml-in>
+
+<table class="FormLayout" cellspacing="2" cellpadding="2" border="0">
+<form name="emergency_service" action="&dtml-absolute_url;/runTurnEmergencyService" method="POST" onSubmit="return onSubmitForm(this);">
+<input name="turn" type="hidden" value="">
+<tr>
+  <td class="smallHeader" valign="top" align="left" style="padding-top:3px;color:purple;" nowrap>
+    <dtml-var "msg('Turns on/off emergency service portal mode')">:
+  </td>
+  <td><input type="submit" name="on" onclick="javascript:turn.value='on';" value="<dtml-var "msg('Turn on')">" style="width:90px"></td>
+  <td><input type="submit" name="off" onclick="javascript:turn.value='off';" value="<dtml-var "msg('Turn off')">" style="width:90px"></td>
+  <td>
+    <table cellspacing="0" cellpadding="1" border="0">
+    <tr>
+  <dtml-let container="this()" instances="[ x for x in getPortalConfiguration().getAttribute('URLs', context=container, no_sort=1) ]">
+    <dtml-in instances sort="port" mapping>
+      <dtml-let state="getEmergencyServiceState(id)"
+                IsOn="( state or state is None ) and 1 or 0"
+                c1="IsOn and '#F00000' or '#00C000'"
+                c2="IsOn and '#F08080' or '#80C080'"
+				>
+      <td>
+        <table cellspacing="2" cellpadding="1" border="0" style="border:1pt solid &dtml-c1;">
+        <tr>
+          <td bgcolor="&dtml-c2;"><img title="&dtml-id;" src="&dtml-portal_url;/spacer.gif" height="10"></td>
+	    </tr>  
+        </table>
+      </td>
+      </dtml-let>
+    </dtml-in>
+  </dtml-let>
+    </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td colspan="4"><hr></td>
+</tr>
+</form>
+</table>
+
+<table class="FormLayout" width="100%" cellspacing="2" cellpadding="2" border="0">
+  <dtml-in "('create_home_folders', 'create_department_folders', 'set_workflow_chiefs', 'set_access_level',)">
+    <dtml-let item=sequence-item options="getSyncOptions(item)"
+              submits="options['submits']"
+              inputs="options['inputs']"
+              res="REQUEST.get(item)"
+    >
+<tr>
+  <td class="smallHeader" valign="top" align="left" colspan="2">
+    <h3><dtml-var "msg(options['description'])"><h3>
+  </td>
+</tr>
+
+<form name="&dtml-id;" action="&dtml-absolute_url;/<dtml-var "options['action']">" method="POST" enctype="multipart/form-data" onSubmit="return onSubmitForm(this);">
+<input name="IsRun" type="hidden" value="0">
+<input name="create_defaults" type="hidden" value="1">
+<input name="access" type="hidden" value="W">
+
+    <dtml-if inputs>
+      <dtml-in inputs mapping>
+<tr>
+  <td><dtml-if title><strong><dtml-var "msg(title)"></strong></dtml-if></td>
+  <td>
+        <dtml-if "type=='mapping' and _.same_type(values,[],())">
+    <select name="&dtml-name;" onchange="&dtml-onchange;">
+      <option value="" selected><dtml-var "msg('nonselected')"></option>
+          <dtml-in values sort="title" mapping>
+      <option value="&dtml-id;"><dtml-var "msg(title, add=None)"></option>
+          </dtml-in>
+    </select>
+        <dtml-elif "type=='user_list'">
+          <dtml-var "user_list(this(), name=name, allowed_users=values, size=size, IsSimple=1)">
+        <dtml-elif "type=='checkbox'">
+    <input type="checkbox" name="&dtml-name;" id="id_&dtml-name;" value="1" <dtml-if values>checked</dtml-if> />
+    <label for="id_&dtml-name;"><dtml-var "msg(label)"></label>
+        <dtml-elif "type=='radio'">
+          <dtml-in values mapping>
+    <input type="radio" name="&dtml-name;" id="id_&dtml-name;_&dtml-id;" value="&dtml-id;" <dtml-if value>checked</dtml-if> />
+    <label for="id_&dtml-name;_&dtml-id;"><dtml-var "msg(title, add=None)"></label><br>
+          </dtml-in>
+        </dtml-if>
+  </td>
+</tr>
+      </dtml-in>
+    </dtml-if>
+    <dtml-if res>
+<tr>
+  <td class="services_item" align="left" valign="top" style="padding: 0 0 10px 40px;" colspan="2">
+      <dtml-in res>
+        <dtml-var "_['sequence-item'].replace('_', ' ')" newline_to_br><dtml-unless sequence-end><br></dtml-unless>
+      </dtml-in>
+  </td>
+</tr>
+    </dtml-if>
+<tr>
+  <td nowrap colspan="2">
+    <dtml-in submits mapping>
+    <input type="submit" name="&dtml-id;_&dtml-item;" onclick="javascript:IsRun.value=&dtml-value;" value="<dtml-var "msg(title)">" style="&dtml-style;">
+    </dtml-in>
+  </td>
+</tr>
+
+</form>
+
+<tr><td colspan="2"><hr></td></tr>
+    </dtml-let>
+  </dtml-in>
+</table>
+
+</dtml-with>
+
+</div>
+
+<dtml-var simple_html_footer>
+
+</dtml-if>

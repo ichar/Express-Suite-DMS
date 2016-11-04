@@ -1,0 +1,511 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<dtml-call "REQUEST.set('OpenSubmit', 0)">
+
+<dtml-let container="this()"
+          version="container.implements('isVersionable') and container.getVersion()"
+          member="portal_membership.getAuthenticatedMember()"
+          user_id="member.getUserName()"
+          IsManager="member.IsManager()"
+          IsAdmin="member.IsAdmin()"
+
+          locked="container.implements('isLockable') and container.isLocked()"
+          modify="not locked and (
+                _.SecurityCheckPermission('Modify portal content', container) or
+                _.SecurityCheckPermission('Manage properties', container))"
+          vmodify="modify and ( version is None or
+                  container.checkVersionPermission(version=version, permission='Modify portal content') or 
+                  container.checkVersionPermission(version=version, permission='Manage properties'))"
+
+          attr_links="_.getattr(container, 'attr_links', None)"
+          rename="not locked and _.SecurityCheckPermission('Delete objects', container.parent())"
+          uroles="container.user_roles() or []"
+
+          meta_type="_.getattr(container, 'meta_type', None)"
+          IsReg="meta_type=='HTMLDocument' and 1 or 0"
+
+          IsEditor="vmodify and 'Editor' in uroles"
+          IsWriter="vmodify and 'Writer' in uroles"
+          IsCreator="user_id==container.Creator()"
+
+          IsAuthor="'Author' in uroles"
+          IsReaderOnly="not vmodify and 'Reader' in uroles and _.SecurityCheckPermission('View', container)"
+
+          IsChangeCategoryEnabled="_['category'] not in getCustomDefinitions('custom_incoming_category') and vmodify and 1 or 0"
+          IsAllowedUsers="IsManager or IsEditor or IsCreator or IsWriter or IsAuthor"
+          IsRun="vmodify or rename"
+          IsDebug="0"
+>
+
+<dtml-if message>
+ <p>&dtml-message;</p>
+ <hr>
+</dtml-if>
+
+<h2><dtml-var "msg('Standard Resource Metadata')"></h2>
+
+<dtml-if IsDebug>
+  <dtml-var "this().absolute_url()"> : ( <br>
+  <dtml-var user_id> <br>
+  Creator: <dtml-var "Creator()"> <br>
+  Modify portal content: <dtml-var "_.SecurityCheckPermission('Modify portal content', this())"> <br>
+  Manage properties: <dtml-var "_.SecurityCheckPermission('Manage properties', this())"> <br>
+  View: <dtml-var "_.SecurityCheckPermission('View', this())"> <br>
+  <dtml-var meta_type> <br>
+  user_roles_x: <dtml-var user_roles_x> <br>
+  allowed_users: <dtml-var "portal_membership.listAllowedUsers(this(), 'Writer', with_access=1)"> <br>
+  IsEditor: <dtml-var IsEditor> <br>
+  IsCreator: <dtml-var IsCreator> <br>
+  IsWriter: <dtml-var IsWriter> <br>
+  IsAuthor: <dtml-var IsAuthor> <br>
+  IsReaderOnly: <dtml-var IsReaderOnly> <br>
+  modify: <dtml-var modify> <br>
+  vmodify: <dtml-var vmodify> <br>
+  IsRun: <dtml-var IsRun> <br>
+  )<br><br>
+</dtml-if>
+
+<dtml-var "msg('Each object i.e. HTML document or image has it\'s own title, description and extended metadata so one can easily find the necessary document.')">
+
+<dtml-if IsRun>
+
+<script type="text/javascript">
+<!--
+function Validate(frm) {
+  <dtml-if rename>
+    if ( validateIdentifier(frm.elements['id'], '<dtml-var "msg('Object id is invalid')">', true) == false)
+        return false;
+  </dtml-if>
+  <dtml-if vmodify>
+    if( !frm.title.value ) {
+        alert('<dtml-var "msg('Specify the document title')">');
+        return false;
+    }
+  </dtml-if>
+
+    //validate format of all data
+    if (! validateForm(frm, 1)) return false;
+
+    //validate mandatory data
+    for ( var i = 0; i < frm.elements.length; i++ ) {
+        var elem = frm.elements[ i ];
+        if (elem.name && elem.getAttribute('mandatory') && elem.type != 'checkbox' && elem.type != 'hidden'){
+            if (!elem.value || (elem.type == 'select-one' && elem.options[elem.selectedIndex].value == 'nonselected')){
+                alert('<dtml-var "msg('Please specify mandatory attribute')"> '+elem.title+'.');
+                elem.focus();
+                return false;
+            }
+    	}
+
+        if ( elem.name && elem.type=='select-multiple' && elem.id.search('_selected_users') > -1 ) {
+            for(var m = 0; m < elem.options.length; m++)
+                elem.options[m].selected = true;
+        }
+    }
+
+    return true;
+}
+
+function callbackFunctionTemplate( formId, uid, title, version_id, uid_field, title_field ) {
+    try {
+        document.forms[formId][uid_field].value = uid;
+        document.forms[formId][title_field].value = title;
+    }
+    catch (error) { alert("callbackFunction error (metadata_edit_form): " + formId + "-" + uid_field + "-" + title_field) }
+}
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.metadata_edit;
+    if( Validate(frm) ) {
+        DisableForm(frm);
+        return true; //frm.submit();
+    } else return false;
+}
+//-->
+</script>
+
+<form id="metadata_edit" name="metadata_edit" action="metadata_edit" method="post" onsubmit="return SubmitForm();">
+
+<dtml-else><br><br></dtml-if>
+
+<script type="text/javascript">
+<!--
+function DoImgClick() {
+    if(typeof(document.all.URL) != 'object') return;
+    var s=(document.all.URL.style.display == 'none' ? 'block' : 'none');
+	set_display( document.all.URL,s );
+	set_display( document.all.locale_url,s );
+	set_display( document.all.UID,s );
+	set_display( document.all.ID,s );
+	set_display( document.all.STATE,s );
+	set_display( document.all.INDENT,s );
+}
+
+function set_display( obj,state ) {
+	if(typeof(obj) == 'object') obj.style.display = state;
+}
+//-->
+</script>
+
+<table class="FormLayout" width="100%" border="0">
+  <dtml-if IsReg>
+<tr valign="top">
+  <th align="right" style="padding-bottom:5px;"> <dtml-var "msg('Registry number')"> </th>
+  <td class="ViewField" width="80%" valign="top">
+    <dtml-var registry_info>
+  </td>
+</tr>
+  </dtml-if> 
+
+<tr valign="top">
+  <dtml-if vmodify>
+  <th id="Title" align="right"> <dtml-var "msg('Title')"> </th>
+  <td class="EditField">
+    <dtml-call "REQUEST.set('OpenSubmit', 1)">
+    <input type="text" id="title" name="title" value="&dtml-title;" size="105" style="width:95%;">
+  </td>
+  <dtml-else>
+  <th id="Title" align="right" style="padding-top:3px;"> <dtml-var "msg('Title')"> </th>
+  <td class="ViewField">
+    <font size="2" style="color:purple;font-weight:bold">&dtml-Title;</font>
+  </td>
+  </dtml-if>
+</tr>
+
+<tr valign="top">
+  <th align="right" nowrap> <dtml-var "msg('Description')"> </th>
+  <dtml-if vmodify>
+  <td class="EditField">
+    <textarea name="description:text" rows="8" cols="104" style="width:95%;">&dtml-description;</textarea>
+  <dtml-else>
+  <td class="ViewField">
+    <dtml-var "description" newline_to_br> 
+  </dtml-if>
+  </td>
+</tr>
+
+<dtml-if "container.implements('isCategorial')">
+  <dtml-let category_id="Category()"
+            category="portal_metadata.getCategoryById(category_id)"
+            allowed_categories="listAllowedCategories(meta_type, cat_id=category_id)"
+            implement_language="category is not None and category.getImplementLanguage()"
+            language_category_ids="IsChangeCategoryEnabled and portal_metadata.listLanguageCategoryIds(allowed_categories) or
+                                   implement_language and [category_id] or []"
+  >
+  <dtml-if IsChangeCategoryEnabled>
+    <dtml-in allowed_categories>
+      <dtml-if sequence-start>
+<tr>
+  <th class="TextField"> <dtml-var "msg('Category')"> </th>
+  <td class="EditField">
+    <select name="category:string" onChange="SetLanguage(this.options[this.selectedIndex].value);">
+      </dtml-if>
+      <option value="&dtml-getId;" <dtml-var "getId()==category_id and 'selected' or ''">><dtml-var "msg(Title(), add=None)"></option>
+      <dtml-if sequence-end>
+    </select>
+  </td>
+</tr>
+      </dtml-if>
+    </dtml-in>
+  <dtml-else>
+    <dtml-if "portal_metadata.getCategories(meta_type)">
+<tr>
+    <th class="TextField" style="padding-top:1px;"> <dtml-var "msg('Category')"> </th>
+    <td class="ViewField">
+      <span style="text-decoration:normal;font-size:12px;">
+      <dtml-if "category is not None">
+        <dtml-var "msg(category.Title())">
+      <dtml-else>
+        (<dtml-var "msg('No')">)
+      </dtml-if>
+      </span>
+    </td>
+</tr>
+    </dtml-if>
+  </dtml-if>
+
+<script type="text/javascript">
+<!--
+function SetLanguage( cat_id ) {
+    if (typeof(document.all['LANGUAGE']) != 'object') return;
+    var ids=<dtml-var language_category_ids>;
+    var s='none';
+    for ( var i = 0; i < ids.length; i++ ) {
+      if( ids[i]==cat_id ) s='block';
+    }
+    document.all.LANGUAGE.style.display=s;
+}
+//-->
+</script>
+
+  <dtml-if implement_language>
+<tr id="LANGUAGE" valign="top" style="display:none;">
+  <th class="TextField"> <dtml-var "msg('Language')"> </th>
+    <dtml-if "IsEditor or IsCreator">
+      <dtml-call "REQUEST.set('OpenSubmit', 1)">
+  <td class="EditField" style="padding-top:1px;">
+    <select name="language">
+	  <dtml-in "msg.get_languages_map()" mapping>
+      <option value="&dtml-id;" <dtml-var "id == (language or Language()) and 'selected' or ''"> >
+        <dtml-var "msg(title)"></option>
+	  </dtml-in>
+    </select>
+    <dtml-else>
+  <td class="ViewField">
+      <dtml-in "msg.get_languages_map()" mapping>
+        <dtml-if "id == (language or Language())"><dtml-var "msg(title)"></dtml-if>
+      </dtml-in>
+    </dtml-if>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-in listCategoryAttributes>
+    <dtml-if sequence-start>
+<tr><td colspan="2" height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+<tr>
+  <th class="TextField" style="padding-top:3px;"><dtml-var "msg('Document attributes')"></th>
+  <td class="TextField" style="padding-top:1px">
+    <table cellspacing="0" cellpadding="0" border="0">
+    </dtml-if>
+    <dtml-let category2="portal_metadata.getCategoryById(category_id)"
+              value="_['sequence-item']">
+
+    <dtml-with sequence-key>
+      <dtml-let name="getId()"
+                type="Type()"
+                get_default="getComputedDefault()"
+                context="type not in ['lines','items'] and category2 or None"
+                is_remote_value="type=='link' and attr_links and attr_links.has_key(name)"
+                is_macro="name[:1]=='$'"
+                IsFieldComputed="isReadOnly() and isMandatory() or is_remote_value or is_macro"
+                IsFieldEdit="container.checkAttributePermission(name, 'Modify portal content') or container.checkAttributePermission(name, 'Manage properties')"
+                IsFieldView="container.checkAttributePermission(name, 'View')"
+                IsFieldEditable="not wl_isLocked() and not IsFieldComputed and IsFieldEdit and IsFieldView and (
+                  IsWriter or ((IsCreator or IsManager or IsEditor) and not isReadOnly()))"
+                IsFieldAvailable="not isReadOnly()"
+                attr_data="category_id+':'+name"
+                w="getWidth()"
+                field_style="w and 'width:'+ w + ';'"
+                value="is_remote_value and attr_links[name] or value"
+      >
+        <dtml-if "(IsFieldAvailable or IsFieldEditable or IsFieldComputed) and not isHidden()">
+    <tr><td><img src="&dtml-portal_url;/spacer.gif" height="5"></td></tr>
+    <tr>
+      <td valign="top"
+          <dtml-if IsFieldView>width="25%"<dtml-else>width="35%"</dtml-if>
+          <dtml-if IsFieldEditable>style="padding: 2px 0 0 3px;"<dtml-else>style="padding: 1px 0 0 3px;"</dtml-if>
+      />
+          <dtml-if "not IsFieldEditable"><span style="color:#555555;"></dtml-if>
+            <dtml-var "isMandatory() and '<strong>' or ''">
+            <dtml-var "msg(Title(), add=0)">
+            <dtml-var "isMandatory() and '</strong>' or ''">
+          <dtml-if "type=='userlist' and IsFieldEditable">
+            <table cellspacing="0" cellpadding="0" border="0">
+            <tr>
+              <td style="padding-top:10px;">
+                <img src="&dtml-portal_url;/open_selected_div.gif" width="16" height="16" onclick="javascript:openUsers( '&dtml-name;_users_div' );" onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'">
+              </td>
+            </tr>
+            </table>
+          </dtml-if>
+          <dtml-if "not IsFieldEditable"></span></dtml-if>
+      </td>
+
+      <td valign="top" style="padding-left:1px;">&nbsp;&nbsp;</td>
+
+      <td align="left" style="padding-left:3px; vertical-align:top;">
+          <dtml-if IsFieldEditable>
+            <input type="hidden" name="save_&dtml-name;" value="<dtml-var value html_quote>" />
+            <dtml-var "entry_field_edit(category2, type=type, name=name, value=value, get_default=get_default,
+                       context=context,
+                       str_data=isMandatory() and 'mandatory=1' or '', 
+                       attr_data=attr_data,
+                       field_title=Title(), 
+                       field_style=field_style,
+                       mode='metadata',
+                       form='metadata_edit'
+                       )">
+            <dtml-call "REQUEST.set('OpenSubmit', 1)">
+          <dtml-elif "IsFieldView or IsFieldComputed">
+            <dtml-try>
+            <dtml-if "IsFieldComputed">
+              <dtml-call "REQUEST.set('view_font_style', 'color:purple;font-size:120%;font-family:Times;')">
+            <dtml-elif "isMandatory()">
+              <dtml-call "REQUEST.set('view_font_style', 'color:black;font-weight:bold;font-size:120%;font-family:Times;')">
+            <dtml-elif "Type()=='lines'">
+              <dtml-call "REQUEST.set('view_font_style', 'color:black;font-size:110%;text-decoration:underline;')">
+            <dtml-else>
+              <dtml-call "REQUEST.set('view_font_style', None)">
+            </dtml-if>
+            <dtml-var "entry_field_view(category2, name=name, type=type, value=value, get_default=get_default,
+                       context=context,
+                       is_remote_value=is_remote_value
+                       )">
+            <dtml-except>
+              <em><dtml-var "msg('error in metadata declaration')"></em>
+            </dtml-try>
+          <dtml-else>
+            <dtml-var "msg('Object is inaccessible.')">
+          </dtml-if>
+          <dtml-if IsDebug>
+            <dtml-var "container.checkAttributePermission(name, 'Modify portal content')"> : 
+            <dtml-var "container.checkAttributePermission(name, 'View')"> : 
+            <dtml-var "value">
+          </dtml-if>
+      </td>
+    </tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-with>
+	
+	</dtml-let>
+    <dtml-if sequence-end>
+    </table>
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-in>
+
+  </dtml-let>
+</dtml-if>
+
+<dtml-let c_object="portal_metadata.getCategoryById( _['category'] )"
+          wf_id="c_object is not None and c_object.Workflow()"
+          state="portal_workflow.getInfoFor(container, 'state', '')"
+          showmode="'display:none;'"
+>
+<tr><td colspan="2"><hr width="100%" size="+1"></td></tr>
+<tr><td colspan="2" align="left">
+  <img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="javascript:DoImgClick();" onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'">
+</td></tr>
+
+<tr id="URL" valign="top" style="&dtml-showmode;">
+  <th align="right"> <dtml-var "msg('URL')"> </th>
+  <td class="ViewField"> <dtml-var Identifier> </td>
+</tr>
+
+<tr id="UID" valign="top" style="&dtml-showmode;">
+  <th align="right"> <dtml-var "msg('UID')"> </th>
+  <td class="ViewField"> <dtml-var getUid> </td>
+</tr>
+
+<tr id="ID" valign="top" style="&dtml-showmode;">
+  <th align="right"> <dtml-var "msg('Id')"> </th>
+  <dtml-if "IsAdmin or IsEditor and cb_isMoveable()">
+  <td class="EditField">
+    <input type="text" name="id" value="<dtml-var getId>" size="105" style="width:95%;">
+  <dtml-else>
+  <td class="ViewField">
+    <dtml-var getId>
+    <input type="hidden" name="id" value="<dtml-var getId>">
+  </dtml-if>
+  </td>
+</tr>
+
+  <dtml-if "state and wf_id">
+<tr id="STATE" valign="top" style="&dtml-showmode;">
+  <th align="right"> <dtml-var "msg('State')"> </th>
+  <td class="ViewField">
+    <dtml-var "msg(portal_workflow.getStateTitle( wf_id, _['state']) )">
+    <dtml-if IsDebug><dtml-var "state"> : <dtml-var "_['state']"></dtml-if>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-let addr="'%s/portal_links/locate?uid=%s&expand=1' % (portal_url(), getUid())" >
+<tr id="locale_url" valign="top" style="&dtml-showmode;">
+  <th align="right" style="padding: 3px 0 0 50px;" nowrap><dtml-var "msg('Relative hyper-link')"></th>
+  <td style="padding-left:4px;"><a class="manage" href="&dtml-addr;" target="_blank">&dtml-addr;</a></td>
+</tr>
+  </dtml-let>
+
+<tr id="INDENT" valign="top" style="&dtml-showmode;"><td><img src="&dtml-portal_url;/spacer.gif" height="5"></td></tr>
+</dtml-let>
+ 
+<dtml-if "IsRun and REQUEST.get('OpenSubmit', 0) and not wl_isLocked()">
+<tr valign="top">
+  <td></td>
+  <td align="left" style="padding-left:4px;">
+    <input type="submit" name="OK" value=" <dtml-var "msg('Apply')"> ">
+  </td>
+</tr>
+<tr><td colspan="2">&nbsp;</td></tr>
+<dtml-elif IsDebug>
+<tr valign="top">
+  <td></td>
+  <td align="left" style="padding-left:4px;">
+    <br>
+    <dtml-var "REQUEST.has_key('OpenSubmit')">
+  </td>
+</tr>
+</dtml-if>  
+
+<dtml-if wl_isLocked>
+<tr valign="top">
+  <td class="info" align="right"><dtml-var "msg('Attention!')"></td>
+  <td align="left" style="padding-left:4px;">
+  	<table class="FormLayout" cellspacing="0" cellpadding="0" border="0">
+	<tr>
+	  <td class="info" valign="top" nowrap>
+      <dtml-if "IsEditor">
+        <dtml-var "msg('This document has been locked because it is editing by another user')">(
+	    <span style="font-weight:normal;"><dtml-var "msg('Press Key tab to unlock please')"></span>
+	  </td>
+	  <td class="info" style="padding-left:5px;">
+        <a href="&dtml-absolute_url;/inFrame?link=./document_edit_form&unlock=" target="workspace">
+          <img src="&dtml-portal_url;/lock_attach.gif" alt="#" title="<dtml-var "msg('Unlock document')">" width="15" height="15">
+	    </a>
+	  </td>
+	  <td class="info" valign="top">)</td>
+	  <dtml-else>
+  	    <dtml-var "msg('This document has been locked because it is being edited by another user.')">
+      </dtml-if>
+	  </td>
+	</tr>
+	</table>
+  </td>
+</tr>
+</dtml-if>
+
+<script type="text/javascript">
+<!--
+//if( userAgent.type != 'IE' ) {	DoImgClick(); }
+//-->
+</script>
+ 
+<dtml-if IsAllowedUsers>
+<tr><td colspan="2" height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+<tr>
+  <td colspan="2">
+   <dtml-var allowed_users>
+  </td>
+</tr>
+<tr>
+  <td colspan="2">&nbsp;</td>
+</tr>
+</dtml-if>
+</table>
+
+<dtml-if IsRun>
+
+<script type="text/javascript">
+SetLanguage('<dtml-var "_['category']">');
+
+var obj = document.metadata_edit.elements['title'];
+if(typeof(obj) == 'object' && !obj.disabled) obj.focus();
+</script>
+
+</form>
+
+</dtml-if>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

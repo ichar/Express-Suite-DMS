@@ -1,0 +1,328 @@
+<dtml-var simple_html_header>
+
+<style type="text/css">
+th { 
+	padding-right: 3px; 
+}
+</style>
+
+<script type="text/javascript">
+<!--
+function refresh_form() {
+  var form = document.forms['personalize'];
+  form.refresh.value = 1;
+  form.submit();
+}
+
+function set_access_level(obj, cid, sid) {
+  var objValue = document.all[cid];
+  var objSelect = document.all[sid];
+  if( typeof(objValue) != 'object' || typeof(objSelect) != 'object' ) return;
+
+  if( !obj.checked ) { 
+      objValue.value = ''; 
+      objSelect.disabled = true;
+  } else {
+      objValue.value = objSelect.value; 
+      objSelect.disabled = false; 
+  }
+}
+//-->
+</script>
+
+<dtml-let user="portal_membership.getAuthenticatedMember()"
+          username="user.getUserName()"
+          superusers="getCustomDefinitions('superusers')"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          IsRun="portal_membership.getMemberById(username) and 1 or 0"
+          look_for_user="_.hasattr(REQUEST, 'userid') and userid"
+          IsSuperuser="IsAdmin and (not look_for_user or look_for_user==username or username in superusers)"
+          member="look_for_user and portal_membership.getMemberById(look_for_user) or user"
+          member_id="member.id"
+          input_style="look_for_user in superusers and not IsAdmin and 'width:100%;background-color:#DDDDDD;cursor:not-allowed;' or 'width:100%;'"
+          disabled="look_for_user in superusers and not IsAdmin and 'disabled' or ''"
+          a="REQUEST.get('abc', '')"
+          company="REQUEST.get('com', '')"
+          department="REQUEST.get('dep', '')"
+          IsQuery="(a or company or department) and 1 or 0"
+          p_attr="IsQuery and '?p=1'+(a and '&abc='+a or '')+(company and '&com='+company or '')+(department and '&dep='+department or '') or ''"
+          home_folder_exists="member.getHomeFolder()"
+>
+<dtml-if "not portal_membership.checkPermission( 'Set own properties', this() )">
+  <dtml-raise Unauthorized>
+    You must be logged in to view this resource.
+  </dtml-raise>
+</dtml-if>
+
+<div class="Desktop">
+
+<h1 style="padding-left:3px"><dtml-var "msg('Personal properties')"></h1>
+<h3 style="padding-left:3px"><font color="#800080"><nobr><dtml-var "msg('User')">: <dtml-var "member_name(this(), member=member_id)"></nobr></font></h3>
+
+<table class="FormLayout" cols="3" border="0">
+<colgroup>
+<col style="WIDTH:30%">
+<col style="WIDTH:60%">
+<col style="WIDTH:10%">
+
+<dtml-if "not home_folder_exists and IsAdmin">
+<form name="objectItems" method="post">
+  <dtml-if look_for_user>
+  <input type="hidden" name="userid" value="&dtml-look_for_user;">
+  </dtml-if>
+  <dtml-if IsQuery>
+  <input type="hidden" name="abc" value="&dtml-a;">
+  <input type="hidden" name="com" value="&dtml-company;">
+  <input type="hidden" name="dep" value="&dtml-department;">
+  </dtml-if>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding: 10px 0 0 0;"><input type="submit" name="create_home_folder:method" value="<dtml-var "msg('Create home folder')">"></td>
+  <td>&nbsp;</td>
+</tr>
+</form>
+<dtml-else>
+<tr><td>&nbsp;</td></tr>
+</dtml-if>
+
+<dtml-let member_company="REQUEST.get('company', member.getProperty('company', None))"
+          email="REQUEST.get('user_email', member.getProperty('email'))"
+          lname="REQUEST.get('lname', member.getProperty('lname'))"
+          fname="REQUEST.get('fname', member.getProperty('fname'))"
+          mname="REQUEST.get('mname', member.getProperty('mname'))"
+          phone="REQUEST.get('phone', member.getProperty('phone'))"
+          notes="REQUEST.get('notes', member.getProperty('notes'))"
+          manager="REQUEST.get('manager', member.has_role('Manager'))"
+          facsimile="REQUEST.get('facsimile', member.getProperty('facsimile', None))"
+          common_url="portal_properties.common_url()"
+>
+
+<tr>
+  <td>
+<form name="personalize" action="personalize" method="post">
+<input type="hidden" name="refresh" value="">
+
+<dtml-if "IsManager and look_for_user">
+  <input type="hidden" name="userid" value="&dtml-look_for_user;">
+</dtml-if>
+<dtml-if IsQuery>
+  <input type="hidden" name="abc" value="&dtml-a;">
+  <input type="hidden" name="com" value="&dtml-company;">
+  <input type="hidden" name="dep" value="&dtml-department;">
+</dtml-if>
+  
+<dtml-if look_for_user>
+  <dtml-if IsManager>
+    <p><nobr><strong><a href="&dtml-absolute_url;/manage_users_form&dtml-p_attr;"><dtml-var "msg('Portal users list')"></a></strong></nobr></p>
+  </dtml-if>
+  <dtml-if IsSuperuser>
+    <p style="padding-bottom:10px"><nobr><strong><a href="password_form<dtml-if look_for_user>?userid=&dtml-look_for_user;</dtml-if>"><dtml-var "msg('Change password')"></a></strong></nobr></p>
+  </dtml-if>
+</dtml-if>
+  </td>
+</tr>
+
+<tr>
+  <th nowrap><dtml-var "msg('Name')"></th>
+  <td style="padding-top:4px;">&dtml-member_id;</td>
+</tr>
+<tr>
+  <th><dtml-var "msg('E-mail address')"></th>
+  <td>
+    <dtml-if IsSuperuser>
+      <input type="text" name="email" value="<dtml-var email html_quote>" style="&dtml-input_style;" /></td>
+    <dtml-else>
+      <input type="hidden" name="email" value="<dtml-var email html_quote>" />
+      <input type="text" value="<dtml-var email html_quote>" style="width:100%;background-color:#DDDDDD;cursor:not-allowed;" disabled />
+    </dtml-if>
+  </td>
+  <td style="width:20%;">&nbsp;</td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Last name')"></th>
+  <td><input type="text" name="lname" style="&dtml-input_style;" <dtml-var disabled> value="<dtml-var lname html_quote>"></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('First name')"></th>
+  <td><input type="text" name="fname" style="&dtml-input_style;" <dtml-var disabled> value="<dtml-var fname html_quote>"></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Middle name')"></th>
+  <td><input type="text" name="mname" style="&dtml-input_style;" <dtml-var disabled> value="<dtml-var mname html_quote>"></td>
+</tr>
+
+<tr><td>&nbsp;</td><td style="padding-bottom:4px;"><dtml-var "member.getMemberBriefName()"></td></tr>
+
+<tr>
+  <th><dtml-var "msg('Company')"></th>
+  <dtml-let values="getDepartmentDictionary().listCompanies()">
+    <dtml-if IsAdmin>
+  <td>
+    <select name="company" style="&dtml-input_style;" <dtml-var disabled> onchange="javascript:refresh_form();">
+      <option value="" <dtml-var "not member_company" fmt="selected">><dtml-var "msg('nonselected')"></option>
+      <dtml-in values sort="title" mapping>
+        <option value="&dtml-id;" <dtml-var "member_company==id" fmt="selected">>&dtml-title;</option>
+      </dtml-in>
+    </select>
+  </td>
+    <dtml-elif member_company>
+  <td class="smallHeader" style="padding: 1px 0 10px 0;" nowrap>
+      <font color="purple"><dtml-var "getDepartmentDictionary().getCompanyTitle(member_company)"></font>
+  </td>
+    </dtml-if>
+  </dtml-let>
+</tr>
+
+<tr>
+  <th valign="top" nowrap><dtml-var "msg('Users department')"></th>
+  <dtml-let values="getDepartmentDictionary().listDepartments(member_company)"
+            member_department="member.getProperty('department', '')">
+    <dtml-if IsAdmin>
+  <td>
+    <select name="department" style="&dtml-input_style;" <dtml-var disabled>>
+      <option value="" <dtml-var "not member_department" fmt="selected">><dtml-var "msg('nonselected')"></option>
+      <dtml-in values sort="title" mapping>
+        <option value="&dtml-id;" <dtml-var "member_department==id" fmt="selected">>&dtml-title;</option>
+      </dtml-in>
+    </select>
+  </td>
+    <dtml-elif member_department>
+  <td class="smallHeader" style="padding: 1px 0 10px 0;" nowrap>
+      <font color="purple"><dtml-var "getDepartmentDictionary().getDepartmentTitle(member_department)"></font>
+  </td>
+    </dtml-if>
+  </dtml-let>
+</tr>
+
+<tr>
+  <th><dtml-var "msg('Phone')"></th>
+  <td><input type="text" name="phone" style="&dtml-input_style;" <dtml-var disabled> value="<dtml-var phone html_quote>"></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Comments')"></th>
+  <td><textarea cols="120" rows="5" name="notes" style="&dtml-input_style;" <dtml-var disabled>><dtml-var notes html_quote></textarea></td>
+</tr>
+
+<dtml-if IsManager>
+<tr>
+  <th><dtml-var "msg('Portal Access Level')"></th>
+  <td>
+  <dtml-let access_levels="getPortalConfiguration().getAccessLevels()">
+    <dtml-in "member.getMemberAccessLevel()" mapping>
+      <dtml-if sequence-start>
+    <table cellpadding="0" cellspacing="0" border="0">
+      </dtml-if>
+      <dtml-let value="value in ['R','W'] and value or ''"
+                checked="value and 'checked' or ''"
+                disabled="not value and 'disabled' or ''"
+                instance="getPortalConfiguration().getAttribute(id)"
+                cid="'instance_'+id"
+                sid="'level_'+id">
+    <tr>
+        <dtml-if IsAdmin>
+      <td valign="top">
+        <input name="&dtml-cid;" type="hidden" value="&dtml-value;">
+        <input id="&dtml-id;" type="checkbox" value="1" <dtml-var checked> onclick="javascript:set_access_level(this,'&dtml-cid;','&dtml-sid;');">
+      </td>
+      <td style="padding: 1px 10px 0 5px;">
+        <select name="&dtml-sid;" <dtml-var disabled> onchange="&dtml-cid;.value=this.value">
+          <dtml-in access_levels mapping>
+          <option value="&dtml-id;" <dtml-var "value==id" fmt="selected">> <dtml-var "msg(title, add=0)"> </option>
+          </dtml-in>
+        </select>
+	  </td>
+      <td style="padding-top:4px;color:purple;" nowrap>
+        <label for="&dtml-id;"><dtml-if "instance.has_key('title') and instance['title']"><dtml-var "msg(instance['title'], add=0)"><dtml-else>&dtml-id;</dtml-if></label>
+      </td>
+        <dtml-else>
+      <td valign="top">
+        <input id="&dtml-id;" type="checkbox" value="1" <dtml-var checked> disabled>
+      </td>
+      <td style="padding: 1px 10px 0 5px;">
+        <select name="&dtml-sid;" disabled onchange="&dtml-cid;.value=this.value">
+          <dtml-in access_levels mapping>
+          <option value="&dtml-id;" <dtml-var "value==id" fmt="selected">> <dtml-var "msg(title, add=0)"> </option>
+          </dtml-in>
+        </select>
+	  </td>
+      <td style="padding-top:4px;color:purple;" nowrap>
+        <label for="&dtml-id;"><dtml-if "instance.has_key('title') and instance['title']"><dtml-var "msg(instance['title'], add=0)"><dtml-else>&dtml-id;</dtml-if></label>
+      </td>
+        </dtml-if>
+    </tr>
+      </dtml-let>
+      <dtml-if sequence-end>
+    </table>
+      </dtml-if>
+    </dtml-in>
+  </dtml-let>
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "IsAdmin or IsManager and manager">
+<tr>
+  <th><dtml-var "msg('Portal administrator')"></th>
+  <dtml-if IsAdmin>
+  <td>
+    <input name="manager" type="checkbox" <dtml-var disabled> value="1" <dtml-if manager>checked</dtml-if> />
+  </td>
+  <dtml-else>
+  <td>
+    <input name="manager" type="hidden" value="1">
+    <input type="checkbox" disabled value="1" checked />
+  </td>
+  </dtml-if>
+</tr>
+</dtml-if>
+
+<dtml-if IsManager>
+<tr>
+  <th><dtml-var "msg('Facsimile')"></th>
+  <td><input type="text" name="facsimile" style="&dtml-input_style;" <dtml-var disabled> value="<dtml-var facsimile html_quote>" /></td>
+</tr>
+</dtml-if>
+
+<dtml-if IsRun>
+<tr>
+  <td><br></td>
+  <td><input type="submit" value=" <dtml-var "msg('Save')"> "></td>
+</tr>
+</dtml-if>
+
+<dtml-if facsimile>
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="2" align=left style="padding: 10px 0 10px 0;">
+    <table bgcolor="#ffffff" border="0">
+      <tr><td><img src="&dtml-common_url;&dtml-facsimile;" border=0></td></tr>
+    </table>
+  </td>
+</tr>
+</dtml-if>
+
+</dtml-let>
+
+<dtml-comment>
+<dtml-in "member.propertysheets.CommonProperties.propertyIds()">
+<tr>
+  <th>&dtml-sequence-item;</th>
+  <td><input type="text" name="&dtml-sequence-item;" value="<dtml-var "_.getattr(member, _['sequence-item'])" html_quote>"></td>
+</tr>
+</dtml-in>
+</dtml-comment>
+
+</form>
+</table>
+
+<dtml-if "not IsRun">
+  <br>
+  <h3><font color="purple"><dtml-var "msg('For administrator managing only')"></font></h3>
+</dtml-if>
+
+</dtml-let>
+
+</div>
+
+<dtml-var simple_html_footer>

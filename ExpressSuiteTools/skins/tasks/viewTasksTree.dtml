@@ -1,0 +1,14 @@
+<dtml-if "followup is not None and followup.getBoundTasks()">
+
+<dtml-forest branches_expr="followup.getBoundTasks()"
+             security_expr="validate()" 
+             sort="created"
+>
+
+<dtml-var task_tree>
+
+</dtml-forest>
+
+<br>
+
+</dtml-if>

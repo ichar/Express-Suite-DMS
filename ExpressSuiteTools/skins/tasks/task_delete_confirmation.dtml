@@ -1,0 +1,32 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function DeleteDisableForm(form) {
+    form.OK.disabled=true;
+    form.cancel.disabled=true;
+}
+
+function DeleteSubmitForm() {
+    var form = document.deleteForm;
+    DeleteDisableForm(form);
+    form.submit();
+}
+//-->
+</script>
+
+<div class="Desktop">
+
+<form name="deleteForm" action="&dtml-absolute_url;/deleteObject" target="workspace" method="post">
+<p class="DesktopStatusBar">
+<dtml-var "msg('Do you really want to delete this task?')">
+<dtml-var "task_info(this(), editable=0)">
+</p>
+
+<input type="button" name="OK" value="<dtml-var "msg('Remove')">" onclick="javascript:DeleteSubmitForm();" style="width:80px;">
+<input type="button" name="cancel" value=" <dtml-var "msg('Cancel')"> " onclick="javascript:location.href='&dtml-absolute_url;'" style="width:80px;">
+</form>
+
+</div>
+
+<dtml-var simple_html_footer>

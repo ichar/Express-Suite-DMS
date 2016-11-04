@@ -1,0 +1,38 @@
+<dtml-comment>
+$Id: external_edit_link.dtml,v 1.7.40.1 2004/11/19 09:51:04 spinagin Exp $
+</dtml-comment>
+<dtml-revision $Revision: 1.7.40.1 $>
+
+<dtml-let obj="this()"
+          ver_or_obj="obj.implements('isVersionable') and obj.getVersion() or obj">
+
+<dtml-if "_.hasattr(this(),'externalEditLink_')
+          and not (REQUEST.get('HTTPS') and _.string.find(HTTP_USER_AGENT,'MSIE') >= 0)
+          and not (obj.implements('isLockable') and obj.isLocked())
+          and _.SecurityCheckPermission('Modify portal content', ver_or_obj)
+          and (not obj.implements('isDocument') or portal_workflow.getInfoFor(obj.aq_parent, 'state', '')=='editable')">
+
+ <dtml-if "ver_or_obj.implements('isVersion') and ver_or_obj.associated_with_attach">
+  <dtml-let associated_attach="obj[ ver_or_obj.associated_with_attach ]">
+   <dtml-if "_.SecurityCheckPermission('Modify portal content', associated_attach)">
+     <dtml-try>
+       <dtml-var "externalEditLink_(associated_attach)">
+     <dtml-except>
+       &nbsp;
+     </dtml-try>
+   </dtml-if>
+  </dtml-let>
+ <dtml-else>
+  <dtml-let external_edit_html="externalEditLink_(ver_or_obj)">
+  <dtml-if external_edit_html>
+   <dtml-var external_edit_html>
+   <dtml-if portal_ocr>
+       <a href="<dtml-var "this().absolute_url(no_version=1)">/externalEdit_/portal_ocr"><img src="&dtml-portal_url;/finereader_icon.gif" width="16" height="16" border="0" alt="Finereader"></a>
+   </dtml-if>
+  </dtml-if>
+  </dtml-let>
+ </dtml-if>
+
+</dtml-if>
+
+</dtml-let>

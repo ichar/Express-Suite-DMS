@@ -1,0 +1,483 @@
+<dtml-if "_.has_key('IsSimple')">
+
+  <dtml-let allowed_users="portal_membership.listSortedUserNames(_.has_key('allowed_users') and _.same_type(allowed_users, [], ()) and allowed_users or portal_membership.getMemberIds())"
+            selected_users="_.has_key('selected_users') and selected_users or []"
+            style="_.has_key('style') and style or ''"
+            list="not _.has_key('no_multiple') and ':list' or ''"
+            multiple="list and 'multiple' or ''"
+            onchange="_.has_key('onchange') and onchange or ''"
+            IsHeader="_.has_key('title_selected')"
+            IsNone="_.has_key('with_none')"
+  >
+<table cellspacing="0" cellpadding="0" border="0">
+  <dtml-if IsHeader>
+<tr>
+  <td class="smallHeader" style="padding-bottom:5px;" nowrap align="left"><dtml-var "msg(title_selected, add=0)"></td>
+</tr>
+  </dtml-if>
+<tr>
+  <td>
+    <select id="&dtml-name;_selected_users"
+            name="&dtml-name;&dtml-list;"
+            size="<dtml-var size missing=5>" <dtml-var multiple>
+            style="<dtml-var style>"
+            onchange="<dtml-var onchange>">
+      <dtml-if IsNone>
+        <option value="" <dtml-var "not selected_users and 'selected' or ''">><dtml-var "msg('None')"></option>
+      </dtml-if>
+      <dtml-in allowed_users mapping>
+        <dtml-if user_id>
+        <option value="<dtml-var user_id>" <dtml-var "selected_users and user_id in selected_users and 'selected' or ''">>&dtml-user_name;</option>
+        </dtml-if>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr><td height="6"><dtml-var spacer.gif></td></tr>
+<tr>
+  <td nowrap>
+    <strong><dtml-var "msg('Fast search')">:</strong>
+    <input name="search_str" type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-name;_selected_users);" size="20">
+  </td>
+</tr>
+</table>
+  </dtml-let>
+
+<dtml-elif "_.has_key('IsAdvanced')">
+
+  <dtml-let sys="_.has_key('sys') and sys or None"
+            w_style="'padding: 2px 10px 2px 10px; cursor:pointer; text-align:center;'"
+            allowed_users="portal_membership.listSortedUserNames(_.has_key('allowed_users') and _.same_type(allowed_users, [], ()) and allowed_users or portal_membership.getMemberIds())"
+            allowed_groups="_.has_key('allowed_groups') and _.same_type(allowed_groups, [], ()) and allowed_groups or portal_membership.getListGroups(attr=['DA'], sys=sys)"
+            allowed_departments="_.has_key('allowed_departments') and _.same_type(allowed_departments, [], ()) and allowed_departments or portal_membership.getListGroups(attr=['SD'])"
+            no_sort="_.has_key('no_sort') and no_sort or 0"
+            selected_users="_.has_key('selected_users') and selected_users and portal_membership.listSortedUserNames(selected_users, no_sort=no_sort)"
+            cscript="_.has_key('cscript') and cscript or ''"
+            style="_.has_key('style') and style or ''"
+            IsHeader="_.has_key('title_selected')"
+            IsDepartment="not _.has_key('no_departments') and 1 or not no_departments and 1 or 0"
+            IsGroup="_.has_key('with_groups') and with_groups or 0"
+            IsOrder="_.has_key('with_order') and with_order or 0"
+            IsNone="_.has_key('with_none') and with_none or 0"
+  >
+  <dtml-if "IsOrder or IsGroup">
+<script type="text/javascript" src="&dtml-portal_url;/selected.js"></script>
+  </dtml-if>
+
+<table cellspacing="0" cellpadding="0" border="0">
+  <dtml-if IsHeader>
+<tr>
+  <td class="smallHeader" style="padding-bottom:5px;" nowrap><dtml-var "msg('All users')"></td>
+</tr>
+  </dtml-if>
+<tr>
+  <td align="left">
+    <input type="hidden" name="select_type" value="1">
+    <div id="&dtml-name;_selector_users_window" style="display:block;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td colspan="2" style="padding-bottom:5px;">
+        <select id="all_users"
+                name="&dtml-name;_all_users" 
+                size="<dtml-var size missing=10>" multiple
+                onDblClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');&dtml-cscript;" 
+                style="<dtml-var style>">
+        <dtml-in allowed_users mapping>
+          <option value="<dtml-var user_id>">&dtml-user_name;</option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td nowrap>
+        <strong><dtml-var "msg('Fast search')">:</strong>
+        <input name="search_str" type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-name;_all_users);" size="20">
+      </td>
+      <td align="left" style="padding: 0 0 0 95px;vertical-align:middle;width:100%;">
+        <input type="button" title="<dtml-msg "Remove this user">" onClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);&dtml-cscript;" value=" << ">&nbsp;
+        <input type="button" title="<dtml-msg "Select this user">" onClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');&dtml-cscript;" value=" >> ">
+      </td>
+    </tr>
+    </table>
+    </div>
+  <dtml-if IsGroup>
+    <div id="&dtml-name;_selector_groups_window" style="display:none;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td colspan="2" style="padding-bottom:5px;">
+        <select id="all_groups"
+                name="&dtml-name;_all_groups" 
+                size="<dtml-var size missing=10>" multiple
+                onDblClick="javascript:addSelectionToList(&dtml-name;_all_groups, &dtml-name;_selected_users, 'group');&dtml-cscript;" 
+                style="<dtml-var style>">
+        <dtml-in allowed_groups sort="group_title" mapping>
+          <option value="&dtml-group_id;">&dtml-group_title;</option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td nowrap>
+        <strong><dtml-var "msg('Fast search')">:</strong>
+        <input name="search_str" type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-name;_all_groups);" size="20">
+      </td>
+      <td align="left" style="padding: 0 0 0 95px;vertical-align:middle;width:100%;">
+        <input type="button" title="<dtml-msg "Remove this group">" onClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);&dtml-cscript;" value=" << ">&nbsp;
+        <input type="button" title="<dtml-msg "Select this group">" onClick="javascript:addSelectionToList(&dtml-name;_all_groups, &dtml-name;_selected_users, 'group');&dtml-cscript;" value=" >> ">
+      </td>
+    </tr>
+    </table>
+    </div>
+  </dtml-if>
+  <dtml-if IsDepartment>
+    <div id="&dtml-name;_selector_departments_window" style="display:none;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td colspan="2" style="padding-bottom:5px;">
+        <select id="all_departments"
+                name="&dtml-name;_all_departments" 
+                size="<dtml-var size missing=10>" multiple
+                onDblClick="javascript:addSelectionToList(&dtml-name;_all_departments, &dtml-name;_selected_users, 'group');&dtml-cscript;" 
+                style="<dtml-var style>">
+        <dtml-in allowed_departments sort="group_title" mapping>
+          <option value="&dtml-group_id;">&dtml-group_title;</option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td nowrap>
+        <strong><dtml-var "msg('Fast search')">:</strong>
+        <input name="search_str" type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-name;_all_departments);" size="20">
+      </td>
+      <td align="left" style="padding: 0 0 0 95px;vertical-align:middle;width:100%;">
+        <input type="button" title="<dtml-msg "Remove this department">" onClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);&dtml-cscript;" value=" << ">&nbsp;
+        <input type="button" title="<dtml-msg "Select this department">" onClick="javascript:addSelectionToList(&dtml-name;_all_departments, &dtml-name;_selected_users, 'group');&dtml-cscript;" value=" >> ">
+      </td>
+    </tr>
+    </table>
+    </div>
+  </dtml-if>
+  </td>
+</tr>
+  <dtml-if IsGroup>
+<tr>
+  <td align="left" valign="top" style="padding: 5px 0 5px 0;">
+    <table cellspacing="5" cellpadding="0" bgcolor="#F2F2F2" border="0">
+    <tr>
+      <td><img src="&dtml-portal_url;/adduser_small.gif" width=16 height=16></td>
+      <td class="row_tab" id="&dtml-name;_tab_users" valign="middle" style="&dtml-w_style; width:85px; background-color:#FFFFFF; font-weight:bold;" nowrap><span onclick="javascript:open_requsted_window('users','&dtml-name;')"><dtml-var "msg('Users')"></span></td>
+      <td><dtml-var "groups_list(this(), attr='DA', callback='%s_selected_users' % name)"></td>
+      <td class="row_tab" id="&dtml-name;_tab_groups" valign="middle" style="&dtml-w_style; width:100px; background-color:#C9D3DC; font-weight:normal;" nowrap><span onclick="javascript:open_requsted_window('groups','&dtml-name;')"><dtml-var "msg('Role groups')"></span></td>
+    <dtml-if IsDepartment>
+      <td><dtml-var "groups_list(this(), attr='SD', callback='%s_selected_users' % name)"></td>
+      <td class="row_tab" id="&dtml-name;_tab_departments" style="&dtml-w_style; width:85px; background-color:#C9D3DC; font-weight:normal;" nowrap><span onclick="javascript:open_requsted_window('departments','&dtml-name;')"><dtml-var "msg('Departments')"></span></td>
+    </dtml-if>
+    </tr>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+  <dtml-if "IsHeader and title_selected">
+<tr>
+  <td class="smallHeader" style="padding-bottom:5px;" nowrap><dtml-var "msg(title_selected, add=0)"></td>
+</tr>
+  </dtml-if>
+<tr>
+  <td align="left">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td colspan="2" style="padding-bottom:5px;">
+        <select id="&dtml-name;_selected_users" 
+                name="&dtml-name;:list"
+                size="<dtml-var selected_size missing=8>" multiple
+                onDblClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);&dtml-cscript;"
+                style="<dtml-var style>">
+        <dtml-in selected_users mapping>
+          <option value="<dtml-var user_id>"><dtml-var user_name></option>
+        </dtml-in>
+        </select>
+      </td>
+  <dtml-if IsOrder>
+      <td align="left" style="padding: 0 10px 0 10px; vertical-align:middle;">
+        <img alt="<dtml-var "msg('Move up')">" name="up_selector" src="&dtml-portal_url;/up_selector.gif" onmousedown="change(this,4);" onmouseup="change(this,2);" onmouseout="change(this,2);"
+         onclick="javascript:upSelected('&dtml-name;_selected_users');"
+         style="cursor:hand;" width="17" height="21">
+        <img src="&dtml-portal_url;/spacer.gif" height="10"><br>
+        <img alt="<dtml-var "msg('Move down')">" name="down_selector" src="&dtml-portal_url;/down_selector.gif" onmousedown="change(this,4);" onmouseup="change(this,2);" onmouseout="change(this,2);"
+         onclick="javascript:downSelected('&dtml-name;_selected_users');"
+         style="cursor:hand;" width="17" height="21">
+      </td>
+  </dtml-if>
+    </tr>
+    </table>
+  </td>
+</tr>
+  <dtml-if "IsGroup and IsOrder">
+<tr>
+  <td style="padding-top:5px;">
+    <span style="font-family:arial;font-size:12px;color:brown"><strong><dtml-var "msg('Note')">:</strong></span>
+  </td>
+</tr>
+<tr>
+  <td style="padding: 5px 0 5px 0;">
+    <span style="font-family:arial;font-size:11px;color:#004080;"><em><dtml-var "msg('Review sequence info')"></em></span>
+  </td>
+</tr>
+  </dtml-if>
+</table>
+  </dtml-let>
+
+<dtml-elif "_.has_key('IsUserAdvanced')">
+
+  <dtml-let w_style="'padding: 2px 10px 2px 10px; cursor:pointer; text-align:center;'"
+            allowed_users="portal_membership.listSortedUserNames(_.has_key('allowed_users') and _.same_type(allowed_users, [], ()) and allowed_users or portal_membership.getMemberIds())"
+            no_sort="_.has_key('no_sort') and no_sort or 0"
+            selected_users="_.has_key('selected_users') and selected_users and portal_membership.listSortedUserNames(selected_users, no_sort=no_sort)"
+            all_style="_.has_key('all_style') and all_style or ''"
+            style="_.has_key('style') and style or ''"
+            IsHeader="_.has_key('title_selected')"
+            IsNone="_.has_key('with_none') and with_none or 0"
+  >
+<table cellspacing="0" cellpadding="0" border="0">
+  <dtml-if IsHeader>
+<tr>
+  <td class="smallHeader" style="padding-bottom:5px;" nowrap><dtml-var "msg('All users')"></td>
+  <td class="smallHeader" style="padding-bottom:5px;" nowrap colspan="3" align="left"><dtml-var "msg(title_selected, add=0)"></td>
+</tr>
+  </dtml-if>
+<tr>
+  <td align="left" valign="top" rowspan="2">
+    <input type="hidden" name="select_type" value="1">
+    <div id="&dtml-name;_selector_users_window" style="display:block;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td>
+        <select id="all_users"
+                name="&dtml-name;_all_users" 
+                size="<dtml-var size missing=10>" multiple
+                onDblClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');" 
+                style="<dtml-var "all_style or style">">
+        <dtml-in allowed_users mapping>
+          <option value="<dtml-var user_id>">&dtml-user_name;</option>
+        </dtml-in>
+        </select><br>
+        <img src="&dtml-portal_url;/spacer.gif" height="6"><br>
+        <strong><dtml-var "msg('Fast search')">:<strong>
+        <input name="search_str" type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-name;_all_users);" size="20">
+      </td>
+      <td align="left" style="padding: 0 10px 20px 10px; vertical-align:middle;">
+        <input type="button" title="<dtml-msg "Select this user">" onClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');" value=" >> "><br><br>
+        <input type="button" title="<dtml-msg "Remove this user">" onClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);" value=" << ">
+      </td>
+    </tr>
+    </table>
+    </div>
+  </td>
+  <td align="left" style="vertical-align:top;">
+    <select id="&dtml-name;_selected_users" 
+            name="&dtml-name;:list"
+            size="<dtml-var size missing=10>" multiple
+            onDblClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);"
+            style="<dtml-var style>">
+    <dtml-in selected_users mapping>
+      <option value="<dtml-var user_id>"><dtml-var user_name></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+</table>
+  </dtml-let>
+
+<dtml-elif "_.has_key('IsGroupAdvanced')">
+
+  <dtml-let w_style="'padding: 2px 10px 2px 10px; cursor:pointer; text-align:center;'"
+            allowed_users="portal_membership.listSortedUserNames(_.has_key('allowed_users') and _.same_type(allowed_users, [], ()) and allowed_users or portal_membership.getMemberIds())"
+            allowed_groups="_.has_key('allowed_groups') and _.same_type(allowed_groups, [], ()) and allowed_groups or portal_membership.getListGroups()"
+            no_sort="_.has_key('no_sort') and no_sort or 0"
+            selected_users="_.has_key('selected_users') and selected_users and portal_membership.listSortedUserNames(selected_users, no_sort=no_sort)"
+            style="_.has_key('style') and style or ''"
+            IsHeader="_.has_key('title_selected')"
+            IsOrder="_.has_key('with_order') and with_order or 0"
+            IsNone="_.has_key('with_none') and with_none or 0"
+  >
+<script type="text/javascript" src="&dtml-portal_url;/selected.js"></script>
+
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td align="left" valign="top" colspan="2">
+    <input type="hidden" name="select_type" value="1">
+    <div id="&dtml-name;_selector_users_window" style="display:block;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <dtml-if IsHeader>
+    <tr>
+      <td class="smallHeader" style="padding-bottom:5px;" nowrap><dtml-var "msg('All users')"></td>
+      <td>&nbsp;</td>
+      <td class="smallHeader" style="padding-bottom:5px;" nowrap align="left"><dtml-var "msg(title_selected, add=0)"></td>
+    </tr>
+    </dtml-if>
+    <tr>
+      <td>
+        <select id="all_users"
+                name="&dtml-name;_all_users" 
+                size="<dtml-var size missing=10>" multiple
+                onDblClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');" 
+                style="width:252px;">
+        <dtml-in allowed_users mapping>
+          <option value="<dtml-var user_id>">&dtml-user_name;</option>
+        </dtml-in>
+        </select>
+      </td>
+      <td align="left" style="padding: 0 10px 20px 10px; vertical-align:middle;">
+        <input type="button" title="<dtml-msg "Select this user">" onClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');" value=" >> "><br><br>
+        <input type="button" title="<dtml-msg "Remove this user">" onClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);" value=" << ">
+      </td>
+      <td align="left" style="vertical-align:top;">
+        <select id="&dtml-name;_selected_users" 
+                name="&dtml-name;:list"
+                size="<dtml-var size missing=10>" multiple
+                onDblClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);"
+                style="width:252px;">
+        <dtml-in selected_users mapping>
+          <option value="<dtml-var user_id>"><dtml-var user_name></option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    </table>
+    </div>
+    <div id="&dtml-name;_selector_groups_window" style="display:none;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <dtml-if "IsHeader and title_selected">
+    <tr>
+      <td class="smallHeader" style="padding-bottom:5px;" nowrap align="left"><dtml-var "msg(title_selected, add=0)"></td>
+    </tr>
+    </dtml-if>
+    <tr>
+      <td>
+        <select id="&dtml-name;_selected_groups"
+                name="&dtml-name;:list"
+                size="<dtml-var size missing=10>" multiple
+                style="width:560px;"
+                disabled>
+        <dtml-in allowed_groups sort="group_title" mapping>
+          <option value="group:&dtml-group_id;">&dtml-group_title;</option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    </table>
+    </div>
+  </td>
+    <dtml-if IsOrder>
+  <td align="left" style="padding-left:10px; vertical-align:middle;">
+      <dtml-var review_arrow.gif>
+  </td>
+  <td align="left" style="padding: 0 10px 20px 10px; vertical-align:middle;">
+    <img alt="<dtml-var "msg('Move up')">" name="up_selector" src="&dtml-portal_url;/up_selector.gif" onmousedown="change(this,4);" onmouseup="change(this,2);" onmouseout="change(this,2);"
+     onclick="javascript:upSelected('&dtml-name;_selected_users');"
+     style="cursor:hand;" width="17" height="21">
+    <img src="&dtml-portal_url;/spacer.gif" height="10"><br>
+    <img alt="<dtml-var "msg('Move down')">" name="down_selector" src="&dtml-portal_url;/down_selector.gif" onmousedown="change(this,4);" onmouseup="change(this,2);" onmouseout="change(this,2);"
+     onclick="javascript:downSelected('&dtml-name;_selected_users');"
+     style="cursor:hand;" width="17" height="21">
+  </td>
+    </dtml-if>
+</tr>
+
+<tr>
+  <td align="left" valign="top">
+    <img src="&dtml-portal_url;/spacer.gif" height="6"><br>
+    <strong><dtml-var "msg('Fast search')">:<strong>
+    <input type="hidden" id="&dtml-name;_search_field_type" value="&dtml-name;_all_users">
+    <input type="text" value="" onKeyUp="SearchString(value, &dtml-name;_search_field_type);" size="20">
+  </td>
+  <td align="right" valign="top" style="padding-right:20px;">
+    <img src="&dtml-portal_url;/spacer.gif" height="1"><br>
+    <table cellspacing="5" cellpadding="0" bgcolor="#F2F2F2" border="0">
+    <tr>
+      <td><img src="&dtml-portal_url;/adduser_small.gif" width=16 height=16></td>
+      <td class="row_tab" id="&dtml-name;_tab_users" style="&dtml-w_style; width:85px; background-color:#FFFFFF; font-weight:bold;" nowrap><span onclick="javascript:open_requsted_window('users','&dtml-name;');"><dtml-var "msg('Users')"></span></td>
+      <td><dtml-var "groups_list(this(), attr='SD', callback='%s_selected_groups' % name)"></td>
+      <td class="row_tab" id="&dtml-name;_tab_groups" style="&dtml-w_style; width:50px; background-color:#C9D3DC; font-weight:normal;" nowrap><span onclick="javascript:open_requsted_window('groups','&dtml-name;');"><dtml-var "msg('Groups')"></span></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+  </dtml-let>
+
+<dtml-else>
+
+  <dtml-let value="_.has_key('value') and value or []"
+            display="_.has_key('display') and display or 'none'"
+            style="_.has_key('style') and style or 'width:252px;'"
+  >
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td style="padding: 0 0 5px 0;">
+    <div id="&dtml-name;_users_div" style="display:&dtml-display;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td colspan="3">
+        <select name="&dtml-name;_all_users"
+                size="<dtml-var size missing=10>" multiple 
+                onDblClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');"
+                style="<dtml-var style>">
+        <dtml-in "portal_membership.listSortedUserNames(portal_membership.getMemberIds())" mapping>
+          <option value="<dtml-var user_id>"><dtml-var user_name></option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    <tr><td height="6"><dtml-var spacer.gif></td></tr>
+    <tr>
+      <td nowrap>
+        <strong><dtml-var "msg('Fast search')">:</strong>
+        <input name="search_str" type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-name;_all_users);" size="20">
+      </td>
+      <td style="padding-left: 10px;" nowrap>
+        <input type=button title="<dtml-msg "Remove this user">" onClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);" value=" << ">&nbsp;
+        <input type=button title="<dtml-msg "Select this user">" onClick="javascript:addSelectionToList(&dtml-name;_all_users, &dtml-name;_selected_users, '');" value=" >> ">
+      </td>
+    </tr>
+    </table>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td>
+    <select id="&dtml-name;_selected_users"
+            name="&dtml-name;:list" 
+            size="<dtml-var size missing=5>" multiple 
+            onDblClick="javascript:deleteSelectionFromList(&dtml-name;_selected_users);"
+            style="<dtml-var style>"
+    >
+    <dtml-in "portal_membership.listSortedUserNames(value)" mapping>
+      <dtml-if "user_id and user_name">
+        <option value="<dtml-var user_id>"><dtml-var user_name></option>
+      </dtml-if>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+</table>
+  </dtml-let>
+</dtml-if>
+
+<dtml-if "_.has_key('IsSearchStr') and IsSearchStr">
+<script type="text/javascript">
+<!--
+function handlerOnKeyDown() {
+  var event = window.event;
+  var s = document.all.search_str;
+  if( typeof(s) == 'object' && event.ctrlKey && event.keyCode == 83 ) { // Ctrl-S
+      s.value = '';
+      s.focus();
+  }
+}
+
+window.document.onkeydown = handlerOnKeyDown;
+//-->
+</script>
+</dtml-if>

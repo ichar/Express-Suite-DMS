@@ -1,0 +1,140 @@
+<dtml-comment>
+$Id: fs_folder_edit_form.dtml,v 1.1.2.1 2003/10/17 09:49:02 kfirsov Exp $
+</dtml-comment>
+<dtml-revision $Revision: 1.1.2.1 $>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-if message>
+ <p>&dtml-message;</p>
+ <hr>
+</dtml-if>
+
+<div class="Metadata">
+
+<h2><dtml-var "msg('New object metadata')"></h2>
+
+<dtml-let id="_.has_key('use_default_values') and id or ''"
+	  title="_.has_key('use_default_values') and title or ''"
+	  description="_.has_key('use_default_values') and description or ''" >
+
+<form name="filefolder_edit_form.dtml" action="fs_folder_edit" method="post" enctype="multipart/form-data"
+      onsubmit="javascript: return Validate(this);">
+
+<script type="text/javascript">
+<!--
+
+function Validate( frm )
+{
+/*
+    if ( validateIdentifier(frm.elements['id'], '<dtml-var "msg('Object id is invalid')">', true) == false)
+        return false;
+
+    if ( ! frm.title.value ) {
+         alert('<dtml-var "msg('Specify the document title')">');
+         frm.title.focus()
+         return false;
+    }
+*/
+    return true;
+}
+
+var isSelected = false;
+
+function toggleSelect(form)
+{
+    isSelected = ! isSelected;
+
+    for ( var i = 0; i < form.elements.length; i++ ) {
+	var elem = form.elements[ i ];
+    	if ( elem.name.substr( 0, 8 ) == 'links_to' )
+	    elem.checked = isSelected;
+    }
+
+    form.selectAll.value = isSelected ? '<dtml-var "msg('Deselect All')">'
+				      : '<dtml-var "msg('Select All')">';
+
+    return isSelected;
+}
+
+//-->
+</script>
+
+
+
+
+<table class="FormLayout">
+
+ <tr valign="top">
+  <th align="right"> <dtml-var "msg('URL')"> </th>
+  <td colspan="2"> <dtml-var Identifier> </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right"> <dtml-var "msg('Object type')"> </th>
+  <td colspan="2"> <dtml-var "msg('FS Folder')"> </td>
+ </tr>
+
+ <tr valign="top">
+  <th align="right"> <dtml-var "msg('Id')"> </th>
+  <td colspan="3"><dtml-var "getId()"></td>
+ </tr>
+
+ <tr valign="top">
+
+  <th align="right"> <dtml-var "msg('Title')"> </th>
+  <td colspan="3"> <input type="text"
+          name="title"
+          value="<dtml-var Title>"
+          size="35">
+
+
+
+ </td>
+
+ </tr>
+
+ <tr valign="top">
+
+  <th align="right"> <dtml-var "msg('Description')"> </th>
+  <td colspan="3"> 
+         <textarea name="description" rows="5" cols="65"><dtml-var Description>
+         </textarea>
+
+ </td>
+
+ </tr>
+
+ <tr valign="top">
+
+  <th align="right"> <dtml-var "msg('Folder Path')"> </th>
+  <td colspan="3"> 
+   <input type="text"
+          name="folder_path"
+          value="<dtml-var getObjectFSPath>"
+          size="35">
+  </td>
+
+ <tr valign="top">
+  <td><br></td>
+  <td align=left>
+  <br> <input type="submit" name="create" value=" <dtml-var "msg('Apply')"> ">
+       <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;'" value=" <dtml-var "msg('Cancel')"> ">
+  </td>
+
+ </tr>
+</table>
+
+
+
+</form>
+
+
+</dtml-let>
+
+</div>
+</div>
+
+<dtml-var simple_html_footer>

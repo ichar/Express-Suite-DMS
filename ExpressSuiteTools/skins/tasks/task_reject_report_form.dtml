@@ -1,0 +1,89 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script language="JavaScript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.rejectReportForm;
+    DisableForm(frm);
+    CheckAndRefreshCommentFields(frm, ['text']);
+    frm.submit();
+}
+//-->
+</script>
+
+<dtml-if selected_responses>
+  <dtml-let parsed_selected_responses="parseSelectedResponses(selected_responses)"
+            brains_type="BrainsType()"
+  >
+
+<div class="Desktop">
+
+<h1><dtml-var aboveInThread></h1>
+
+<form name="rejectReportForm" action="&dtml-absolute_url;/NotifyUsers" method="post" enctype="multipart/form-data">
+<input type="hidden" name="selected_users" value="">
+<input type="hidden" name="open_reports" value="1">
+<input type="hidden" name="in_turn" value="">
+
+<table width=100% class="FormLayout">
+<tr><td class="smallHeader" style="padding-bottom:10px"><span style="color:purple;"><dtml-var "msg('Reject selected responses')"></span></td></tr>
+<tr>
+  <td valign="top" align="left" style="padding-top:5px;">
+    <h3 style="font-size:11px;color:#CC0000;"><em><dtml-var "msg('Selected responses')">:</em></h3>
+    <dtml-in selected_responses>
+    <input type="hidden" name="selected_responses:list" value="&dtml-sequence-item;">
+    </dtml-in>
+  </td>
+</tr>
+
+    <dtml-in parsed_selected_responses mapping>
+<tr>
+  <td valign="top" align="left">
+    <span style="cursor:default;">
+    <nobr>
+    <strong>
+    <a onclick="return OpenUserInfoWnd('&dtml-member;')" style="cursor:hand;">
+    <dtml-var "portal_membership.getMemberName(member)"></a>&nbsp;
+    <dtml-var date fmt="%Y-%m-%d %H:%M">
+    </strong>
+    </nobr><br>
+    <dtml-var text>
+    </span>
+  </td>
+</tr>
+    </dtml-in>
+
+<tr>
+  <td valign="top" align="left" style="padding-top:5px;">
+    <h3 style="font-size:11px;"><em><dtml-var "msg('Message text')">:</em></h3>
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-var "comment_template(this(), form='rejectReportForm', field='text', context=('task.reject_report.%s' % brains_type), value='')">
+  </td>
+</tr>
+<tr>
+  <td style="padding-top:10px;">
+    <input type="button" name="OK" value=" <dtml-var "msg('Send notification')"> " onclick="javascript:SubmitForm();">
+    <input type="button" name="cancel" onClick="JavaScript:location.href='&dtml-absolute_url;'" value=" <dtml-var "msg('Cancel')"> ">
+  </td>
+</tr>
+</table>
+</form>
+
+</div>
+
+  </dtml-let>
+
+<dtml-else>
+  <dtml-var "REQUEST['RESPONSE'].redirect(absolute_url())">
+</dtml-if>
+
+<dtml-var simple_html_footer>

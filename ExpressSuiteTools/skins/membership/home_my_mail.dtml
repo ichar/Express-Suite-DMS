@@ -1,0 +1,36 @@
+<dtml-let mail_folders="portal_catalog.searchResults(Creator=uname, meta_type='Incoming Mail Folder', sort_on='Title')">
+
+<table width="100%" border="0" cellspacing="1" cellpadding="3">
+
+<dtml-in mail_folders size="size">
+  <dtml-let view_url="getURL()+'/inFrame?link=view'">
+    <dtml-if sequence-start>
+<tr class="row_title">
+  <td><strong><dtml-var "msg('Incoming mail folders')"></strong></td>
+  <td><strong><dtml-var "msg('Total')"></strong></td>
+</tr>  
+    </dtml-if>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td>
+    <a class="navigate" title="&dtml-Description;" target="workspace" href="&dtml-view_url;">&dtml-Title;</a>
+  </td>
+  <td nowrap>
+    <dtml-let messages="portal_catalog.searchResults(Creator=uname, category='IncomingMail', path=getPath())">
+      <dtml-var "_.len(messages)">
+    </dtml-let>
+  </td>
+</tr>
+  </dtml-let>
+<dtml-else>
+<tr>
+  <td>
+    <dtml-var "msg('No personal mail folders were found')"><br>
+    <dtml-if "home_url and IsAdmin">
+      <a class="nav" target="workspace" href="<dtml-var home_url>/inFrame?link=invoke_factory_form%3Ftype_name%3DMail%2520Folder"><dtml-var "msg('create')"> &gt;&gt; </a>
+    </dtml-if>
+  </td>
+</tr>
+</dtml-in>
+</table>
+
+</dtml-let>

@@ -1,0 +1,100 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<div class="Image">
+
+<dtml-call "checkUpdate()">
+
+<dtml-if checkExists>
+  <dtml-comment>
+    <dtml-var "this().image">
+  </dtml-comment>
+  <dtml-var "this()">
+</dtml-if>
+
+<dtml-let user="portal_membership.getAuthenticatedMember()"  
+          IsManager="user.has_role('Manager') and 1 or 0"
+>
+
+<table width="100%" cellspacing="2" cellpadding="5" border="0">
+<tr>
+  <td colspan="2"><h1>&dtml-title_or_id;</h1><br></td>
+</tr>
+<tr>
+  <td class="cell_title">&nbsp;</td>
+  <td class="cell_title" align=left style="width:99%"><dtml-var "msg('Document description')"></td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td class="smallHeader" align=left><dtml-var "msg('Name')"></td>
+</tr>
+<tr>
+  <td class="Description" align=center>
+    &nbsp;<dtml-var "IsManager and _.hasattr(this(),'externalEditLink_') and externalEditLink_(this()) or ''">
+  </td>
+  <td class="Description" align=left>
+    <dtml-if isViewable>
+      <dtml-comment>
+      <a href="&dtml-absolute_url;/image">&dtml-getFullName;</a>
+      </dtml-comment>
+      <a href="&dtml-absolute_url;">&dtml-getFullName;</a>
+    <dtml-else>
+      &dtml-getFullName;
+    </dtml-if>
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td class="smallHeader" align=left><dtml-var "msg('Path')"></td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td class="Description" align=left>&dtml-getFilePath;</td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td class="smallHeader" align=left><dtml-var "msg('Modification date')"></td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td class="Description" align=left><dtml-if checkExists><dtml-var "rDate(this(), time=modified()).strip()"><dtml-else>N/A</dtml-if></td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td class="smallHeader" align=left><dtml-var "msg('Size')">&nbsp;(byte)</td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td class="Description" align=left><dtml-if checkExists>&dtml-getSize;<dtml-else>N/A</dtml-if></td>
+</tr>
+
+<tr>
+  <td class "Description" colspan="2">
+    <br>
+    <dtml-if checkExists>
+      <a href="&dtml-absolute_url;" target="_blank"><dtml-var "msg('Download')"></a>
+    <dtml-else>
+      <strong><dtml-var "msg('File not found')"></strong>
+    </dtml-if>
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+<div class="Discussion">
+
+<dtml-var viewThreadsAtBottom>
+
+</div>
+
+</div>
+
+</div>
+
+<dtml-var simple_html_footer>

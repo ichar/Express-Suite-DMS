@@ -1,0 +1,23 @@
+<dtml-let mode="_.has_key('mode') and 'view' or 'edit'"
+          value="value and value.split(':::') or None"
+>
+
+<dtml-if "mode == 'view'">
+  <dtml-var "value and value[0] or ''">
+<dtml-else>
+
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr>
+    <td style="padding: 0 0 5px 0;">
+
+      <input type="hidden" name="attr_type" id="attr_type" value="<dtml-var "attr.Type()">" />
+      <h4><dtml-msg expr="attr.Title()"><br></h4>
+      <input type="text" id="&dtml-name;" value="<dtml-var "value and value[0] or ''">" size="58">
+
+    </td>
+  </tr>
+  </table>
+
+</dtml-if>
+
+</dtml-let>

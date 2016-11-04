@@ -1,0 +1,162 @@
+<dtml-let query_id="_.has_key('query_id') and query_id or None"
+          profile_id="_.has_key('profile_id') and profile_id or None"
+          query="portal_catalog.getQuery(id=query_id, profile=profile_id, REQUEST=REQUEST)"
+          folder="query.location and restrictedTraverse(query.location)"
+>
+
+<form name="search_form" action="<dtml-var "relative_url( action='search_query' )">" method="POST" 
+<dtml-unless "REQUEST.get('callback_form')">target="workspace"</dtml-unless>
+   onSubmit="return validateSearchForm(this)">
+<dtml-if action>
+<input type="hidden" name="action" value="&dtml-action;" />
+</dtml-if>
+<dtml-if profile_id>
+<input type="hidden" name="profile_id" value="&dtml-profile_id;" />
+</dtml-if>
+<dtml-if search_path>
+<input type="hidden" name="search_path" value="&dtml-search_path;">
+</dtml-if>
+
+<dtml-with REQUEST only>
+<input type="hidden" name="callback_form" value="<dtml-var callback_form missing="">" />
+<input type="hidden" name="callback_function" value="<dtml-var callback_function missing="">" />
+<input type="hidden" name="callback_uid_field" value="<dtml-var callback_uid_field missing="">" />
+<input type="hidden" name="callback_title_field" value="<dtml-var callback_title_field missing="">" />
+<input type="hidden" name="uid_field" value="<dtml-var uid_field missing="">" />
+<input type="hidden" name="title_field" value="<dtml-var title_field missing="">" />
+<input type="hidden" name="getPath" value="<dtml-var getPath missing="">" />
+</dtml-with>
+
+<dtml-with query>
+<table class="SearchFormLayout" border="0">
+<tr valign="top"><th> <dtml-var "msg('Text')"> </th></tr>
+<tr>
+  <td>
+    <input name="text" value="&dtml-text;" size="30" title="<dtml-var "msg('search.syntax_tip')" html_quote>" />
+    <input type="submit" name="search" value="<dtml-var "msg('Search')">" /><br>
+    <dtml-var "msg('This will find text in items\' contents, title and description.')">
+  </td>
+</tr>
+<tr><th>&nbsp;</th></tr>
+<tr>
+  <td>
+    <input type="hidden" name="objects:list" value="">
+    <input id="search_versions" type="checkbox" name="objects:list" value="versions"
+    <dtml-var "objects is not None and 'versions' in objects and 'checked' or ''"> />
+    <label for="search_versions"><dtml-var "msg('Search in versions of documents')"></label><br>
+
+    <input type="hidden" name="objects:list" value="">
+    <input id="search_bodies" type="checkbox" name="objects:list" value="bodies"
+    <dtml-var "objects is not None and 'bodies' in objects and 'checked' or ''"> />
+    <label for="search_bodies"><dtml-var "msg('Search in documents')"></label><br>
+
+  <dtml-let searchable_attaches="portal_catalog.attachmentSearchEnabled()">
+    <dtml-if searchable_attaches>
+    <input id="search_attachments" type="checkbox" name="objects:list" value="attachments"
+    <dtml-var "objects is not None and 'attachments' in objects and 'checked' or ''"> />
+    <label for="search_attachments"><dtml-var "msg('Search in attachments')"></label><br>
+    </dtml-if>
+  </dtml-let>
+
+  <dtml-unless templates_search>
+  <input id="search_heading_properties" type="checkbox" name="objects:list" value="folders"
+    <dtml-var "objects is not None and 'folders' in objects and 'checked' or ''"> />
+  <label for="search_heading_properties"><dtml-var "msg('Search in heading properties')"></label><br>
+  </dtml-unless>
+  </td>
+</tr>
+
+  <dtml-unless action>
+<tr>
+  <th>
+    <dtml-var "msg('Search scope')">
+    <input type="hidden" name="location" value="&dtml.null-location;" />
+  </th>
+</tr>
+    <dtml-if "folder is not None">
+      <dtml-with folder>
+<tr>
+  <td>
+    <input id="radio_folder" type="radio" name="scope" value="preserved" checked="1" />
+    <label for="radio_folder"><dtml-var "msg('Folder')"></label>
+    <a href="&dtml-absolute_url;/folder_contents" target="workspace"><dtml-var "_.has_key('TitleOrId') and TitleOrId() or Title()"></a>
+  </td>
+</tr>
+      </dtml-with>
+    </dtml-if>
+<tr>
+  <td>
+    <input id="radio_global" type="radio" name="scope" value="global" <dtml-var "not folder and scope == 'global'" fmt="checked"> />
+    <label for="radio_global"> <dtml-var "msg('Global search')"> </label>
+  </td>
+</tr>
+<tr>
+  <td>
+    <input id="radio_current_folder" type="radio" name="scope" value="local" <dtml-var "not folder and scope == 'local'" fmt="checked"> />  
+    <label for="radio_current_folder"> <dtml-var "msg('Current folder only')"> </label>
+  </td>
+</tr>
+<tr>
+  <td>
+    <input id="radio_current_folder_with_subfolders" type="radio" name="scope" value="recursive" <dtml-var "not folder and scope == 'recursive'" fmt="checked"> />
+    <label for="radio_current_folder_with_subfolders"> <dtml-var "msg('Current folder with subfolders')"> </label>
+  </td>
+</tr>
+
+     <dtml-comment>
+<tr><th><dtml-var "msg('Results sorting')"></th></tr>
+<tr><td><input type="radio" name="sorting" value="relevance" checked /><dtml-var "msg('By relevance')"></td></tr>
+<tr><td><input type="radio" name="sorting" value="ABC" /><dtml-var "msg('By ABC')"></td></tr>
+<tr><td><input type="radio" name="sorting" value="date" /><dtml-var "msg('By date')"></td></tr>
+    </dtml-comment>
+  </dtml-unless>
+
+<tr>
+  <th><dtml-var "msg('Results per page')"></th>
+</tr>
+<tr>
+  <td>
+    <input type="text" name="batch_length:int" value="5" maxlength="3" size="3"><br>
+    <dtml-var "msg('To view all results at one page you can enter 0 value')">
+  </td>
+</tr>
+
+<tr><td><br></td></tr>
+<tr>
+  <td>
+    <input type="submit" name="search" value="<dtml-var "msg('Search')">">
+    <input type="submit" name="save" value="<dtml-var "msg('Save query')">">
+  <dtml-if action>
+    <input type="button" name="close" value="<dtml-var "msg('Close')">" onClick="javascript:window.close()">
+  </dtml-if>
+  </td>
+</tr>
+</table>
+
+</dtml-with>
+</form>
+
+<script type="text/javascript">
+<!--
+function validateSearchForm( form )
+{
+<dtml-if "REQUEST.get('callback_form', '')">
+    var path = opener.objectPath;
+<dtml-else>
+    var path = window.top.frames.workspace.objectPath;
+</dtml-if>
+    try {
+      form.location.value = path != null ? path : '';
+    }
+    catch (error) {}
+
+    var obj = form.all['text'];
+    checkSearchString( obj );
+	
+    return validateForm(form, 1);
+}
+document.search_form.text.focus();
+-->
+</script>
+
+</dtml-let>

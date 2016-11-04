@@ -1,0 +1,32 @@
+<dtml-revision $Revision: 1.2 $>
+
+<html>
+<head>
+<meta http-equiv="content-type" content="<dtml-var "_.has_key('RESPONSE') and RESPONSE.headers.get('content-type') or 'text/html'">">
+<title><dtml-var "msg('Protection Message')"></title>
+</head>
+<body>
+
+<table width="100%" height="100%" cellspacing="5" cellpadding="5" bgcolor="#ffffff" border="0">
+<tr>
+  <td align="center">
+    <table align="center" cellspacing="5" bgcolor="#0000CC" border="0">
+    <tr>
+      <td class="smallHeader" align="center" style="padding: 40px 80px 40px 80px; border: 1pt solid white;">
+        <strong>
+        <font color="#ffffff">
+        <p><dtml-var "msg('DOCFLOW SYSTEM')"><p>
+        <p><dtml-var "msg('Sorry, you have not permission to run this service!')"></p>
+        </font>
+        </strong>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+<dtml-comment><input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;"></dtml-comment>
+
+</body>
+</html>

@@ -1,0 +1,410 @@
+<script type="text/javascript">
+<!--
+    var commonImages = ['doc_icon.gif','doc_icon_unregistered.gif','file.gif','folder_icon.gif','fs_folder_icon.gif','registry_icon.gif']
+//-->
+</script>
+
+<dtml-if "REQUEST.get('callback_form')">
+  <dtml-call "REQUEST.set('OpenInFrame', '')">
+</dtml-if>
+
+<dtml-call "REQUEST.set('PageTitle', 'Search results')">
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-let context="this()"
+          IsProfile="implements('isSearchProfile')"
+          batch_size="_.int(portal_membership.getInterfacePreferences('viewing_document_number'))"
+          batch_length="REQUEST.get('batch_length') or 0"
+          batch_start="REQUEST.get('batch_start') or 1"
+          profile_id="_.has_key('profile_id') and profile_id or None"
+          query_id="_.has_key('query_id') and query_id or None"
+          IsEditQuery="IsProfile and profile_id"
+          query_title="REQUEST.get('query_title')"
+>
+  <dtml-if profile_id>
+    <dtml-call "REQUEST.set('query', portal_catalog.getQuery(profile=profile_id, REQUEST=REQUEST))">
+    <dtml-call "REQUEST.set('batch_length', batch_size)">
+  <dtml-elif query_id>
+    <dtml-call "REQUEST.set('query', portal_catalog.getQuery(id=query_id, REQUEST=REQUEST, context=context))">
+    <dtml-unless "batch_length > 0">
+      <dtml-call "REQUEST.set('batch_length', batch_size)">
+    </dtml-unless>
+  <dtml-elif IsProfile>
+    <dtml-call "REQUEST.set('query', getQuery())">
+    <dtml-call "REQUEST.set('query_id', None)">
+  </dtml-if>
+
+  <dtml-if IsEditQuery>
+    <dtml-if "_.SecurityCheckPermission('Modify portal content', context)">
+      <dtml-let uid="profile_id or getUid()">
+<h2><a href="&dtml-portal_url;/menu?where=search&link=search_form%3Fprofile_id=&dtml-uid;" target="menu"><dtml-var "msg('Edit query')"></a></h2>
+      </dtml-let>
+    </dtml-if>
+<h3><dtml-var "title"></h3>
+  </dtml-if>
+
+<h1><dtml-var "msg('Search results')"></h1>
+
+  <dtml-if query_title>
+<h3><dtml-var "msg(query_title, add=None)"></h3>
+  </dtml-if>
+
+  <dtml-unless "REQUEST.has_key('batch_length')">
+    <dtml-call "REQUEST.set('batch_length', batch_length)">
+  </dtml-unless>
+  <dtml-call "REQUEST.set('batch_start', batch_start)">
+  <dtml-call "REQUEST.set('batch_size', batch_size)">
+</dtml-let>
+
+<dtml-if "_.has_key('query') and query is not None">
+  <dtml-let sorting="REQUEST.get('sorting', query.sorting)"
+            IsQueryText="query.text and 1 or 0"
+            IsFolders="'folders' in query.objects and 1 or 0"
+            IsBodies="'bodies' in query.objects and 1 or 0"
+            sort_on="sorting=='custom' and sort_on or 
+				((sorting=='ABC' or IsFolders) and 'Title') or 
+				((sorting=='date' and IsQueryText) and 'modified') or 
+				((sorting=='date' or not IsQueryText) and 'created') or 
+				''"
+            requested_sort_order="
+                sorting=='custom' and (REQUEST.get('sort_order') or 'asc') or
+                sort_on in ['created','modified'] and IsBodies and 'reverse' or 
+                ''"
+            sort_order="requested_sort_order=='reverse' and 'reverse' or ''"
+
+            res="portal_catalog.executeQuery(REQUEST['query'], REQUEST, sort_on=sort_on, sort_order=sort_order)"
+            total_objects="res[0]"
+            results="res[1]"
+            message="_.hasattr(query, 'message') and query.message and query.message.split('$')">
+<br>
+<span style="font-size:x-small;">
+<dtml-var "msg('Items found')">: <font style="color:purple"><dtml-var total_objects thousands_commas></font>.
+    <dtml-if "query.text">
+&nbsp;<dtml-var "msg('Query context')">: [<font style="color:purple"><dtml-var "query.text" html_quote></font>]
+    <dtml-elif message>
+&nbsp;<dtml-var "msg('Query context')">: [<font style="color:purple"><dtml-var "message[1].strip()" html_quote></font>]
+    </dtml-if>
+</span>
+
+    <dtml-let user="portal_membership.getAuthenticatedMember()"  
+              IsManager="user.IsManager()"
+              IsAdmin="user.IsAdmin()"
+              query_id="_.has_key('query_id') and query_id or None"
+              profile_id="_.has_key('profile_id') and profile_id or None"
+              group="REQUEST.get('group', None)"
+              ungroup="group and REQUEST.get('ungroup', [])"
+              params="{'query_id':query_id, 'profile_id':profile_id, 'batch_length':batch_length, 'sorting':sorting, 'sort_on':sort_on, 'sort_order':sort_order, 'group':group, 'ungroup':ungroup}"
+              IsDebug="0"
+    >
+      <dtml-if results>
+<table width="100%">
+        <dtml-if message>
+<tr>
+  <td style="padding: 10px 10px 10px 22px;" colspan="4">
+    <span style="font-size:11;cursor:default;">
+    <font color="red"><b><dtml-var "msg('Attention!')"></b></font><br>
+    <font color="blue"><dtml-var "msg(message[0].strip(), add=0)"></font>
+    </span>
+  </td>
+</tr>
+        </dtml-if>
+<tr>
+  <td style="padding: 0 10px 0 22px;" nowrap>
+        <dtml-if "sort_on in ['category','created','modified','Creator']">
+          <dtml-let group_url="absolute_url(action='search_results', params={'query_id':query_id, 'profile_id':profile_id, 'batch_length':batch_length, 'batch_start':1, 'sorting':'custom', 'sort_on':sort_on, 'sort_order':sort_order, 'group':1})">
+    <a href="&dtml-group_url;"><dtml-msg "Group results"></a>
+          </dtml-let>
+        <dtml-else>
+    <span style="font-size:x-small;color:gray;"><dtml-msg "Group results"></span>
+        </dtml-if>
+  </td>
+  <td style="width:90%; padding-bottom:10px;">&nbsp;</td>
+        <dtml-if "user is not None or IsAdmin">
+  <td style="padding-right:7px;" valign="top" nowrap>
+          <dtml-in results size="batch_length" start="batch_start" previous>
+            <dtml-call "params.update({'batch_start':_['previous-sequence-start-number']})">
+            <dtml-let prevURL="absolute_url(action='search_results', params=params)">
+    <a href="&dtml-prevURL;"><dtml-var "msg('Back') + ' (%d)' % (_['previous-sequence-size'])"></a>
+            </dtml-let>
+          </dtml-in>
+  </td>
+  <td style="padding-left:7px;" valign="top" nowrap>
+          <dtml-in results size="batch_length" start="batch_start" next>
+            <dtml-call "params.update({'batch_start':_['next-sequence-start-number']})">
+            <dtml-let nextURL="absolute_url(action='search_results', params=params)">
+    <a href="&dtml-nextURL;"><dtml-var "msg('Forward') + ' (%d)' % (_['next-sequence-size'])"></a>
+            </dtml-let>
+          </dtml-in>
+  </td>
+        </dtml-if>
+</tr>
+</table>
+      </dtml-if>
+
+      <dtml-in results size="batch_length" start="batch_start" skip_unauthorized>
+        <dtml-if sequence-start>
+<table cellpadding="2" cellspacing="1" width="100%" border="0">
+<tr class="row_odd">
+  <td width="16"><img src="&dtml-portal_url;/spacer.gif" width="16"></td>
+          <dtml-let sort_direction=sort_order
+                    sort_order="not sort_order and 'reverse' or 'asc'"
+                    sort_url="absolute_url(action='search_results', params={'query_id':query_id, 'profile_id':profile_id, 'batch_length':batch_length, 'batch_start':1, 'sorting':'custom', 'sort_order':sort_order })"
+          >
+  <td style="width:90%">
+          <dtml-var "search_sorted(this(), sorted='Title', title='Document title', 
+            sort_direction=sort_direction,
+            sort_url=sort_url, 
+            sort_on=sort_on,
+            ac=''
+            )">
+  </td>
+  <td style="padding-right:10px" nowrap>
+    <strong style="cursor:default"><dtml-var "msg('Folder')"></strong>
+  </td>
+  <td>
+          <dtml-var "search_sorted(this(), sorted='category', title='Category',
+            sort_direction=sort_direction,
+            sort_url=sort_url, 
+            sort_on=sort_on,
+            ac='nav'
+            )">
+  </td>
+  <td>
+          <dtml-var "search_sorted(this(), sorted='created', title='Creation date',
+            sort_direction=sort_direction,
+            sort_url=sort_url, 
+            sort_on=sort_on,
+            ac='nav'
+            )">
+  </td>
+  <td>
+          <dtml-var "search_sorted(this(), sorted='modified', title='Modification date',
+            sort_direction=sort_direction,
+            sort_url=sort_url, 
+            sort_on=sort_on,
+            ac='nav'
+            )">
+  </td>
+  <td>
+          <dtml-var "search_sorted(this(), sorted='Creator', title='Author',
+            sort_direction=sort_direction,
+            sort_url=sort_url, 
+            sort_on=sort_on,
+            ac='nav'
+            )">
+  </td>
+          </dtml-let>
+</tr>
+        </dtml-if>
+
+        <dtml-if "_['sequence-item'].meta_type=='GroupItem'">
+          <dtml-let ob="_['sequence-item']"
+                    id="ob.getId()"
+                    IsGrouped="ob.is_grouped"
+                    ungrouped="ungroup and [i for i in ungroup] or []"
+                    x="params.copy()"
+          >
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+            <dtml-if IsGrouped>
+              <dtml-call "ungrouped.append(id)">
+              <dtml-call "x.update({'ungroup':ungrouped, 'batch_start':batch_start})">
+            <dtml-else>
+              <dtml-call "id in ungrouped and ungrouped.remove(id)">
+              <dtml-call "x.update({'ungroup':ungrouped, 'batch_start':batch_start})">
+            </dtml-if>
+            <dtml-let group_url="absolute_url(action='search_results', params=x)">
+  <td>
+              <dtml-if IsGrouped>
+      <a href="&dtml-group_url;"><img src="&dtml-portal_url;/pl.gif" alt="+" border=0></a>
+              <dtml-else>
+      <a href="&dtml-group_url;"><img src="&dtml-portal_url;/mi.gif" alt="-" border=0></a>
+              </dtml-if>
+  </td>
+  <td class="smallHeader"colspan="6">
+    <span style="cursor:default"><a href="&dtml-group_url;"><dtml-var "ob.get(this())"></a></span>
+  </td>
+            </dtml-let>
+</tr>
+          </dtml-let>
+        <dtml-else>
+          <dtml-let objURL="getURL()"
+                    ob="_['sequence-item'].getObject()"
+          >
+            <dtml-if "ob is not None">
+              <dtml-let
+                    objURLView="objURL + '/view?expand=1'"
+                    parent="ob.aq_parent"
+                    category_id="ob.implements('isDocument') and ob.Category() or None"
+                    category="portal_metadata.getCategoryById(category_id)"
+                    category_title="category and msg(category.Title(), add=0) or category_id or ''"
+                    owner="member_name(ob, member=ob.Creator(), brief=1)"
+                    folder="portal_types.getObjectTitle(parent)"
+
+                    IsAttachment="'isAttachment' in implements"
+                    IsDocument="meta_type in ['HTMLDocument'] and 1 or 0"
+                    IsTask="meta_type in ['Task Item'] and 1 or 0"
+                    attachment="IsAttachment and ob or None"
+                    description="IsTask and ob.Description(view=1) or ob.Description()"
+                    wf_id="category is not None and category.Workflow()"
+                    state="portal_workflow.getInfoFor(ob, 'state', '')"
+                    IsState="state and wf_id and 1 or 0"
+
+                    should_be_registered="IsDocument and category_id and state not in ['evolutive'] and 1 or 0"
+                    IsReg="should_be_registered and registry_ids and 1 or 0"
+                    reg_info="IsReg and ob.getInfoForLink( mode=3 ) or ''"
+              >
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center">
+                <dtml-if "meta_type in ['Image Attachment']">
+    <img border="0" src="&dtml-portal_url;/image_icon.gif" alt="[&dtml.missing-Type;]" title="[&dtml.missing-Type;]">
+                <dtml-else>
+    <a href="&dtml-objURLView;" target="<dtml-if "IsAttachment">_object_<dtml-var "id"><dtml-else>workspace</dtml-if>">
+      <dtml-var content_icon>
+    </a>
+                </dtml-if>
+  </td>
+  <td style="width:90%;">
+    <font style="font-size:90%;font-weight:normal;">
+                <dtml-if "IsAttachment and attachment is not None">
+                  <dtml-let parent="attachment.aq_parent"
+                            title_or_id="parent is not None and (parent.Title() or parent.getId()) or attachment.title_or_id()"
+                            url="parent is not None and parent.absolute_url() + '/view' or attachment.absolute_url()">
+    <a href="<dtml-var url>" target="workspace"><dtml-var "title_or_id"></a>&nbsp;/&nbsp;
+                  </dtml-let>
+                </dtml-if>
+                <dtml-let obj_name="(Title.replace('\x22','')).strip()"
+                          obj_title="obj_name+(category_title and '\n' or '')+category_title">
+                  <dtml-if "meta_type in ['Image Attachment']">
+    <a href="&dtml-objURL;" target="_object_<dtml-var "id">" title="<dtml-var obj_title>">
+      <dtml-if obj_name><dtml-var obj_name size="100" html_quote><dtml-else>(<dtml-var "msg('No title')">)</dtml-if>
+    </a>
+                  <dtml-else>
+    <a href="&dtml-objURLView;" target="<dtml-if IsAttachment>_object_<dtml-var "id"><dtml-else>workspace</dtml-if>" title="<dtml-var obj_title>">
+      <dtml-if obj_name><dtml-var obj_name size="100" html_quote><dtml-else>(<dtml-var "msg('No title')">)</dtml-if>
+    </a>
+                  </dtml-if>
+                </dtml-let>
+                <dtml-if "IsAttachment and attachment is not None and _.hasattr(attachment, 'Extension')">
+    <span style="font-size:x-small;color:blue">[&nbsp;<dtml-var "attachment.Extension()">&nbsp;]</span>
+                </dtml-if>
+    </font>
+
+                <dtml-if IsState>
+                  <dtml-let state_title="msg(portal_workflow.getStateTitle(wf_id, state), add=0)">
+                    <dtml-if state_title>
+    <br><dtml-var "msg('State')">: <dtml-var state_title>
+                    </dtml-if>
+                  </dtml-let>
+                </dtml-if>
+
+                <dtml-if IsReg>
+    <br><span style="color:blue">&dtml-reg_info;</span>
+                </dtml-if>
+
+                <dtml-if IsManager>
+                  <dtml-try>
+                    <dtml-let size="ob.getContentsSize()" color="size >= 1024000 and 'red' or 'black'">
+    <br>
+    <span style="color:&dtml-color;">
+                      <dtml-if "not 'isContentStorage' in implements">
+    (<dtml-var "'%.1f' % (size / 1024.0)"> Kb)
+                      <dtml-else>
+    (<dtml-var "size">)
+                      </dtml-if>
+    </span>
+                    </dtml-let>
+                  <dtml-except>...</dtml-try>
+                </dtml-if>
+
+                <dtml-let locks="ob.wl_lockValues(killinvalids=1)"
+                          creator_id="_.len(locks) and ob.getLockCreator(locks[0])">
+                  <dtml-if "ob.wl_isLocked()">
+    <br><nobr>
+    <img src="&dtml-portal_url;/lock.gif" width="12" height="15" alt="" title="<dtml-var "msg('Locked by')">">
+    <font color="red">(<dtml-var "portal_membership.getMemberName(creator_id)" html_quote>)</font></nobr>
+                  </dtml-if>
+                </dtml-let>
+  </td>
+  <td>
+                <dtml-let IsFileServer="folder in ['FILE-SERVER'] or folder.startswith('200')"
+                          nobr_start="IsFileServer and '<nobr>' or ''"
+                          nobr_end="IsFileServer and '</nobr>' or ''">
+    <dtml-var nobr_start><dtml-var folder><dtml-var nobr_end>
+                </dtml-let>
+  </td>
+  <td><dtml-var "category_title or msg(Type, add=0)"></td>
+  <td>
+                <dtml-if CreationDate>
+                  <dtml-let time="_.DateTime(CreationDate)" fDate=rDate>
+    <nobr><dtml-var "time" fmt="%Y-%m-%d"></nobr><br><nobr><dtml-var "time" fmt="%H:%M"></nobr>
+                  </dtml-let>
+                </dtml-if>
+  </td>
+  <td>
+                <dtml-if ModificationDate>
+                  <dtml-let time="_.DateTime(ModificationDate)" fDate=rDate>
+    <nobr><dtml-var "time" fmt="%Y-%m-%d"></nobr><br><nobr><dtml-var "time" fmt="%H:%M"></nobr>
+                  </dtml-let>
+                </dtml-if>
+  </td>
+  <td><dtml-var owner></td>
+</tr>
+                <dtml-if name="Description">
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td>&nbsp;</td>
+  <td colspan="6">
+    <em><dtml-var "getFormattedComments(description)" missing="msg('No description')" size="250"></em>
+  </td>
+</tr>
+                </dtml-if>
+              </dtml-let>
+            <dtml-else>
+              <dtml-if IsAdmin>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td>&nbsp;</td>
+  <td colspan="6">
+    <em style="color:red">Error! Object is None:&nbsp;<dtml-var objURL></em>
+  </td>
+</tr>
+              </dtml-if>
+            </dtml-if>
+          </dtml-let>
+        </dtml-if>
+        <dtml-if sequence-end>
+</table>
+        </dtml-if>
+      <dtml-else>
+<p><strong><dtml-var "msg('No items were found')"></strong></p>
+      </dtml-in>
+
+<table width="100%">
+<tr>
+  <td nowrap>
+      <dtml-in results size="batch_length" start="batch_start" previous>
+        <dtml-call "params.update({'batch_start':_['previous-sequence-start-number']})">
+        <dtml-let prevURL="absolute_url(action='search_results', params=params)">
+    <p><a href="&dtml-prevURL;"><dtml-var "msg('Previous page') + ' (%d)' % (_['previous-sequence-size'])"></a></p>
+        </dtml-let>
+      </dtml-in>
+  </td>
+  <td align="right" style="padding-right:10px;" nowrap>
+      <dtml-in results size="batch_length" start="batch_start" next>
+        <dtml-call "params.update({'batch_start':_['next-sequence-start-number']})">
+        <dtml-let nextURL="absolute_url(action='search_results', params=params)">
+    <p><a href="&dtml-nextURL;"><dtml-var "msg('Next page') + ' (%d)' % (_['next-sequence-size'])"></a></p>
+        </dtml-let>
+      </dtml-in>
+  </td>
+</tr>
+</table>
+
+</div>
+
+    </dtml-let>
+  </dtml-let>
+</dtml-if>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,97 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'Category Objects Selection')">
+
+<dtml-var simple_html_header>
+
+<dtml-let uid_field="REQUEST.get('uid_field') or 'dest_folder_uid'"
+          title_field="REQUEST.get('title_field') or 'dest_folder_title'"
+          category="REQUEST.get('category')"
+          category_title="portal_metadata.getCategoryTitle(category)"
+          search="REQUEST.get('search') or ''"
+          no_select="REQUEST.get('no_select') or ''"
+          results="portal_catalog.searchCategoryObjects(category=category, search=search)"
+>
+
+<script language="javascript">
+<!--
+function SaveAndReturn( uid , title) {
+    window.opener.setFolderUrl( uid, title || '<dtml-var "msg('Object selected')">', '&dtml-uid_field;', '&dtml-title_field;' );
+    window.close();
+}
+
+function setStyle( obj, mode ) {
+    if( typeof(obj) != 'object' ) return;
+    if( !mode || mode=='over' ) {
+        obj.style.cursor = 'hand';
+	    obj.style.color = 'blue';
+    } else {
+        obj.style.cursor = 'auto';
+        obj.style.color = 'black';
+    }
+}
+//-->
+</script>
+
+<div style="padding: 0 0 10px 5px">
+<h4 align="left" style="padding: 10px 0 0 0"><dtml-var "msg('Selected category objects')"><dtml-if category_title>&nbsp;&quot;&dtml-category_title;&quot;</dtml-if></h4>
+
+<dtml-if "not results">
+<table width="100%" border="0">
+<tr>
+  <td class="smallHeader" align="left" valign="center" style="padding: 5px 23px 5px 23px; border: 1pt solid gray;" colspan="2" nowrap>
+    <dtml-var "msg('Attribute values not found')">
+  </td>
+  <td style="width:100%">&nbsp;</td>
+</tr>
+</table>
+
+<h3 style="padding:0 0 0 0">&nbsp;</h3>
+</dtml-if>
+
+<table width="100%" cellspacing="0" cellpadding="3" border="0">
+<form method="POST">
+<input type="hidden" name="uid_field" value="&dtml-uid_field;">
+<input type="hidden" name="title_field" value="&dtml-title_field;">
+<input type="hidden" name="category" value="&dtml-category;">
+<input type="hidden" name="no_select" value="&dtml-no_select;">
+<tr>
+  <td align="left" style="width:100%">
+    <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+  </td>
+  <td nowrap>
+    <strong><dtml-var "msg('Find the object')">:</strong>&nbsp;
+	<input name="search" class="search" value="&dtml-search;" style="width:200px;">
+  </td>
+  <td style="border-top:1px solid white;">
+    <input name="simple_search" type="image" onMouseOver="change(this,1);" onMouseOut="change(this,2);" src="&dtml-portal_url;/simple_search.gif" width="18">
+  </td>
+  <td>&nbsp;</td>
+</tr>
+</form>
+</table>
+</div>
+
+<dtml-if results>
+<table class="FormLayout" cellspacing="4" cellpadding="4" bgcolor="#FFFFFF" width="100%" border="0">
+  <dtml-in results mapping>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center" style="padding-top:6px;"><dtml-var "_['sequence-index']+1"></td>
+  <td align="left" style="width:100%">
+    <a href="&dtml-path;?expand=1" target="assistant_item" title="<dtml-var "msg('open the card to view')">"><strong>&dtml-title;</strong></a>
+    <dtml-if no_select>
+      <span><dtml-var "description and '\n'+description or ''" newline_to_br></span>
+    <dtml-else>
+      <span title="<dtml-var "msg('select item')">" onclick="javascript:SaveAndReturn('&dtml-uid;','&dtml-title;');" onmouseover="javascript:setStyle(this,'over');" onmouseout="javascript:setStyle(this,'out');"><dtml-var "description and '\n'+description or ' >>>'" newline_to_br></span>
+    </dtml-if>
+  </td>
+</tr>
+  </dtml-in>
+</table>
+</dtml-if>
+
+</dtml-let>
+
+<br>
+
+<dtml-var simple_html_footer>
+

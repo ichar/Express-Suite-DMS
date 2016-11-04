@@ -1,0 +1,141 @@
+<dtml-comment>
+$Id: selector_color.dtml,v 1.1 2003/06/23 05:09:54 kscorob Exp $
+</dtml-comment>
+
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+  <title>
+    <dtml-var "msg('More colors')">
+  </title>
+  <script language="JavaScript">
+
+  function initLists() {
+    var steps = new Array ('F0', 'E0', 'D0', 'C0', 'B0', 'A0', '90', '80', '70', '60', '50', '40', '30', '20', '10', '00')
+    var sColor = 0;
+    c=0;
+
+    for (var i=0; i<16; i++)	// grays
+    { 
+      sColor = "#"+steps[i]+steps[i]+steps[i]
+      eval("td"+c).bgColor=sColor;
+      eval("td"+c).title=sColor;
+      c++;
+    }
+
+
+
+    for (var n=15; n>=0; n-=3)	// loop
+    {
+	    for (var i=0; i<16; i+=2)                   // reds
+	    {
+              sColor = "#"+steps[i]+steps[n]+steps[n];
+              eval("td"+c).bgColor=sColor;
+              eval("td"+c).title=sColor;
+              c++;
+	    }
+	    for (var i=0; i<16; i+=2)        		// greens
+	    { sColor = "#"+steps[n]+steps[i]+steps[n]
+              eval("td"+c).bgColor=sColor;
+              eval("td"+c).title=sColor;
+              c++;
+	    }
+	    for (var i=0; i<16; i+=2)			// blues
+	    { sColor = "#"+steps[n]+steps[n]+steps[i];
+              eval("td"+c).bgColor=sColor;
+              eval("td"+c).title=sColor;
+              c++;
+	    }
+	    for (var i=0; i<16; i+=2)            	// brown to yellow
+	    { sColor = "#"+steps[i]+steps[i]+steps[n]
+              eval("td"+c).bgColor=sColor;
+              eval("td"+c).title=sColor;
+              c++;
+	    }
+	    for (var i=0; i<16; i+=2)             	// azures
+	    { sColor = "#"+steps[n]+steps[i]+steps[i]
+              eval("td"+c).bgColor=sColor;
+              eval("td"+c).title=sColor;
+              c++;
+	    }
+	    for (var i=0; i<16; i+=2)                 	// purples
+	    { sColor = "#"+steps[i]+steps[n]+steps[i]
+                eval("td"+c).bgColor=sColor;
+                eval("td"+c).title=sColor;
+                c++;
+	    }
+    }
+
+  }
+
+  </script>
+</head>
+<body align="center" onLoad="returnValue=-1;initLists();oldColor.bgColor=window.dialogArguments;oldColor.title=oldColor.bgColor;newColor.bgColor=oldColor.bgColor;">
+<div id="SelectorDlg" align="center"
+  onkeyup="Javascript: if (event.keyCode == 27) {returnValue=-1;window.close();}">
+<table border="0" cellspacing="0" cellpadding="0" align="center">
+<tr align="center">
+<td>
+<dtml-var "msg('More colors')">
+
+
+
+<script>
+  cols=16
+  rows=19
+  counter=0
+
+  var tableStr = "<table id='ColorTable'  width='250px' height='270px' border='1' cellspacing='3' cellpadding='0'>"
+
+  for (i = 0; i < rows; i++) {
+    tableStr += "<tr>"
+    for (j = 0; j < cols; j++) {
+      tableStr += "<td id='td" +counter+ "'  width='6px' height='6px' style='cursor:hand' onclick='newColor.bgColor=this.bgColor;returnValue=newColor.bgColor;window.close();' onmouseover='newColor.bgColor=this.bgColor;' ></td>";
+     counter++;
+    }
+    tableStr += "</tr>"
+  }
+  tableStr += "</table>"
+  document.write(tableStr);
+</script>
+
+
+</td>
+</tr>
+<tr align="center">
+<td>
+  <table border="1" cellspacing="1" cellpadding="0">
+    <tr align="center">
+      <td width="50px" align="center" >
+      <dtml-var "msg('New')">
+      </td>
+      <td width="20px" id="newColor" align="center">
+
+      </td>
+      <td width="20px" id="oldColor" align="center">
+
+      </td>
+      <td width="50px" align="center">
+      <dtml-var "msg('Current')">
+      </td>
+    </tr>
+  </table>
+</tr>
+<tr align="center">
+<td>
+  <tr align='center'>
+	<td>
+	   <table width="80%" border="0" cellspacing="0" cellpadding="0">
+	      <tr align="center" height="30px">
+		<td>
+		  <input type="button" value=<dtml-var "msg('Close')"> onClick="javascript:returnValue=-1;window.close();">
+		</td>
+	      </tr>
+	   </table>
+	</td>
+  </tr>
+</table>
+
+</div>
+</body>
+</html>

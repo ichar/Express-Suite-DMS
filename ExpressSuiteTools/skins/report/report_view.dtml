@@ -1,0 +1,152 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<div class="Desktop">
+<h2><dtml-var reportitem_icon.gif>&nbsp;&dtml-title_or_id;</h2>
+
+<p>&dtml-description;</p>
+<dtml-if "listColumns()">
+
+<dtml-let uname="portal_membership.getAuthenticatedMember().getUserName()"
+          container="this()"
+          uid=getUid
+          report_url=absolute_url
+          table_columns="[{'id':x.getId(), 'title':x.Title(), 'type':x.Type()} for x in listColumns()]"
+          sort_order="REQUEST.get('sort_order', '')"
+          pre_sort_on="REQUEST.get('sort_on',  None) and REQUEST.set('sort_on', '')"
+          sort_on="getColumnById(pre_sort_on) is not None and pre_sort_on or table_columns[0]['id']"
+          sort_type="getColumnById(sort_on).Type() in ['string', 'text'] and 'cmp' or 'cmp'"
+          batch_size="_.int(REQUEST.get('batch_size', 10))"
+
+          default_filter="{'conditions':[], 'query':{}}"
+          filter_id="absolute_url()"
+          x="getSession('%s_filter' % filter_id) or {}"
+          filter="x.has_key('query') and x or default_filter"
+          query="filter.get('query')"
+
+          results="searchEntries(sort_on=None, **query)"
+          sorted_results="_.sequence.sort([x.getObject() for x in results], ((sort_on, sort_type),))"
+          results_count="_.len(results)"
+          total_count="_.len(this())" 
+          qs_old="_.int(REQUEST.get('qs', 1))"
+          qs="qs_old - qs_old%batch_size + 1"
+>
+
+<dtml-if total_count>
+   <dtml-var results_count> <dtml-var "msg('entries of')"> <dtml-var total_count>
+   <dtml-var "table_pages_list(container, REQUEST,
+                    results_count=results_count,
+                    sort_order=sort_order,
+                    sort_on=sort_on,
+                    batch_size=batch_size,
+                    qs=qs
+                    )">
+</dtml-if>
+
+<dtml-in sorted_results reverse_expr="sort_order" size="batch_size" start=qs>
+<dtml-if sequence-start>
+
+<form method="post" action="&dtml-absolute_url;" class="inline">
+  <dtml-in table_columns mapping>
+    <dtml-if sequence-start>
+<table cellspacing="1" cellpadding="3" width="99%">
+<tr class="row_title">
+  <td width="1%" colspan="2">&nbsp;</td>
+    </dtml-if>
+  <td class="small" valign="middle" align="center">
+    <dtml-if "sort_on==id">
+      <dtml-if "sort_order == 'reverse'">
+        <dtml-var sort_up.gif>
+      <dtml-else>
+        <dtml-var sort_down.gif>
+      </dtml-if>
+    </dtml-if>
+    <a class="navigate" href="<dtml-var "container.absolute_url(params={'sort_on': id, 'sort_order': sort_on==id and not sort_order and 'reverse' or ''})">">
+      <dtml-var "msg(title, add=None)">
+    </a>
+  </td>
+    <dtml-if sequence-end>
+</tr>
+    </dtml-if>
+  </dtml-in>
+
+</dtml-if>
+
+<dtml-let entry="this()">
+<tr <dtml-if sequence-odd>class="row_even"</dtml-if>>
+  <td>
+  <dtml-if "uname==entry.get('Creator') or portal_membership.checkPermission('Modify portal content', this())">
+    <input type="checkbox" name="selected_entries:list" value="&dtml-RecordId;"/>
+  </dtml-if>
+  </td>
+  <td>
+    <a class="navigate" href="<dtml-var "container.absolute_url(action=RecordId())">">&gt;&gt;&gt;</a>
+  </td>
+
+  <dtml-in table_columns mapping>
+  <td>
+    <dtml-var "entry_field_view(this(), name=id, type=type, value=entry.get(id))" size="100">
+  </td>
+  </dtml-in>
+</tr>
+</dtml-let>
+
+<dtml-if sequence-end>
+</table>
+
+<input type="submit" name="delEntries:method" value="<dtml-var "msg('Delete report')">"> 
+</form>
+</dtml-if>
+
+<dtml-else>
+<p>
+  <dtml-if count>
+    <dtml-var "msg('There are no reports matching your query')">
+  <dtml-else>
+    <dtml-var "msg('There are no reports yet')">
+  </dtml-if>
+</p>
+</dtml-in>
+
+<dtml-var catalog_filter_form>
+
+<dtml-if "uname in listAllowedMembers()">
+<form method="post" action="&dtml-absolute_url;" onsubmit="return validateForm(this);">
+
+<table cellspacing="1" cellpadding="3">
+<tr class="row_title">
+  <td class="small" colspan="2"><dtml-var "msg('New report form')"></td>
+</tr>
+  <dtml-in listColumns>
+    <dtml-if allowsInput>
+      <dtml-let field=getId type=Type>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var Title></td>
+  <td class="smallHeader"><dtml-var "entry_field_edit(this(), name=field, type=type)"></td>
+</tr>
+      </dtml-let>
+    </dtml-if>
+  </dtml-in>
+<tr>
+  <td>
+    <input type="submit" name="addEntry:method" value=" <dtml-var "msg('Add report')"> ">
+  </td>
+</tr>
+</table>
+
+</form>
+</dtml-if>
+
+</dtml-let>
+
+<div class="Discussion">
+  <dtml-var viewThreadsAtBottom>
+</div>
+
+<dtml-else>
+  <dtml-var "msg('No columns defined')">
+</dtml-if>
+</div>
+
+<dtml-var simple_html_footer>

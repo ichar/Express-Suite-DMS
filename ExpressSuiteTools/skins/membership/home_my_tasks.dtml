@@ -1,0 +1,127 @@
+<table width="100%" cellspacing="1" cellpadding="3" border="0">
+<tr class="row_title">
+  <td colspan="2"><strong><dtml-var "msg('Category')"></strong></td>
+  <td><strong><dtml-var "msg('New')"></strong></td>
+  <td><strong><dtml-var "msg('Total')"></strong></td>
+</tr>
+
+<dtml-let in_stat="portal_followup.countIncomingTasks(REQUEST)"
+          out_stat="portal_followup.countOutgoingTasks(REQUEST)"
+          supervised_stat="portal_followup.countSupervisedTasks(REQUEST)"
+          kicked_stat="portal_followup.countKickedTasks(REQUEST)"
+          style="'font-family:verdana;font-size:10px;'"
+>
+  <dtml-if in_stat>
+    <dtml-let
+          cnt_not_seen="in_stat['not_seen']"
+          new="in_stat['new']"
+          total="in_stat['total']"
+          cell_class="cnt_not_seen and 'smallHeader' or 'small'"
+          cell_style="cnt_not_seen and 'font-family:MS Sans Serif;' or ''"
+          new_style="cnt_not_seen and ['<b>', '</b>'] or ['','']"
+    >
+<tr class="row_even">
+  <td align="center"><img src="&dtml-portal_url;/inc_task_op.gif" border="0"></td>
+  <td class="&dtml-cell_class;" style="&dtml-cell_style;width:99%;">
+    <a class="navigate" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/followup_in?showTaskMode=showNew" target="workspace"><dtml-var "msg('Incoming tasks')"></a>
+  </td>
+  <td nowrap><dtml-var "new_style[0]">&dtml-cnt_not_seen;<dtml-var "new_style[1]"> (&dtml-new;)</td>
+  <td><dtml-var total></td>
+</tr>
+    </dtml-let>
+  <dtml-else>
+<tr class="row_even">
+  <td align="center"><img src="&dtml-portal_url;/inc_task_op.gif" border="0"></td>
+  <td class="small" style="&dtml-style;width:99%;">
+    <dtml-var "msg('Incoming tasks')">
+  </td>
+  <td colspan="2" align="center" nowrap><dtml-var "msg('disabled')"></td>
+</tr>
+  </dtml-if>
+
+  <dtml-if out_stat>
+    <dtml-let
+          cnt_not_seen="out_stat['not_seen']"
+          new="out_stat['new']"
+          total="out_stat['total']"
+          cell_class="cnt_not_seen and 'smallHeader' or 'small'"
+          cell_style="cnt_not_seen and 'font-family:MS Sans Serif;' or ''"
+          new_style="cnt_not_seen and ['<b>', '</b>'] or ['','']"
+    >
+<tr class="row_odd">
+  <td align="center"><img src="&dtml-portal_url;/out_task_op.gif" border="0"></td>
+  <td class="&dtml-cell_class;" style="&dtml-cell_style;">
+    <a class="navigate" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/followup_out?showTaskMode=showNew" target="workspace"><dtml-var "msg('Outgoing tasks')"></a>
+  </td>
+  <td nowrap><dtml-var "new_style[0]">&dtml-cnt_not_seen;<dtml-var "new_style[1]"> (&dtml-new;)</td>
+  <td><dtml-var total></td>
+</tr>
+    </dtml-let>
+  <dtml-else>
+<tr class="row_even">
+  <td align="center"><img src="&dtml-portal_url;/inc_task_op.gif" border="0"></td>
+  <td class="small" style="&dtml-style;width:99%;">
+    <dtml-var "msg('Outgoing tasks')">
+  </td>
+  <td colspan="2" align="center" nowrap><dtml-var "msg('disabled')"></td>
+</tr>
+  </dtml-if>
+
+  <dtml-if supervised_stat>
+    <dtml-let 
+          total="supervised_stat['total']"
+          new="supervised_stat['new']"
+          cell_class="new and 'smallHeader' or 'small'"
+          cell_style="new and 'font-family:MS Sans Serif;' or ''"
+    >
+<tr class="row_even">
+  <td align="center"><img src="&dtml-portal_url;/taskfolder.gif" border="0"></td>
+  <td class="&dtml-cell_class;" style="&dtml-cell_style;">
+    <a class="navigate" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/followup_supervised?reviewed=2" target="workspace"><dtml-var "msg('Supervised tasks')"></a>
+  </td>
+  <td><dtml-var new></td>
+  <td><dtml-var total></td>
+</tr>
+    </dtml-let>
+  <dtml-else>
+<tr class="row_even">
+  <td align="center"><img src="&dtml-portal_url;/inc_task_op.gif" border="0"></td>
+  <td class="small" style="&dtml-style;width:99%;">
+    <dtml-var "msg('Supervised tasks')">
+  </td>
+  <td colspan="2" align="center" nowrap><dtml-var "msg('disabled')"></td>
+</tr>
+  </dtml-if>
+
+  <dtml-if kicked_stat>
+    <dtml-let
+          new="kicked_stat['new']"
+          total="kicked_stat['total']"
+          row_style="new and 'background-color:#FABDA0;' or ''"
+          cell_class="new and 'smallHeader' or 'small'"
+          cell_style="new and 'border: solid 1px #D06080;' or ''"
+          new_style="new and ['<b>', '</b>'] or ['','']"
+          title="new and 'New kicked tasks' or 'Kicked tasks'"
+    >
+<tr class="row_even" style="&dtml-row_style;">
+  <td align="center" style="&dtml-cell_style;"><img src="&dtml-portal_url;/task_kick.gif" border="0"></td>
+  <td class="small" style="width:99%;">
+    <b><a class="info" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/followup_in?showTaskMode=showKicked" target="workspace"><dtml-var "msg(title)"></a>&nbsp;&nbsp;&nbsp;</b>
+  </td>
+  <td style="&dtml-cell_style;"><dtml-var "new_style[0]">&dtml-total;<dtml-var "new_style[1]"></td>
+  <td>&nbsp;</td> 
+</tr>
+    </dtml-let>
+  <dtml-else>
+<tr class="row_even">
+  <td align="center"><img src="&dtml-portal_url;/inc_task_op.gif" border="0"></td>
+  <td class="small" style="&dtml-style;width:99%;">
+    <dtml-var "msg('Kicked tasks')">
+  </td>
+  <td align="center" nowrap><dtml-var "msg('disabled')"></td>
+  <td>&nbsp;</td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+</table>

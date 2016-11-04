@@ -1,0 +1,52 @@
+<script type="text/javascript">
+<!-- 
+    var commonImages = ['task_finalized.gif','task_inprogress.gif','task_expired.gif','task_user_committed.gif','task_user_rejected.gif','task_user_accepted.gif'];
+//-->
+</script>
+
+<dtml-call "REQUEST.set('OpenInFrame', 'followup_in')">
+<dtml-call "REQUEST.set('isEnabled', 1)">
+
+<dtml-var simple_html_header>
+
+<dtml-let
+  modeName="REQUEST.get('showTaskMode') or 'showCurrent'"
+  functions="{
+    'showNew': portal_followup.listIncomingTasksNew,
+    'showCurrent': portal_followup.listIncomingTasksCurrent,
+    'showWithClosedReport': portal_followup.listIncomingTasksWithClosedReport,
+    'showWithoutClosedReport': portal_followup.listIncomingTasksWithoutClosedReport,
+    'showFinalized': portal_followup.listIncomingTasksFinalized,
+    'showKicked': portal_followup.listKickedTasks
+  }"
+  msg_text="{
+    'showNew': 'tasks.tabs.new',
+    'showCurrent': 'tasks.tabs.current',
+    'showWithClosedReport': 'tasks.tabs.closed',
+    'showWithoutClosedReport': 'Tasks without closed report',
+    'showFinalized': 'tasks.tabs.finalized',
+    'showKicked': 'Kicked tasks report'
+  }"
+  functionName="functions[modeName]"
+>
+
+<table width="100%">
+<tr><td><h1><dtml-var "msg('Incoming tasks')"> "<dtml-var "msg(msg_text[modeName])">"</h1></td></tr>
+<tr>
+  <td>
+    <dtml-var "task_list_embedded(this()
+                             , form_name='followup_in'
+                             , finder_method=functionName
+                             , header=msg('You are involved into the following tasks:')
+                             , showTabs='incoming'
+                             , show_filter=1
+                             , REQUEST=REQUEST
+                             )"
+    >
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

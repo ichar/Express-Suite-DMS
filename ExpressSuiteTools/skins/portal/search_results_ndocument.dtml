@@ -1,0 +1,126 @@
+<dtml-if "REQUEST.get('callback_form')">
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+</dtml-if>
+
+<script type="text/javascript">
+<!--
+    var commonImages = ['doc_icon.gif','folder_icon.gif','fs_folder_icon.gif','registry_icon.gif']; 
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-if "implements('isSearchProfile')">
+  <dtml-call "REQUEST.set( 'query', getQuery() )">
+  <dtml-call "REQUEST.set( 'query_id', None )">
+
+  <h2><a href="&dtml-portal_url;/menu?where=search&link=search_form%3Fprofile_id=&dtml-getUid;" target="menu"><dtml-var "msg('Edit query')"></a></h2>
+<dtml-else>
+  <dtml-call "REQUEST.set( 'query', portal_catalog.getQuery( query_id, REQUEST=REQUEST ) )">
+</dtml-if>
+
+<h1> <dtml-var "msg('Search results of normative documents for revision')"></h1>
+
+<dtml-unless "REQUEST.has_key('batch_length')">
+  <dtml-call "REQUEST.set('batch_length',25)">
+</dtml-unless>
+
+<dtml-unless "batch_length > 0">
+  <dtml-call "REQUEST.set('batch_length',_.len(results))">
+</dtml-unless>
+
+<dtml-if query>
+
+<dtml-let results="portal_catalog.executeQuery( REQUEST['query'] )"
+          normative_document_show_mode="'normative_filter' in REQUEST['query'].filters"
+>
+
+<p>
+<dtml-var "msg('Items found')">: <dtml-var expr="_.len(results)" thousands_commas>.
+<dtml-if "query.text">
+<dtml-var "msg('Query')">: "<dtml-var "query.text" html_quote>"
+</dtml-if>
+</p>
+
+<dtml-in results size="batch_length" start="batch_start" skip_unauthorized>
+<dtml-let objURL="getURL() + '/view'"
+          isattachment="'isAttachment' in implements"
+          object="_['sequence-item'].getObject()"
+          category_title="object.getCategory().Title()"
+          dv="object.getCategoryAttribute('dv') and object.getCategoryAttribute('dv').strftime('%d.%m.%Y') or ''"
+          ds="object.getCategoryAttribute('ds') and object.getCategoryAttribute('ds').strftime('%d.%m.%Y') or ''"
+          dp="object.getCategoryAttribute('dp') and object.getCategoryAttribute('dp').strftime('%d.%m.%Y') or ''"
+          sd="object.getCategoryAttribute('sd')"
+>
+  <dtml-if sequence-start>
+    <table border="0" cellpadding="2" cellspacing="1" width="100%">
+    <tr class="row_odd">
+      <td width="16"><br></td>
+      <td width="30%"><strong><dtml-var "msg('Title')"></strong></td>
+      <td><strong><dtml-var "msg('Category')"></strong></td>
+      <td><strong><dtml-var "msg('Effective date normative')">&nbsp;</strong></td>
+      <td><strong><dtml-var "msg('Archive date')">&nbsp;</strong></td>
+      <td><strong><dtml-var "msg('Revision date')">&nbsp;</strong></td>
+      <td><strong><dtml-var "msg('Duration, month')">&nbsp;</strong></td>
+    </tr>
+  </dtml-if>
+
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td>
+  <dtml-if getIcon>
+        <a href="&dtml-objURL;" target="workspace"><img
+           src="&dtml-server_url;/&dtml-getIcon;" border="0"
+           alt="[&dtml.missing-Type;]"
+           title="[&dtml.missing-Type;]"></a>
+  </dtml-if>
+      </td>
+      <td>
+        <a href="&dtml-objURL;" target="workspace"><dtml-if name="Title"><dtml-var name="Title" size="75" html_quote><dtml-else>(<dtml-var "msg('No title')">)</dtml-if></a>
+      </td>
+      <td><dtml-var "msg(category_title, add=0)"></td>
+      <td>&dtml-dv;</td>
+      <td>&dtml-ds;</td>
+      <td>&dtml-dp;</td>
+      <td>&dtml-sd;</td>
+    </tr>
+  <dtml-if sequence-end>
+    </table>
+  </dtml-if>
+</dtml-let>
+
+<dtml-else>
+  <p> <dtml-var "msg('No items were found')"> </p>
+</dtml-in>
+
+<table width="100%">
+<tr>
+  <td>
+
+<dtml-in results size="batch_length" start="batch_start" previous>
+<dtml-let prevURL="absolute_url( action='search_results_ndocument', params={ 'query_id':query_id, 'batch_length':batch_length, 'batch_start':_['previous-sequence-start-number'] } )">
+  <p> <a href="&dtml-prevURL;"> <dtml-var "msg('Previous page') + ' (%d)' % (_['previous-sequence-size'])">  </a> </p>
+</dtml-let>
+</dtml-in>
+
+  </td>
+  <td align="right">
+
+<dtml-in results size="batch_length" start="batch_start" next>
+<dtml-let nextURL="absolute_url( action='search_results_ndocument', params={ 'query_id':query_id, 'batch_length':batch_length, 'batch_start':_['next-sequence-start-number'] } )">
+  <p> <a href="&dtml-nextURL;"> <dtml-var "msg('Next page') + ' (%d)' % (_['next-sequence-size'])">  </a> </p>
+</dtml-let>
+</dtml-in>
+
+  </td>
+</tr>
+</table>
+
+</div>
+
+</dtml-let>
+
+</dtml-if>
+
+<dtml-var simple_html_footer>

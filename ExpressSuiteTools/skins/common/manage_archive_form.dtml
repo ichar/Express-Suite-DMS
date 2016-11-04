@@ -1,0 +1,282 @@
+<dtml-if "portal_membership.protection(context='archive', REQUEST=REQUEST)">
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<script type="text/javascript">
+<!--
+function onSubmitForm( frm ) {
+   var cmds = document.getElementsByTagName('input');
+   if( !cmds ) return true;
+   for (var i = 0; i < cmds.length; i++) {
+       if( cmds[i].type == 'submit' ) document.all[cmds[i].name].disabled = true;
+   }
+   return true;
+}
+//-->
+</script>
+
+<h1><dtml-var "msg('Manage portal archive')"></h1><br>
+
+<dtml-with portal_services only>
+  <dtml-if "portal_properties.storage_type()=='archive'">
+    <dtml-let id="'manage_import_archive'" options="getSyncOptions(id)" res="REQUEST.get(id)">
+
+<table class="FormLayout" width="100%" cellspacing="2" cellpadding="2" border="0">
+<form name="manage_archive" action="&dtml-absolute_url;/manageImportArchive" method="POST" onSubmit="return onSubmitForm(this);">
+<input name="IsApply" type="hidden" value="0">
+<tr>
+  <td class="smallHeader" valign="top" align="left" style="padding-top:3px;color:purple;" colspan="3" nowrap>
+    <dtml-var "msg(options['description'])">:
+  </td>
+</tr>
+
+<tr>
+  <td style="padding: 5px 0 0 20px">
+      <dtml-in "getArchiveSchedule(items=1)">
+        <dtml-if sequence-start>
+    <table cellspacing="2" cellpadding="0" border="0">
+    <tr>
+      <td class="services_schedule_title" nowrap colspan="2"><dtml-var "msg('Scheduler items for check and import archive transfer packages')"></td>
+    </tr>
+        </dtml-if>
+    <tr>
+        <dtml-let x="_['sequence-item']" id="x[1]" title="x[2]" size="x[3]" value="x[4]" type="x[5]" comment="x[6]" style="x[7]" disabled="x[8]">
+      <td class="services_title" style="padding-top:3px"><dtml-var "msg(title, add=None)"></td>
+          <dtml-if disabled>
+      <td style="padding: 2px 0 0 10px" nowrap>
+        <span class="services_info" style="&dtml-style;">&dtml-value;</span>
+          <dtml-else>
+      <td style="padding-left:10px" nowrap>
+        <input type="&dtml-type;" name="&dtml-id;" value="<dtml-if "type=='checkbox'">1<dtml-else>&dtml-value;</dtml-if>" size="&dtml-size;" style="&dtml-style;" <dtml-if "type=='checkbox' and value">checked</dtml-if> />
+          </dtml-if>
+        <dtml-if comment>(<dtml-var "msg(comment)">)</dtml-if>
+      </td>
+        </dtml-let>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+        </dtml-if>
+      </dtml-in>
+  </td>
+</tr>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td nowrap>
+    <input type="submit" name="save_&dtml-id;" onclick="javascript:IsApply.value=1;" value="<dtml-var "msg(options['submits'][0])">">
+  </td>
+</tr>
+</form>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td class="smallHeader" valign="top" align="left" style="padding-top:3px;color:purple;" colspan="3" nowrap>
+    <dtml-var "msg('Import archive log')">:
+  </td>
+</tr>
+
+<tr>
+  <td style="padding: 5px 0 0 15px" colspan="3">
+      <dtml-in "getImportArchiveLog()" mapping>
+        <dtml-if sequence-start>
+    <table cellspacing="2" cellpadding="5" border="0">
+    <tr class="row_title">
+      <td class="services_title" nowrap><dtml-var "msg('Date')"></td>
+      <td class="services_title" nowrap><dtml-var "msg('Server import path')"></td>
+      <td class="services_title" nowrap><dtml-var "msg('File name')"></td>
+      <td class="services_title" nowrap><dtml-var "msg('Archive path')"></td>
+      <td class="services_title" align="center"><dtml-var "msg('Imported')"></td>
+      <td class="services_title" nowrap><dtml-var "msg('Results message')"></td>
+      <td>&nbsp;</td>
+    </tr>
+        </dtml-if>
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td class="services_info" nowrap><dtml-var "date.strftime('%Y/%m/%d %H:%M')"></td>
+      <td>&dtml-import_path;</td>
+      <td nowrap><font color=blue>&dtml-id;</font></td>
+      <td>&dtml-path;</td>
+      <td align="center"><dtml-var "counter is None and '-' or counter"></td>
+      <td>
+        <dtml-if "not IsError"><font color=darkgreen></dtml-if>
+        <dtml-in message>
+          <dtml-var "msg(_['sequence-item'], add=0)"><br>
+        </dtml-in>
+        <dtml-if "not IsError"></font></dtml-if>
+      </td>
+      <td><dtml-if IsError><img src="&dtml-portal_url;/error_icon.gif" width="16"></dtml-if></td>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+        </dtml-if>
+      </dtml-in>
+  </td>
+</tr>
+
+</table>
+
+    </dtml-let>
+  <dtml-else>
+    <dtml-let id="'manage_export_archive'" options="getSyncOptions(id)" res="REQUEST.get(id)">
+
+<table class="FormLayout" width="100%" cellspacing="2" cellpadding="2" border="0">
+<form name="manage_archive" action="&dtml-absolute_url;/manageExportArchive" method="POST" onSubmit="return onSubmitForm(this);">
+<input name="IsCheck" type="hidden" value="0">
+<input name="IsRun" type="hidden" value="0">
+<input name="IsApply" type="hidden" value="0">
+<tr>
+  <td class="smallHeader" valign="top" align="left" style="padding-top:3px;color:purple;" colspan="3" nowrap>
+    <dtml-var "msg(options['description'])">:
+  </td>
+</tr>
+
+<tr>
+  <td style="padding-left:20px">
+    <table cellspacing="2" cellpadding="0" border="0">
+    <tr>
+      <td class="services_title" colspan="4" style="padding-bottom:5px;"><dtml-var "msg('Calendar period')"></td>
+    </tr>
+      <dtml-let period="getArchivePeriod()" created_from="period and period[0]" created_till="period and period[1]">
+    <tr>
+      <td class="services_title" style="padding:3px 3px 0 0"><dtml-var "msg('since')">:</td>
+      <td align="center">
+        <dtml-var "datetime_form( this(), REQUEST, prefix='created_from', date=created_from, date_only=1 )">
+      </td>
+      <td class="services_title" style="padding:3px 3px 0 10px"><dtml-var "msg('till')">:</td>
+      <td align="center">
+        <dtml-var "datetime_form( this(), REQUEST, prefix='created_till', date=created_till, date_only=1 )">
+      </td>
+    </tr>
+      </dtml-let>
+    </table>
+  </td>
+</tr>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td style="padding: 5px 0 0 20px">
+      <dtml-in "getArchiveDescription(items=1)">
+        <dtml-if sequence-start>
+    <table cellspacing="2" cellpadding="0" border="0">
+        </dtml-if>
+    <tr>
+        <dtml-let x="_['sequence-item']" id="x[1]" title="x[2]" size="x[3]" value="x[4]" type="x[5]" comment="x[6]" style="x[7]" disabled="x[8]">
+      <td class="services_title" style="padding-top:3px"><dtml-var "msg(title, add=None)"></td>
+      <td style="padding-left:10px">
+        <input type="&dtml-type;" name="&dtml-id;" value="<dtml-if "type=='checkbox'">1<dtml-else>&dtml-value;</dtml-if>" size="&dtml-size;" style="&dtml-style;" <dtml-if "type=='checkbox' and value">checked</dtml-if> <dtml-if disabled>disabled</dtml-if> />
+          <dtml-if comment>(<dtml-var "msg(comment)">)</dtml-if>
+      </td>
+        </dtml-let>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+        </dtml-if>
+      </dtml-in>
+  </td>
+</tr>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td style="padding: 5px 0 0 20px">
+      <dtml-in "getArchiveCategories()" mapping>
+        <dtml-if sequence-start>
+    <table cellspacing="2" cellpadding="0" border="0">
+    <tr>
+      <td class="services_title" nowrap colspan="2"><dtml-var "msg('Category')"></td>
+      <td class="services_title" nowrap><dtml-var "msg('Expired by attr')"></td>
+      <td class="services_title" nowrap colspan="4"><dtml-var "msg('By default')"> (period, units, default)</td>
+    </tr>
+        </dtml-if>
+    <tr>
+      <td width="1%"><input type="checkbox" name="selected_categories:list" value="&dtml-id;" <dtml-if selected>checked</dtml-if> /></td>
+      <td valign="middle" style="padding-right:10px" nowrap><a href="&dtml-url;">&dtml-title;</a></td>
+      <td style="padding-right:10px"><input type="text" name="&dtml-id;_expired_attr" value="&dtml-expired_attr;" style="width:140px"></td>
+      <td><input type="text" name="&dtml-id;_period" value="&dtml-period;" size="2" style="text-align:center"></td>
+      <td><input type="text" name="&dtml-id;_units" value="&dtml-units;" size="5" style="text-align:center"></td>
+      <td><input type="text" name="&dtml-id;_default" value="&dtml-default;" size="3" style="text-align:center"></td>
+      <td style="width:100%">&nbsp;</td>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+        </dtml-if>
+      </dtml-in>
+  </td>
+</tr>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td style="padding: 5px 0 0 20px">
+      <dtml-in "getArchiveScenario()" mapping>
+        <dtml-if sequence-start>
+    <table cellspacing="2" cellpadding="0" border="0">
+    <tr>
+      <td class="services_title" nowrap colspan="2"><dtml-var "msg('Phase of archive scenario')"></td>
+    </tr>
+        </dtml-if>
+    <tr>
+      <td width="1%"><input type="checkbox" id="ps_&dtml-id;" name="&dtml-id;" value="1" <dtml-if state>checked</dtml-if> /></td>
+      <td valign="middle" style="padding: 5px 10px 0 0" nowrap><label for="ps_&dtml-id;"><dtml-var "msg(title)"></label></td>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+        </dtml-if>
+      </dtml-in>
+  </td>
+</tr>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td style="padding: 0 0 0 20px">
+      <dtml-let force="IsArchiveForce()" ignore_errors="IsArchiveIgnoreErrors()" trace="IsArchiveTrace()">
+    <table cellspacing="2" cellpadding="0" border="0">
+    <tr>
+      <td class="services_option" nowrap colspan="2">
+       <input type="checkbox" id="archive_force" name="force" value="1" <dtml-if force>checked</dtml-if> />
+       <label for="archive_force"><dtml-var "msg('Forced archive')"></label>
+      </td>
+    </tr>
+    <tr>
+      <td class="services_option" nowrap colspan="2">
+       <input type="checkbox" id="archive_ignore_errors" name="ignore_errors" value="1" <dtml-if ignore_errors>checked</dtml-if> />
+       <label for="archive_ignore_errors"><dtml-var "msg('Ignore errors during phases ARC1-2')"></label>
+      </td>
+    </tr>
+    <tr>
+      <td class="services_option" nowrap colspan="2">
+       <input type="checkbox" id="archive_trace" name="trace" value="1" <dtml-if trace>checked</dtml-if> />
+       <label for="archive_trace"><dtml-var "msg('Trace archive actions')"></label>
+      </td>
+    </tr>
+    </table>
+      </dtml-let>
+  </td>
+</tr>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td nowrap>
+    <input type="submit" name="check_&dtml-id;" onclick="javascript:IsCheck.value=1;" value="<dtml-var "msg(options['submits'][0])">">
+    <input type="submit" name="run_&dtml-id;" onclick="javascript:IsRun.value=1;" value="<dtml-var "msg(options['submits'][1])">">
+    <input type="submit" name="save_&dtml-id;" onclick="javascript:IsApply.value=1;" value="<dtml-var "msg(options['submits'][2])">">
+  </td>
+</tr>
+</form>
+</table>
+
+    </dtml-let>
+  </dtml-if>
+</dtml-with>
+
+</div>
+
+<dtml-var simple_html_footer>
+
+</dtml-if>

@@ -1,0 +1,91 @@
+<dtml-let container="this()"
+          dest_uid="task_definition.get('dest_folder_uid', '')"
+          routing_type="task_definition['type']"
+          instance="portal_properties.instance_name()"
+          IsDebug="0"
+>
+
+<table cellspacing="2" cellpadding="2"> 
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg('New location')">&nbsp;</td>
+  <td style="padding-top:4px;">
+
+<dtml-if "routing_type == 'routing_member'">  
+
+  <dtml-let attr_value="getCategoryAttribute(task_definition['to_whom'])"
+            home="portal_membership.getMemberWhomFolder(container, attr_value)"
+  >
+    <dtml-if "home is not None">
+      <dtml-in "home.listParents()">
+        <dtml-if "meta_type not in ['Discussion Item','NauBoard Item'] and id != instance">
+          <dtml-if "portal_membership.checkPermission('List folder contents', this())">
+            / <a target="_blank" class="nav" href="&dtml-absolute_url;/folder_contents?expand=1"><dtml-var title_or_id></a>
+          <dtml-else>
+            / <dtml-var title_or_id>
+          </dtml-if>
+        </dtml-if>
+      </dtml-in>
+    <dtml-else>
+      <dtml-msg "n/a">
+	  <dtml-unless attr_value>
+       (<dtml-msg "Member's home folder is not accessable">)
+      </dtml-unless>
+<script type="text/javascript">
+<!--
+  IsStateDisabled = true;
+//-->
+</script>
+    </dtml-if>  
+  </dtml-let>
+  
+<dtml-elif "routing_type in ['routing_department','routing_linked_folder']">
+
+  <dtml-let attr_value="getCategoryAttribute(task_definition['source_attribute'])"
+            segment="routing_type=='routing_department' and 
+                     getDepartmentDictionary().getSubFolderByTitle(container, dest_uid, attr_value) or
+                     portal_catalog.unrestrictedGetSubObjectByUid(dest_uid, attr_value)"
+  >
+    <dtml-if "segment is not None">
+      <dtml-in "segment.listParents()">
+        <dtml-if "meta_type not in ('Discussion Item', 'AppBoard Item') and id != instance">
+          <dtml-if "portal_membership.checkPermission('List folder contents', this())">
+            / <a target="_blank" class="nav" href="&dtml-absolute_url;/folder_contents?expand=1"><dtml-var title_or_id></a>
+          <dtml-else>
+            / <dtml-var title_or_id>
+          </dtml-if>
+        </dtml-if>
+      </dtml-in>
+    <dtml-else>
+      <dtml-msg "n/a">
+	  <dtml-unless attr_value>
+        <dtml-if "routing_type=='routing_department'">
+          (<dtml-msg "Department is not defined">)
+        <dtml-else>
+          (<dtml-msg "Linked folder is not defined">)
+        </dtml-if>
+      </dtml-unless>
+<script type="text/javascript">
+<!--
+  IsStateDisabled = true;
+//-->
+</script>
+    </dtml-if>
+  </dtml-let>
+
+<dtml-elif dest_uid>
+
+  <dtml-let dest_object="object_by_uid(dest_uid)"
+            dest_URL="dest_object is not None and dest_object.absolute_url() or task_definition.get('dest_folder_URL', '')"
+            dest_title="dest_object is not None and dest_object.title_or_id() or task_definition.get('dest_folder_title', '')"
+  >
+    <dtml-var "dest_URL">&nbsp;<b>(<dtml-var "dest_title">)</b>
+  </dtml-let>
+
+<dtml-else>
+  <dtml-var "msg('is not defined')">
+</dtml-if>
+  </td>
+</tr>
+</table>
+
+</dtml-let>

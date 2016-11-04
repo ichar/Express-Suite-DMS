@@ -1,0 +1,3 @@
+<dtml-if "taskDefinitionArray['_mode']=='change'">
+  <input type="hidden" name="name" value="<dtml-var "taskDefinitionArray['name']" html_quote>">
+</dtml-if>

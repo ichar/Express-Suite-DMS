@@ -1,0 +1,1 @@
+<dtml-call "REQUEST['RESPONSE'].redirect(portal_url() + '/storage/folder_contents')">

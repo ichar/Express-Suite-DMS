@@ -1,0 +1,70 @@
+<dtml-var simple_html_header>
+<dtml-var "msg('Headings')">:
+<table>
+<dtml-let container="this()">
+<dtml-in "getPublishedFolders()" mapping>
+<tr>
+ <td><a href="<dtml-var "container.absolute_url()">/changeHeadingOrder?id=&dtml-id;&order=-2"><img src="upup.gif"></a></td>
+ <td><a href="<dtml-var "container.absolute_url()">/changeHeadingOrder?id=&dtml-id;&order=-1"><img src="up.gif"></a></td>
+ <td><a href="<dtml-var "container.absolute_url()">/changeHeadingOrder?id=&dtml-id;&order=1"><img src="down.gif"></a></td>
+ <td><a href="<dtml-var "container.absolute_url()">/changeHeadingOrder?id=&dtml-id;&order=2"><img src="downdown.gif"></a></td>
+
+ <td>&dtml-title;</td>
+</tr>
+<dtml-else>
+<tr>
+ <td>
+  <dtml-var "msg('No published headings')">
+ </td>
+</tr>
+</dtml-in>
+</dtml-let>
+</table>
+
+<hr size=1>
+<dtml-var "msg('Documents')">:
+<table>
+<dtml-let container="this()"
+          maxNumber="this().getMaxNumberOfPages()">
+
+<dtml-if "maxNumber">
+  <dtml-in "listPublications( exact=1 )" size="maxNumber">
+   <tr>  
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=-2"><img src="upup.gif"></a></td>
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=-1"><img src="up.gif"></a></td>
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=1"><img src="down.gif"></a></td>
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=2"><img src="downdown.gif"></a></td>
+
+    <td>&dtml-Title;</td>
+   </tr>
+  <dtml-else>
+   <tr>
+    <td>
+     <dtml-var "msg('No published documents')">
+    </td>
+   </tr>
+  </dtml-in>
+<dtml-else>
+  <dtml-in "listPublications( exact=1 )">
+   <tr>  
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=-2"><img src="upup.gif"></a></td>
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=-1"><img src="up.gif"></a></td>
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=1"><img src="down.gif"></a></td>
+    <td><a href="<dtml-var "container.absolute_url()">/changeDocumentOrder?id=&dtml-id;&order=2"><img src="downdown.gif"></a></td>
+
+    <td>&dtml-Title;</td>
+   </tr>
+  <dtml-else>
+   <tr>
+    <td>
+     <dtml-var "msg('No published documents')">
+    </td>
+   </tr>
+  </dtml-in>
+
+</dtml-if>
+
+</dtml-let>
+</table>
+
+<dtml-var simple_html_footer>

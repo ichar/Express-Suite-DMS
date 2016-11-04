@@ -1,0 +1,161 @@
+<dtml-var simple_html_header>
+
+<dtml-let selected_tasks="REQUEST.get('selected_tasks', [])">
+
+<script language="javascript">
+<!--
+function DisableForm( frm ) {
+    frm.cancel.disabled = true;
+    frm.gonext.disabled = true;
+}
+
+function SubmitForm( action ) {
+    var frm = document.step1_form;
+    if( Validate(frm) ) {
+        DisableForm(frm);
+        frm.action = '&dtml-absolute_url;/' + action;
+        frm.submit();
+    }
+}
+
+function switchItems(element, list ) {
+    var new_state = element.checked;
+    var form = element.form;
+    
+    for(var i = 0; i < list.length; i++) {
+	    var obj=form['i_' + list[i]];
+		if(typeof(obj) == 'object') obj.checked = new_state;
+    }
+}
+
+function Validate(frm) {
+   var task_ids = <dtml-var "followup.getBoundTaskIds() + [getId()]">;
+   var selected = 0;
+   for( var i = 0; i < task_ids.length; i++ )
+     if(frm['i_' + task_ids[i]] && frm['i_' + task_ids[i]].type=='checkbox' && frm['i_' + task_ids[i]].checked )
+        return true;
+
+   alert('<dtml-var "msg('You have not selected at least one task')">');
+   return false;
+}
+
+var isSelected = false;
+
+function toggleSelect() {
+    var form = document.step1_form;
+    isSelected = ! isSelected;
+    for ( var i = 0; i < form.elements.length; i++ ) {
+	var elem = form.elements[ i ];
+    	if ( elem.name.substr( 0, 15 ) == 'selected_tasks:' )
+	    elem.checked = isSelected;
+    }
+    var objSelectAll = document.all["selectAll"];
+    var txtValue = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All')">';
+    if (objSelectAll.length > 1) {
+        for ( var i = 0; i <= 1; i++ ) {
+            var obj = objSelectAll[i];
+            if (typeof(obj) == 'object') { obj.value = txtValue; }
+        }
+    } else if (typeof(form.selectAll) == 'object') {
+        form.selectAll.value = txtValue;
+    }
+    return isSelected;
+}
+//-->
+</script>
+  
+<div class="Desktop">
+
+<h1><dtml-var aboveInThread></h1>
+<h1><dtml-var "msg('Report wizard')">, <dtml-var "msg('step')"> 1</h1>
+
+<form name="step1_form" method="POST" action="&dtml-absolute_url;">
+<table>
+<tr>
+  <td class="smallHeader">
+    <dtml-var "msg('Tasks to include into the general report')">:
+  </td>
+</tr>
+<tr>
+  <td class="small">
+  <dtml-if "meta_type == 'Task Item'">
+    <input onClick="JavaScript:switchItems(this, <dtml-var "followup.getBoundTaskIds()">)" 
+           type="checkbox" 
+           id="i_&dtml-getId;" 
+           name="selected_tasks:list" 
+           value="&dtml-getId;"
+           <dtml-var "getId() in selected_tasks and 'checked' or ''">
+    />
+    <dtml-var "msg('This task')">
+  </dtml-if>
+
+  <dtml-let expand_all="1">
+    <dtml-forest branches_expr="followup.getBoundTasks()" security_expr="validate()" sort="created">
+    <table border="0">
+    <tr>
+      <td>
+        <input onClick="JavaScript:switchItems(this, <dtml-var "followup.getBoundTaskIds()">)" 
+               type="checkbox" 
+               id="i_&dtml-getId;" 
+               name="selected_tasks:list" 
+               value="&dtml-getId;"
+               <dtml-var "getId() in selected_tasks and 'checked' or ''">
+        />
+      </td>
+      <td class="small">
+        <a target="_blank" href="&dtml-absolute_url;?expand=1">&dtml-Title;</a>,
+        <a OnClick="return OpenMenuWnd('&dtml-Creator;')" style="cursor: hand">
+          <dtml-var "portal_membership.getMemberName(_['Creator'])">
+        </a>
+      <dtml-if isFinalized>
+        <b><font color="#000000"><dtml-var "msg('Closed')"></font></b>
+      <dtml-elif "isEffective(_.DateTime())">
+       (<dtml-var "msg('expires')"> <dtml-var "expiration_date.ISO()">)
+      <dtml-elif "_.DateTime() > expiration_date">
+        <b><font color="#ff0000"><dtml-var "msg('expired')"></font></b>
+      </dtml-if>
+      </td>
+    </tr>
+    </table>
+    </dtml-forest>
+  </dtml-let>
+  </td>
+</tr>
+
+<tr>
+  <td style="padding: 10px 0 20px 0;" valign="middle">
+    <input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelect()" style="width:140px;">
+  </td>
+</tr>
+<tr>
+  <td class="smallHeader">
+    <dtml-var "msg('Template')">:
+    <dtml-var task_reportwizard_templates>
+  </td>
+</tr>
+<tr>
+  <td class="smallHeader">
+    <dtml-var "msg('General report options')">:
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="checkbox" id="inc_inf" name="inc_inf" value="1" <dtml-var "REQUEST.get('inc_inf', 1) and 'checked'"> />
+    <label for="inc_inf"><dtml-var "msg('Include task info')"></label>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2" style="padding-top:20px;">
+    <input type="button" id="cancel" onclick="javascript:location.href='&dtml-absolute_url;/document_follow_up_form'" value=" <dtml-var "msg('Cancel')"> ">
+    <input type="button" id="gonext" value=" <dtml-var "msg('Next')"> &gt;&gt; " onclick="javascript:SubmitForm('task_reportwizard_step2');">
+  </td>
+</tr>
+</table>
+</form>
+
+</div>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

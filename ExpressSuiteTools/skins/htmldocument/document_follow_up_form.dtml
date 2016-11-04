@@ -1,0 +1,40 @@
+<dtml-call "REQUEST.set('editMode',1)">
+
+<script type="text/javascript">
+<!--
+var commonImages = ['taskitem_icon.gif','actn032.gif','p_/mi','p_/pl','misc_/ExternalEditor/edit_icon'];
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td valign=top width=21><dtml-var actn032.gif>&nbsp;</td>
+<td align=left style="width:100%"><h3><a href="&dtml-absolute_url;/view" target="workspace" title="">&dtml-title_or_id;</a></h3></td>
+</tr></table>
+
+<h4><dtml-var "msg('Current tasks list')">:</h4>
+
+<dtml-var viewTasksTree>
+
+<table cellspacing="4" cellpadding="0">
+<tr>
+  <td>
+    <table cellspacing="3" cellpadding="0" bgcolor="#E5E5E5">
+    <tr>
+       <td>
+       <input onclick="javascript:this.disabled=true;" type="image" src="&dtml-portal_url;/task_report.gif" name="task_reportwizard_form:method" alt="<dtml-var "msg('Report wizard')">"></td>
+       <td class="row_button"><a onclick="javascript:this.disabled=true;" class="tabs" href="&dtml-absolute_url;/task_reportwizard_form"><dtml-var "msg('Report wizard')"></a></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+<dtml-var task_factory_form>
+
+</div>
+
+<dtml-var simple_html_footer>

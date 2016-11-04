@@ -1,0 +1,319 @@
+<script type="text/javascript">
+<!--
+function validateSearchForm( form ) {
+<dtml-if "_.has_key('action')">
+    var path = null;
+<dtml-elif "REQUEST.get('callback_form', '') or _.has_key('from_explorer') and from_explorer">
+    var path = window.parent.opener.objectPath;
+<dtml-else>
+    var path = window.top.frames.workspace.objectPath;
+</dtml-if>
+    var error;
+    try { form.location.value = path != null ? path : ''; }
+    catch (error) {}
+
+    var obj = form.all['text'];
+    checkSearchString( obj );
+
+    if (! testField( form['text'], 'search', null, true ) ) return false;
+    return validateForm(form, 1);
+}
+
+function selectOptions( element, selected ) {
+    selected = selected || selected == null;
+    for ( var i = 0; i < element.options.length; i++ )
+       element.options[i].selected = selected;
+}
+
+function getTextByValue( element, value ) {
+    for ( var i = 0; i < element.options.length; i++ )
+        if (element.options[i].value == value)
+            return element.options[i].text
+}
+
+function loadSearchParams( frm, category_id ) {
+    var main_search_form = window.opener.document.search_form;
+    var cat_element = main_search_form['conditions_'+category_id+':list'];
+    if ( cat_element ) selectAll( cat_element );
+    window.close()
+}
+
+function downloadDIV( form, callback_func, div, ctrl_id, ctrl_value, any ) {
+    var urlToDownload = '&dtml-absolute_url;/search_' + ctrl_id;
+    urlToDownload = setParam( urlToDownload, 'ctrl_value', ctrl_value );
+    urlToDownload = setParam( urlToDownload, 'query_id', '<dtml-var query_id>' );
+    urlToDownload = setParam( urlToDownload, 'profile_id', '<dtml-var profile_id>' );
+    urlToDownload = setParam( urlToDownload, 'action', '<dtml-var action>' );
+    var error;
+    try {
+        div.innerHTML = userAgent.downloadURL(urlToDownload, null, null);
+        callback_func( form, ctrl_id, any );
+    } 
+    catch (error) {
+        alert(error.name + ':' + error.message);
+    }
+}
+
+function checkDiv( form, ctrl_id, any ) {
+    var ob = form.all[ctrl_id];
+
+//alert( ob );
+	if( typeof(ob) != 'object' ) return;
+
+    var values = new Array();
+    var ctrl_img = document.getElementById(ctrl_id+'_img');
+    var divs = form.getElementsByTagName('DIV');
+    var n = 0;
+
+    for( var i=0; i < ob.options.length; i++ ) {
+        if( ob.options(i).selected ) { values[n++] = ob.options(i).value; ctrl_value = ob.options(i).value; }
+    }
+//alert( ctrl_id+' - '+values+' - '+any );
+
+    if( values.length == 1 ) {
+        switch (ctrl_value)
+        {
+            case 'Heading': ctrl_value = 'Folder';
+            break;
+        }
+
+        var div_id = ctrl_id+'_'+ctrl_value+'_div';
+        var div = document.getElementById(div_id);
+
+        if (div && !div.innerHTML)
+        {
+            downloadDIV( form, checkDiv, div, ctrl_id, ctrl_value, any );
+            return 0;
+        }
+    } else {
+        var div_id = null;
+	}
+
+    for (var i = 0; i < divs.length; i++) {
+        if (divs[i].id != ctrl_id && divs[i].id.indexOf(ctrl_id) > -1)
+        {
+            if (any && ctrl_value != 'any')
+                divs[ctrl_id+'_any_div'].style.display = '';
+            if (div_id && divs[i].id == div_id )
+            {
+                if (ctrl_value == 'any' || divs[i].style.display != 'none')
+                    divs[i].style.display = 'none';
+                else
+                    divs[i].style.display = '';
+            }
+            else
+                divs[i].style.display = 'none';
+        }
+    }
+//alert('end');
+}
+
+function loadIFrame( cat_id ) {
+    var attr_id = document.getElementById('attrs_'+cat_id).value;
+    var url = window.objectBaseURL + '/search_catattr_form';
+    url = setParam( url, 'attr_id', attr_id );
+    url = setParam( url, 'cat_id', cat_id );
+    attribute_data.location.replace( url );
+}
+
+function intOrDateReturn( iframe, cat_id, attr_id, attr_type ) {
+    var from = iframe.document.getElementById('from').checked && iframe.document.getElementById('min_' + attr_type).value || '',
+        to = iframe.document.getElementById('to').checked && iframe.document.getElementById('max_' + attr_type).value || '';
+
+    var type = attr_type == 'int' && 'int' || 'datetime'; 
+    if (from && to && !validateRange(type, from, to)) {
+        alert('<dtml-msg "From value must be smaller than To value">');
+        return false;
+    }
+
+    var in_child = iframe.document.getElementById('child').checked;
+
+    addCondition( cat_id, attr_id, from+':::'+to+':::', in_child );
+}
+
+function boolOrStrReturn( iframe, cat_id, attr_id, attr_type ) {
+    var value;
+    if (attr_type == 'boolean')
+        value = iframe.document.getElementById(attr_id).checked;
+    else
+        value = iframe.document.getElementById(attr_id).value + ':::';
+    
+    var in_child = iframe.document.getElementById('child').checked;
+    if( in_child ) value = '%' + value;
+
+    addCondition( cat_id, attr_id, value, in_child );
+}
+
+function linesOrUserlistReturn( iframe, cat_id, attr_id, postfix ) {
+    var selections = '';
+    var k = 0;
+    var ctrl = iframe.document.getElementById(attr_id+postfix);
+    for (i = 0; i < ctrl.length; i++) {
+        if (ctrl.options[i].selected == true)
+        {
+            if (selections == '')
+                selections = ctrl.options[i].value;
+            else
+                selections = selections+':::'+ctrl.options[i].value;
+            k++;
+        }
+    }
+
+    var in_child = iframe.document.getElementById('child').checked;
+
+    addCondition( cat_id, attr_id, selections, in_child );
+}
+
+function callbackFunction_attr( cat_id ) {
+    var form = attribute_data.document.attr_form;
+    var attr_id = document.getElementById('attrs_'+cat_id).value;
+    if (!attr_id)
+        return;
+    var attr_type = attribute_data.document.getElementById('attr_type').value;
+
+    if (validateForm( form )) {
+        switch (attr_type)
+        {
+            case "int":
+            case "date":
+                intOrDateReturn( attribute_data, cat_id, attr_id, attr_type );
+                break;
+            case "lines":
+                linesOrUserlistReturn( attribute_data, cat_id, attr_id, '' );
+                break;
+            case "items":
+                linesOrUserlistReturn( attribute_data, cat_id, attr_id, '' );
+                break;
+            case "userlist":
+                linesOrUserlistReturn( attribute_data, cat_id, attr_id, '_selected_users' );
+                break;
+            case "string":
+            case "boolean":
+            case "text":                
+                boolOrStrReturn( attribute_data, cat_id, attr_id, attr_type );
+                break;
+        }
+    document.getElementById('attrs_' + cat_id).options[0].selected = true;
+    loadIFrame(cat_id);
+    }
+}
+
+function addCondition( cat_id, attr_id, attr_value, in_child ) {
+    var main_search_form = window.opener.document.search_form;
+    var main_conditions = main_search_form['conditions_'+cat_id+':list']
+    var mlen = main_conditions.length;
+
+    main_search_form[cat_id+'_'+attr_id+':lines'].value = attr_value;
+    main_search_form[cat_id+'_'+attr_id+'_inchild'].value = in_child && 1 || '';
+
+    createConditionOption( cat_id, attr_id );
+
+    var div;
+    for (var i = 0; i < main_conditions.length; i++) {
+        div = document.getElementById( cat_id + '_' + attr_id + '_div' );
+
+        if (main_conditions.options[i].value==cat_id+'_'+attr_id) {
+            var urlToDownload = '&dtml-absolute_url;/search_conditions'
+            urlToDownload = setParam( urlToDownload, 'attr_value', attr_value );
+            urlToDownload = setParam( urlToDownload, 'attr_id', attr_id );
+            urlToDownload = setParam( urlToDownload, 'cat_id', cat_id );
+            urlToDownload = setParam( urlToDownload, 'in_child', in_child );
+
+            var error;
+	        try { div.innerHTML = userAgent.downloadURL(urlToDownload, null, null); } 
+            catch (error) { alert(error.name + ':' + error.message); }
+            div.style.display = '';
+
+        } else { 
+            div.style.display = ''; 
+        }
+    }
+}
+
+function deleteCondition( form, select_name ) {
+    var main_search_form = window.opener.document.search_form;
+    var div, elem_name;
+    var conditions = main_search_form[select_name];
+    var conditions_len;    
+
+    for ( var i = 0; i < form.elements.length; i++ ) {
+        var elem = form.elements[ i ];
+    	if ( elem.name.substr( 0, 7 ) == 'fields:' && elem.checked ) {
+	    //alert(elem.name +'_'+elem.checked);
+            div = document.getElementById( elem.value );
+            div.style.display = 'none';              
+
+            elem_name = elem.value.replace('_div', '')
+            main_search_form[elem_name+':lines'].value = '';
+            conditions_len = conditions.length;
+            for (var j = 0; j < conditions_len; j++) {
+                if (conditions.options[j].value==elem_name) {
+                    conditions.options[j] = null;
+                    break;
+                } 
+            }
+        } 
+    }   
+}
+
+function createConditionOption( cat_id, attr_id ) {
+    var main_search_form = window.opener.document.search_form;
+    var main_conditions = main_search_form['conditions_'+cat_id+':list']
+    var flag = 0;
+
+    for (var j = 0; j < main_conditions.length; j++)
+        if (main_conditions.options[j].value == cat_id+'_'+attr_id)
+            flag = 1;
+
+    if (!flag) {
+        var doc = getDocument( main_search_form );
+        var noption = doc.createElement('OPTION');
+        noption.value = cat_id+'_'+attr_id;
+        main_conditions.options[main_conditions.length] = noption;
+    }
+}
+
+function setupAttributes( cat_id ) {
+    var main_search_form = window.opener.document.search_form;
+    var attr_ids = document.forms['search_attrs_form']['attrs_'+cat_id];
+    var elem_name;
+    var elem_name_inchild;
+    var div;
+    var attr_id, in_child, attr_value;
+
+    if( attr_ids ) {
+        //alert(form['conditions_'+cat_id+':list']);
+        for (var i = 0; i < attr_ids.length; i++) {
+            attr_id = attr_ids.options[i].value
+            elem_name = cat_id+'_'+attr_id+':lines'
+            if( main_search_form[elem_name] && main_search_form[elem_name].value != '' ) {
+                elem_name_inchild = cat_id+'_'+attr_id+'_inchild'
+                div = document.getElementById( cat_id + '_' + attr_id + '_div' );
+                attr_value = main_search_form[elem_name].value;
+                in_child = main_search_form[elem_name_inchild].value;
+		
+                var urlToDownload = '&dtml-absolute_url;/search_conditions';
+                urlToDownload = setParam( urlToDownload, 'attr_value', attr_value );
+                urlToDownload = setParam( urlToDownload, 'attr_id', attr_id );
+                urlToDownload = setParam( urlToDownload, 'cat_id', cat_id );
+                urlToDownload = setParam( urlToDownload, 'in_child', in_child );
+
+                var error;
+                try {
+                    div.innerHTML = userAgent.downloadURL(urlToDownload, null, null);
+                } 
+                catch (error) {
+	                alert(error.name + ':' + error.message);
+                }
+                div.style.display = '';
+                createConditionOption( cat_id, attr_id );
+            }
+        }
+    }
+}
+
+function setupForm( form, cat_id ) {
+    checkDiv( form, 'category', 1 );
+}
+//-->
+</script>

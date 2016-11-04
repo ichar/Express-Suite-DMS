@@ -1,0 +1,155 @@
+<dtml-let check_up="REQUEST.get('check_up')"
+          new="REQUEST.get('new')"
+          finalized="REQUEST.get('finalized')"
+          expired="REQUEST.get('expired')"
+          disabled="REQUEST.get('disabled')"
+          now="_.DateTime()"
+          company="_.has_key('company') and company"
+>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 20px 40px;">
+    <table cellspacing="0" cellpadding="0" border="0">      
+    <tr>
+      <td class="header" style="padding-bottom:5px;border-bottom:1pt solid black;">
+    <dtml-var report_name>
+      </td>
+    </tr>
+    <tr>
+      <td class="header" style="padding:0 0 5px 2px;">
+    <span style="font-size:12px;color:purple;"><strong><dtml-var "member.getMemberNotes()">&nbsp;<dtml-var "member.getMemberBriefName()"></strong></span>
+      </td>
+    </tr>
+    </table><br>
+    <table cellspacing="1" cellpadding="5" border="0">
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Report date')"></strong></td>
+      <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "now.strftime('%d')"></strong></font></td>
+      <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "now.strftime('%m')"></strong></font></td>
+      <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "now.strftime('%Y')"></strong></font></td>
+      <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "now.strftime('%H:%M')"></strong></font></td>
+    <dtml-if "rtype=='summary'">
+      <td colspan="2">&nbsp;</td>
+      <td style="padding-left:40px;" align="left">
+        <input type="button" onClick="javascript:showCategories();" value=" ... ">
+      <dtml-if cio>
+        <input type="button" onClick="javascript:MainMenu();" value="<dtml-var "msg('Main menu')">" style="width:120px;">
+      </dtml-if>
+      </td>
+    </dtml-if>
+    </tr>
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Calendar period')"></strong></td>
+      <td class="p_view" colspan="4" nowrap>
+        <font color="purple"><strong>
+    <dtml-if "_.has_key('date_from') and date_from and period > 0">
+        <dtml-var "date_from.strftime('%d.%m.%Y')">&nbsp;-&nbsp;<dtml-var "date_till.strftime('%d.%m.%Y')">
+    <dtml-else>
+        <dtml-var "msg('current documents')">
+    </dtml-if>
+        </strong></font>
+      </td>
+  <dtml-if options>
+    <dtml-if check_up>
+      <td class="p_view" nowrap>
+        <font color="black"><strong><dtml-var "msg('Check up documents')"></strong></font>
+      </td>
+    <dtml-elif new>
+      <td class="p_view" nowrap>
+        <font color="green"><strong><dtml-var "msg('New documents')"></strong></font>
+      </td>
+    <dtml-elif finalized>
+      <td class="p_view" nowrap>
+        <font color="blue"><strong><dtml-var "msg('Finalized documents')"></strong></font>
+      <dtml-if in_time>
+        <font color="green">&nbsp;[&nbsp;<dtml-var "msg('Finalized in time')">&nbsp;]</font>
+      <dtml-elif with_delay>
+        <font color="#D80000">&nbsp;[&nbsp;<dtml-var "msg('Finalized with delay')">&nbsp;]</font>
+      </dtml-if>
+      </td>
+    <dtml-elif expired>
+      <td class="p_view" nowrap>
+        <font color="#D80000"><strong><dtml-var "msg('Expired documents')"></strong></font>
+      </td>
+    <dtml-elif disabled>
+      <td class="p_view" nowrap>
+        <font color="gray"><strong><dtml-var "msg('Disabled documents')"></strong></font>
+      </td>
+	</dtml-if>
+    <dtml-if ctype>
+      <td class="p_view" nowrap>
+        <font color="black"><strong><dtml-var "msg('%s commissions' % ctype)"></strong></font>
+      </td>
+    </dtml-if>
+    </tr>
+    <dtml-if "company and company != ['nonselected']">
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Company')"></strong></td>
+      <td class="p_view" colspan="4" nowrap>
+        <font color="purple"><strong>
+        <dtml-var "'<br>'.join([getDepartmentDictionary().getCompanyTitle(x) for x in company if x])">
+        </strong></font>
+      </td>
+    </tr>
+    </dtml-if>
+    <dtml-if category>
+      <dtml-let x="getPortalConfiguration().getAttribute(attr='categories', key=category, context=container).replace(', ', '<br>')">
+        <dtml-if x>
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Documents category')"></strong></td>
+      <td class="p_view" colspan="4">
+        <font color="blue"><dtml-var x></font></td>
+    </tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+    <dtml-if brains_type>
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Task type')"></strong></td>
+      <td class="p_view" colspan="4" nowrap><dtml-var "'<br>'.join([msg(x, add=0) for x in brains_type if x])"></td>
+    </tr>
+    </dtml-if>
+    <dtml-if commissions>
+      <dtml-let titles="'<br>'.join(portal_comments.getCommentsTitle(ids=commissions))">
+        <dtml-if titles>
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Commissions type')"></strong></td>
+      <td class="p_view" colspan="4" nowrap><font color="blue"><dtml-var titles></font></td>
+    </tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+    <dtml-if state>
+      <dtml-let titles="'<br>'.join(getPortalConfiguration().getAttribute(attr='task_states', key=state, context=container))">
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Task State')"></strong></td>
+      <td class="p_view" colspan="4" nowrap>
+      <dtml-if "state==['finalized']">
+        <font color="green"><dtml-var titles></font>
+      <dtml-elif "state==['expired']">
+        <font color="#D80000"><dtml-var titles></font>
+      <dtml-else>
+        <dtml-var titles>
+      </dtml-if>
+      </td>
+    </tr>
+      </dtml-let>
+    </dtml-if>
+    <dtml-if involved_users>
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Involved members')"></strong></td>
+      <td class="p_view" colspan="4" nowrap><font color="purple"><strong><dtml-var "'<br>'.join([portal_membership.getMemberBriefName(x,'LFM') for x in involved_users if x])"></strong></font></td>
+    </tr>
+    </dtml-if>
+    <dtml-if "implements and _.has_key('implements_values')">
+    <tr>
+      <td class="p_view" nowrap><strong><dtml-var "msg('Implements')"></strong></td>
+      <td class="p_view" colspan="4" nowrap><font color="purple"><strong><dtml-var "', '.join([msg(x['title']) for x in implements_values if x['value'] in implements])"></strong></font></td>
+    </tr>
+    </dtml-if>
+  </dtml-if>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+</dtml-let>

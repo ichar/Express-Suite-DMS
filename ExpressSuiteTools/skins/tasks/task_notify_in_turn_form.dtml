@@ -1,0 +1,109 @@
+<dtml-var simple_html_header>
+
+<dtml-if selected_responses>
+  <dtml-let selected_users="listNotifiedUsersInTurn()"
+            parsed_selected_responses="parseSelectedResponses(selected_responses, in_turn=1)"
+            brains_type="BrainsType()"
+  >
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script language="JavaScript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.notifyForm;
+    DisableForm(frm);
+    CheckAndRefreshCommentFields(frm, ['text']);
+    frm.submit();
+}
+//-->
+</script>
+  
+<div class="Desktop">
+
+<h1><dtml-var aboveInThread></h1>
+
+<form name="notifyForm" action="&dtml-absolute_url;/NotifyUsers" method="post" enctype="multipart/form-data">
+<input type="hidden" name="in_turn" value="1">
+
+<table width=100% class="FormLayout" border="0">
+<tr><td class="smallHeader" style="padding-bottom:10px;"><span style="color:purple;"><dtml-var "msg('Notify users in turn')"></span></td></tr>
+<tr>
+  <td valign="top" align="left">
+    <h3 style="font-size:11px;"><em><dtml-var "msg('Selected users')">:</em></h3>
+    <dtml-in selected_users>
+    <input type="hidden" name="selected_users:list" value="&dtml-sequence-item;">
+    <a onclick="return OpenUserInfoWnd('&dtml-sequence-item;')" style="cursor:hand;">
+    <dtml-var "portal_membership.getMemberName(_['sequence-item'])"></a><dtml-unless sequence-end>,</dtml-unless>
+    </dtml-in>
+  </td>
+</tr>
+<tr>
+  <td valign="top" align="left" style="padding-top:5px;">
+    <h3 style="font-size:11px;color:#CC0000;"><em><dtml-var "msg('Selected responses')">:</em></h3>
+    <dtml-in selected_responses>
+    <input type="hidden" name="selected_responses:list" value="&dtml-sequence-item;">
+    </dtml-in>
+  </td>
+</tr>
+
+    <dtml-in parsed_selected_responses mapping>
+<tr>
+  <td valign="top" align="left">
+    <span style="cursor:default;">
+    <nobr>
+    <strong>
+    <a onclick="return OpenUserInfoWnd('&dtml-member;')" style="cursor:hand;">
+    <dtml-var "portal_membership.getMemberName(member)"></a>&nbsp;
+    <dtml-var date fmt="%Y-%m-%d %H:%M">
+    </strong>
+    </nobr><br>
+    <dtml-var text>
+    </span>
+  </td>
+</tr>
+    </dtml-in>
+
+<tr>
+  <td valign="top" align="left" style="padding-top:5px;">
+    <h3 style="font-size:11px;"><em><dtml-var "msg('Message text')">:</em></h3>
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-var "comment_template(this(), form='notifyForm', field='text', context=('task.notify_in_turn.%s' % brains_type), value='')">
+  </td>
+</tr>
+<tr>
+  <td valign="top" align="left" nowrap>
+    <table border="0">
+    <tr>
+      <td><input type="checkbox" id="open_reports" name="open_reports" value="1"></td>
+      <td style="padding-top:5px;"><label for="open_reports"><strong><font color="#800080"><dtml-var "msg('Reopen closed reports')"></font></strong></label></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td style="padding-top:10px;">
+    <input type="button" name="OK" value=" <dtml-var "msg('Send notification')"> " onclick="javascript:SubmitForm();">
+    <input type="button" name="cancel" onClick="JavaScript:location.href='&dtml-absolute_url;'" value=" <dtml-var "msg('Cancel')"> ">
+  </td>
+</tr>
+</table>
+
+</form>
+
+</div>
+
+  </dtml-let>
+
+<dtml-else>
+  <dtml-var "REQUEST['RESPONSE'].redirect(absolute_url())">
+</dtml-if>
+
+<dtml-var simple_html_footer>

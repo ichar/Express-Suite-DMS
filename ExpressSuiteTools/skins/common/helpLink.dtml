@@ -1,0 +1,17 @@
+<dtml-let basepath="REQUEST['BASEPATH1']"
+          product="'ExpressSuiteTools'"
+          help_url="'%s/HelpSys?help_url=/Control_Panel/Products/%s/Help/%s' % (
+            basepath,
+            product,
+            helpId
+            )"
+          script="'window.open(\'%s\',\'zope_help\',\'width=600,\\' 
+                  'height=500,menubar=yes,toolbar=yes,scrollbars=yes,\\' 
+                  'resizable=yes\').focus(); return false;' % help_url"
+>
+<a href="&dtml-help_url;" onClick="&dtml-script;" 
+                          onMouseOver="window.status='Open online help'; return true;" 
+                          onMouseOut="window.status=''; return true;">
+<img src='&dtml-portal_url;/help.gif' alt='<dtml-var "msg('Context help')">'>
+</a>
+</dtml-let>

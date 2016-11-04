@@ -1,0 +1,67 @@
+<dtml-comment>
+$Id: image_edit_form.dtml,v 1.12 2003/02/13 14:55:45 vpastukhov Exp $
+</dtml-comment>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-if message>
+ <p>&dtml-message;</p>
+ <hr>
+</dtml-if>
+
+<div class="Image">
+
+<h2><dtml-var "msg('Image properties')"> &dtml-getId;</h2>
+
+<form action="&dtml-absolute_url;/image_edit" method="post" enctype="multipart/form-data">
+<table class="FormLayout">
+ <tr>
+  <th width="20%" align="right">
+    <dtml-var "msg('Id')">
+  </th>
+  <td>
+    <input type="text" name="id" value="<dtml-var getId>" size="30">
+  </td>
+ </tr>
+
+ <tr>
+  <th> <dtml-var "msg('Title')"> </th>
+  <td> <dtml-var Title> </td>
+ </tr>
+
+ <tr>
+  <th> <dtml-var "msg('Category')"> </th>
+  <td> <dtml-var "msg(Category())"> </td>
+ </tr>
+
+ <tr>
+  <th> <dtml-var "msg('Description')"> </th>
+  <td> <dtml-var Description> </td>
+ </tr>
+ <tr>
+  <th> <dtml-var "msg('File')"> </th>
+  <td> <input type="file" name="file" size="25"> </td>
+ </tr>
+ <tr>
+  <td> <br> </td>
+  <td><input type="submit" name="submit" value=" <dtml-var "msg('Save')"> " /></td>
+ </tr>
+ <tr>
+  <th> &nbsp; </th>
+  <td>
+   <dtml-if get_size>
+   <img class="preview" src="<dtml-var "relative_url( params={ '_T':modified().timeTime() } )">" alt="&dtml-title_or_id;" />
+   <dtml-else>
+   [ <dtml-var "msg( 'No image' )"> ]
+   </dtml-if>
+  </td>
+ </tr>
+</table>
+</form>
+</div>
+
+</div>
+
+<dtml-var simple_html_footer>

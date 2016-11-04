@@ -1,0 +1,265 @@
+<dtml-var simple_html_header>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: &dtml-Title;</a></strong></p>
+
+<p>
+<strong><a href="&dtml-absolute_url;/workflow_states">&lt;&lt; <dtml-var "msg('Document category states')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/workflow_transitions"><dtml-var "msg('Document category transitions')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/task_template_list"><dtml-var "msg('Actions templates')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/task_template_summary"><dtml-var "msg('Routing')"></a></strong>
+</p>
+
+<dtml-let wf=Workflow
+          auto_transitions="portal_workflow[wf].getSortedTransitionsList(wf, auto=1)"
+          available_transitions="portal_workflow[wf].getSortedTransitionsList(wf, auto=0)"
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+          IsDebug="0"
+>
+<dtml-if IsDebug>
+  <dtml-var wf>:<dtml-var available_transitions>
+</dtml-if>
+
+<h3><dtml-var "msg('State properties')"></h3>
+
+<dtml-with "portal_workflow[wf].states[state]">
+
+<form action="workflows" method="POST">
+<table border="0">
+<tr>
+  <td align="left"><strong><dtml-var "msg('Id')"></strong></td>
+  <td>&dtml-id;</td>
+</tr>
+<tr>
+  <td align="left"><strong><dtml-var "msg('Title')"></strong></td>
+  <td><input type="text" name="title" value="&dtml-title;" size="75" /></td>
+</tr>
+
+<tr>
+  <td align="left" valign="top" style="padding: 4px 5px 0 1px"><font color="purple"><strong><dtml-var "msg('Possible Transitions')"></strong></font></td>
+  <td align="left">
+  <dtml-if "auto_transitions or available_transitions">
+    <dtml-in auto_transitions>
+      <dtml-let checked="_['sequence-item'] in transitions and 'checked' or ' '">
+        <input type="checkbox" name="transitions:list" value="&dtml-sequence-item;" &dtml-checked; />
+        <dtml-let ti="getTransitionInfo(wf, _['sequence-item'])">
+          <dtml-var "ti['title']">
+        </dtml-let>
+      </dtml-let>
+      <br />
+    </dtml-in>
+    <dtml-if "auto_transitions and available_transitions"><hr width="50%" size="1"></dtml-if>
+    <dtml-in available_transitions>
+      <dtml-let checked="_['sequence-item'] in transitions and 'checked' or ' '">
+        <input type="checkbox" name="transitions:list" value="&dtml-sequence-item;" &dtml-checked; />
+        <dtml-let ti="getTransitionInfo(wf, _['sequence-item'])">
+          <dtml-var "ti['actbox_name'] or ti['title']">
+        </dtml-let>
+      </dtml-let>
+      <br />
+    </dtml-in>
+  <dtml-else>
+    <em><dtml-var "msg('No transitions defined')">.</em>
+  </dtml-if>
+  <br>
+  </td>
+</tr>
+
+<tr>
+  <td align="left" valign="top" style="padding: 4px 5px 0 1px"><font color="purple"><strong><dtml-var "msg('Disable Brains Type')"></strong></font></td>
+  <td align="left">
+  <dtml-let disable_brains_type="portal_workflow[wf].getStateDisableBrainsType(wf, id)"
+            brains_types="('directive','request','information',)">
+    <select name="disable_brains_type" size="1">
+    <option value="" <dtml-if "not disable_brains_type">selected</dtml-if>> <dtml-var "msg('no')"> </option>
+    <dtml-in brains_types>
+    <option value="&dtml-sequence-item;" <dtml-if "disable_brains_type==_['sequence-item']">selected</dtml-if>> <dtml-var "msg(_['sequence-item'])"> </option>
+    </dtml-in>
+    </select>
+  </dtml-let>
+  </td>
+</tr>
+</table>
+
+<dtml-let checked="state in allow_only_single_version.keys() and 'checked' or ''"
+          transition_to_exclude="checked and allow_only_single_version[state] or ''"
+>
+<input type="checkbox" name="only_one_version_can_exists" value="1" &dtml-checked;> 
+<dtml-var "msg('only one version can exists in this state')">,<br>
+<dtml-var "msg('and exclude version by follow transition')">:
+<select name="transition_for_exclude" size="1">
+  <dtml-in available_transitions>
+    <dtml-let selected="_['sequence-item']==transition_to_exclude and 'selected' or ''"
+              ti="getTransitionInfo(wf, _['sequence-item'])">
+<option value="&dtml-sequence-item;" &dtml-selected;><dtml-var "ti['actbox_name'] or ti['title']"></option>
+    </dtml-let>
+  </dtml-in>
+</select>
+</dtml-let>
+
+<br>
+<dtml-if IsAdmin>
+<input type="submit" name="save_state" value="<dtml-var "msg('Apply')">" />
+</dtml-if>
+<input type="hidden" name="wf" value="&dtml-wf;">
+<input type="hidden" name="state" value="&dtml-state;">
+<input type="hidden" name="c_id" value="&dtml-getId;">
+</form>
+
+<dtml-let stateDef="portal_workflow[wf].states[state]"
+          isPrivateState="portal_workflow[wf].states.isPrivateItem( stateDef )"
+>
+  <h3><dtml-var "msg('State permissions')"></h3>
+  <dtml-if isPrivateState>
+    (<dtml-var "msg('defined in this category')">)
+  <dtml-else>
+    (<dtml-var "msg('inherited')">)
+  </dtml-if>
+</dtml-let>
+
+<form action="workflows" method="POST">
+<table width="100%" cellspacing="0" cellpadding="2" border="0" nowrap>
+<tr class="list-header">
+  <td>&nbsp;</td>
+  <td align="left" valign="top">
+    <div class="form-label">
+    <strong><dtml-var "msg('Permission')"></strong>
+    </div>
+  </td>
+  <td align="left" colspan="<dtml-var expr="_.len(portal_metadata.getManagedRoles_())">">
+    <div class="form-label">
+    <strong><dtml-var "msg('Roles')"></strong>
+    </div>
+  </td>
+</tr>
+
+<tr class="row-normal">
+  <td align="left" valign="top">
+    <div class="form-label">
+    <strong>
+    <dtml-var "msg('Acquire permission settings?')">
+    </strong>
+    </div>
+  </td>
+  <td></td>
+<dtml-in "portal_metadata.getManagedRoles_()" sort>
+  <td align="left">
+    <div class="list-item">
+    <dtml-var "msg(_['sequence-item'])">
+    </div>
+  </td>
+</dtml-in>
+</tr>
+
+<dtml-in permissions sort>
+  <dtml-let permission=sequence-item>
+    <dtml-with expr="getPermissionInfo(permission)" mapping>
+      <dtml-if sequence-odd>
+<tr class="row-normal">
+      <dtml-else>
+<tr class="row-hilite">
+      </dtml-if>
+  <td align="left" valign="top">
+      <dtml-let checked="acquired and 'checked' or ' '">
+    <input type="checkbox" name="acquire_&dtml-permission;" &dtml-checked; />
+      </dtml-let>
+  </td>
+  <td align="left" nowrap>
+    <div class="list-item">
+    <dtml-var "msg(_['permission'])">
+    </div>
+  </td>
+      <dtml-in "portal_metadata.getManagedRoles_()" sort>
+  <td align="center">
+        <dtml-let checked="_['sequence-item'] in roles and 'checked' or ' '">
+    <input type="checkbox" name="&dtml-permission;|&dtml-sequence-item;" &dtml-checked; />
+        </dtml-let>
+  </td>
+      </dtml-in>
+</tr>
+    </dtml-with>
+  </dtml-let>
+</dtml-in>
+<dtml-if IsAdmin>
+<tr>
+  <td colspan="2">
+    <br>
+    <input type="checkbox" id="force_update_roles" name="force_update_roles" value="1">
+    <label for="force_update_roles"><dtml-msg "Update role mappings immediately"></label>
+  </td>
+</tr>
+</dtml-if>
+</table>
+
+<br>
+<dtml-if IsAdmin>
+<input type="submit" name="set_permissions" value="<dtml-var "msg('Apply')">" />
+</dtml-if>
+<input type="hidden" name="state" value="&dtml-state;">
+</form>
+
+</dtml-with>
+
+<dtml-comment><h2><dtml-var "msg('Document category attributes')"></h2></dtml-comment>
+
+<dtml-let category=this>
+<table width="90%" border="0">
+  <dtml-in listAttributeDefinitionsBySortkey>
+    <dtml-if sequence-start>
+<tr>
+  <td><h3><dtml-var "msg('Category attributes')"></h3></td>
+</tr>
+<tr>
+  <td>
+    <table border="0" cellpadding="2" width="100%">
+    <tr class="row_title">
+      <td><dtml-var "msg('Id')"></td>
+      <td><dtml-var "msg('Type')"></td>
+      <td><dtml-var "msg('Title')"></td>
+      <td><dtml-var "msg('Default value')"></td>
+      <td><dtml-var "msg('Mandatory')"></td>
+      <td><dtml-var "msg('Read only')"></td>
+    </tr>
+    </dtml-if>
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td valign="top">
+        <a href="<dtml-var "category.absolute_url()">/workflow_attributes_permissions?state=&dtml-state;&attr=<dtml-var getId>">
+          <dtml-var getId>
+        </a>
+      </td>
+      <td valign="top"><dtml-var "msg(Type(), add=None)"></td>
+      <td valign="top">
+        &dtml-Title;
+      </td>
+      <td>
+              <dtml-var "entry_field_view( this(),
+                    name=getId(),
+                    type=Type(),
+                    value=getDefaultValue(),
+                    category=this(),
+                    mode='state'
+                    )">
+      </td>
+      <td>
+        <input name="<dtml-var "'mandatory_%s' % getId()">" type="checkbox" disabled
+          <dtml-var "isMandatory() and 'checked' or ''"> />
+      </td>
+      <td>
+        <input type="checkbox" name="<dtml-var "'readonly_%s' % getId()">"
+          <dtml-var "isReadOnly() and 'checked' or ''"> disabled />
+      </td>
+    </tr>
+    <dtml-if sequence-end>
+    <tr>
+       <td>&nbsp;</td>
+    </tr>
+    </table>
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-in>
+</table>
+</dtml-let>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

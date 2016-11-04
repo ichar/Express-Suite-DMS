@@ -1,0 +1,6 @@
+<dtml-let state="portal_workflow.getInfoFor(this(), 'state', 'editable')">
+  <dtml-if "state!='editable'">
+    <sup>*</sup>
+    <dtml-call "REQUEST.set('note', 1)">
+  </dtml-if>
+</dtml-let>

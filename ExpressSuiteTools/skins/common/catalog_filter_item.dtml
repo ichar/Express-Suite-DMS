@@ -1,0 +1,51 @@
+<table cellpadding="0" cellspacing="0" border="0">
+<tr class="row_even">
+  <td>
+    <input type="hidden" name="&dtml-id;_column_type" value="&dtml-column_type;">
+
+<dtml-if "column_type == 'date'">
+    <table>
+    <tr>
+      <td><dtml-var "msg('from')">:</td>
+      <td><dtml-var "entry_field_edit(this(), type=column_type, name='filter_min_%s' % id, value=(_.len(value)==2 and value[0] or ZopeTime()))"></td>
+      <td><dtml-var "msg('till')">:</td>
+      <td><dtml-var "entry_field_edit(this(), type=column_type, name='filter_max_%s' % id, value=(_.len(value)==2 and value[1] or (ZopeTime() + 1.0)))"></td>
+    </tr>
+    </table>
+    <input type="hidden" name="<dtml-var "'%s_range' % id">" value="min:max">
+
+<dtml-elif "id in ['Creator','Supervisors','InvolvedUsers']">
+  <dtml-var "user_list(this(),
+                       name='filter_%s' % id, 
+                       selected_users=value,
+                       size=10,
+                       IsSimple=1
+                       )">
+  <dtml-if "_.same_type(value, [], ())">
+    <dtml-in value size=10>
+      <br><em style="color:blue;font-size:11px;"><dtml-var "member_name(this(), member=_['sequence-item'], mode='LFM', brief=0)"><dtml-if sequence-end><dtml-if "_.len(value) > 10"><br>...</dtml-if></dtml-if></em>
+    </dtml-in>
+  </dtml-if>
+
+<dtml-elif "column_type in ['int','float']">
+  <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value)">
+  <dtml-var "msg('usage:')"> 
+    <select name="<dtml-var "'%s_range' % id">">
+  <dtml-in "('max', 'less than'), ('', 'equal'), ('min', 'greater than')">
+    <option value="&dtml-sequence-key;" <dtml-var "_['sequence-key']==range and 'selected' or ''">> <dtml-var "msg(_['sequence-item'])"></option>
+  </dtml-in>
+    </select>
+
+<dtml-elif "column_type in ['list']">
+  <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value, options=(_.has_key('options') and options))">
+
+<dtml-elif "column_type in ['items'] and category2 is not None">
+  <dtml-var "entry_field_edit(category2, type=column_type, name='filter_%s' % id, value=value, context=None)">
+
+<dtml-else>
+  <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value or '')">
+
+</dtml-if>
+  </td>
+</tr>
+</table>

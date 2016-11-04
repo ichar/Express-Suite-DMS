@@ -1,0 +1,5 @@
+<dtml-if "text.startswith('<div class=comments>')">
+  <dtml-var "getFormattedComments(text)">
+<dtml-else>
+  <dtml-var text newline_to_br>
+</dtml-if>

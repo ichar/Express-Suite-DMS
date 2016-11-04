@@ -1,0 +1,89 @@
+<script type="text/javascript">
+<!--
+function OpenUrlWindow( id, value, target ) {
+    id = ( id != '' && id.substr(0,2) == 'o:' ? id.substr(2) : null );
+    if (!id) return;
+
+    var blank = 0;
+    if (id.substr(0,6) == 'blank:') {
+        id = id.substr(6);
+        blank = 1;
+    }
+
+    if (!blank) {
+       openUrl( value, target );
+    } else {
+       var url = value;
+       params = 'toolbar=no,scrollbars=yes,status=yes,resizable=yes';
+       window.open( url, '_blank', params );
+    }
+}
+//-->
+</script>
+
+<dtml-let context=this
+          user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          access_level="user.getMemberAccessLevel(portal_properties.instance_name())"
+          IsEditable="access_level=='W' or IsAdmin"
+          isAnon="portal_membership.isAnonymousUser()"
+          user_storage_type="portal_properties.storage_type()"
+          IsArchive="user_storage_type=='archive' and 1 or 0"
+          AuthClass="isAnon and 'GuestActions' or 'MemberActions'"
+          uname="isAnon and 'Guest' or user.getUserName()"
+          actions="portal_actions.listFilteredActionsFor(context, object_url=relative_url(frame='inFrame'))"
+          disabled_actions="getCustomDefinitions('disabled_actions')"
+>
+
+<form name="actform" style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px;">
+
+<table class="NavBar" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td><img name="refresh" style="cursor: hand" onMouseOver="change(this,1);" onMouseOut="change(this,2);" onClick="window.location.reload(1)" src="&dtml-portal_url;/refresh.gif"
+       alt="<dtml-var "msg('Refresh')">" width="18" height="18">&nbsp;</td>
+  <td><a href="<dtml-var "getPortalObject().absolute_url(action='home', frame='inFrame')">"><img name="home" style="cursor:hand" onMouseOver="change(this,1);" onMouseOut="change(this,2);" src="&dtml-portal_url;/home.gif"
+       alt="<dtml-var "msg('Home')">" width="18" height="18" border="0"></a>&nbsp;</td>
+  <td><img src="&dtml-portal_url;/separator.gif">&nbsp;</td>
+
+  <dtml-if "actions is not None">
+    <dtml-let Topic="actions['folder']"
+              Document="actions['object']"
+              Status="actions['workflow']"
+              Statistics="actions.get('stat', None)"
+    >
+      <dtml-in "('Topic', 'Document', 'Status', 'Statistics',)" prefix="g">
+        <dtml-if "_.getitem(_['sequence-item'])">
+          <dtml-let editable="_['sequence-item'] != 'Document' or (IsEditable and getCustomDefinitions('editable', context=context))"
+                    IsFileSystem="meta_type in ('FS Folder','FS File',) and 1 or 0"
+          >
+            <dtml-unless "(IsFileSystem or getId()=='storage') and _['sequence-item'] in ('Status',)">
+  <td>
+    <select name="&dtml-sequence-item;" onChange="javascript:OpenUrlWindow(this.options[this.selectedIndex].id, this.options[this.selectedIndex].value, 'workspace')">
+      <option id="" value=""> <dtml-var "msg(_['sequence-item'])"> </option>
+      <option id="" value=""> &mdash;&mdash;&mdash;&mdash;&mdash;&mdash; </option>
+              <dtml-in "_.getitem(_['sequence-item'])" sort="name" mapping>
+                <dtml-let id="_.has_key('id') and id"
+                          action="_.has_key('action') and action">
+                  <dtml-if "(id != 'edit' or editable) and action not in disabled_actions">
+      <option id="o:&dtml-id;" value="<dtml-var "url.strip()">"> &dtml-name; </option>
+                  </dtml-if>
+                </dtml-let>
+              </dtml-in>
+    </select>
+  </td>
+            </dtml-unless>
+          </dtml-let>
+        </dtml-if>
+        <dtml-if "_['sequence-end'] and (_.len(Topic) or _.len(Document) or _.len(Status))">
+  <td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td>
+        </dtml-if>
+      </dtml-in>
+    </dtml-let>
+  </dtml-if>
+</tr>
+</table>
+
+</form>
+
+</dtml-let>

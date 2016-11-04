@@ -1,0 +1,71 @@
+<dtml-if sequence-start>
+<table class="SearchFormLayout" cellspacing="5" cellpadding="0" width="100%" border="0">
+<tr>
+  <td>&nbsp;</td>
+  <th colspan="2"> <dtml-var "msg('Title')"> </th>
+  <th><dtml-var "msg('Type')"></th>
+  <th><dtml-var "msg('Date')"></th>
+</tr>
+</dtml-if>
+
+<dtml-try>
+<tr>
+  <td>
+    <input type="radio" name="destination_uid" value="<dtml-var uid>" title="<dtml-var "object.Title()">"
+      <dtml-if check_first_item><dtml-if sequence-start>checked</dtml-if></dtml-if>
+      <dtml-if "object.implements('isVersionable')">
+       onClick="javascript:hideVersionsBox(this.form);showVersionsBox(this.value);"
+      <dtml-else>
+       onClick="javascript:hideVersionsBox(this.form);"
+      </dtml-if>
+       onDblClick="javascript:this.form.submit();"
+    />
+  </td>
+  <td>
+    <dtml-if "meta_type in ['Image Attachment']">
+      <a href="&dtml-view_url;" target="_blank">
+        <img src="&dtml-portal_url;/image_icon.gif" border="0" alt="[&dtml.missing-Type;]" title="<dtml-var "msg(_['Type'], add=0)">">
+      </a>	
+    <dtml-elif getIcon>
+      <a href="&dtml-view_url;" target="_blank">
+        <dtml-var content_icon>
+      </a>
+    </dtml-if>
+  </td>
+  <td align="left" style="width:60%">
+    <a href="<dtml-var view_url>?expand=1" target="_blank"><dtml-var "object.Title()" size="75" html_quote></a>
+  </td>
+  <td nowrap><dtml-var "msg(_['Type'], add=0)"></td>
+  <td nowrap>&dtml-Date;</td>
+</tr>
+<tr>
+  <td width="1">&nbsp;</td>
+  <td colspan="4"><em>
+    <dtml-if name="Description"><dtml-var name="Description" missing="msg('No description')" html_quote>
+    <dtml-else>(<dtml-var "msg('No description')">)</dtml-if></em>
+  </td>
+</tr>
+
+<dtml-if "object.implements('isVersionable')">
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="4">
+    <div id="<dtml-var "'%s_versions_block' % uid">" style="display:none;">
+      <dtml-var "document_versions_embedded(object, selection_mode=1, id_prefix=uid)">
+    </div>
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-except>
+<tr>
+  <td>&nbsp;</td>
+  <td colspan="4" style="padding-bottom:5px;color:#CC0000;">
+    <dtml-var view_url><br><dtml-var "object is not None and object.Title()"><dtml-comment>error</dtml-comment>
+  </td>
+</tr>
+</dtml-try>
+
+<dtml-if sequence-end>
+</table>
+</dtml-if>

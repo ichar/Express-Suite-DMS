@@ -1,0 +1,131 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<div style="padding-left:2px;">
+<p class="form-header">Index item values:<br></p>
+
+<dtml-let r_meta_type="REQUEST.get('meta_type', '')"
+          r_path="REQUEST.get('path', '')"
+          r_sort_by_path="REQUEST.get('sort_by_path', '')"
+          r_distinct="REQUEST.get('distinct', '')"
+          psize="20"
+          offset="int(REQUEST.get('offset') or 0)"
+          limit="psize"
+          rs="itemValues(REQUEST=REQUEST, sort_by_path=r_sort_by_path, distinct=r_distinct, sort_limit=limit, sort_offset=offset)"
+          results="rs[1]"
+          l_="rs[0] or _.len(results)"
+          x="l_ - (offset + psize)"
+          previous-size="offset >= psize and psize or 0"
+          next-size="x > 0 and (x > psize and psize or x) or 0"
+>
+
+<span class="form-text">The index <dtml-var getId> contains <strong><dtml-var l_ thousands_commas></strong> record(s).</span><br /><br />
+
+<form action="&dtml-URL;" name="searchQuery" method="POST">
+<div class="form-text">
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td nowrap><strong>Path:&nbsp;</strong></td>
+  <td><input name="path" size="110" value="&dtml-r_path;"></td>
+</tr>
+<tr>
+  <td nowrap><strong>Meta Type:&nbsp;</strong></td>
+  <td>
+    <select name="meta_type">
+    <option value="">-- any --</option>
+    <dtml-in metatypeIds>
+    <option value="&dtml-sequence-item;" <dtml-if "_['sequence-item']==r_meta_type">selected</dtml-if>>&dtml-sequence-item;</option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding-top:5px">
+    <input type="checkbox" id="sort_by_path" name="sort_by_path" value="1" <dtml-if r_sort_by_path>checked</dtml-if> />
+    <label for="sort_by_path">Sorted by path</label>
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding-top:5px">
+    <input type="checkbox" id="distinct" name="distinct" value="1" <dtml-if r_distinct>checked</dtml-if> />
+    <label for="distinct">Distinct</label>
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding-top:5px">
+    <input class="form-element" type="submit" value=" Search ">
+  </td>
+</tr>
+</table>
+</div>
+</form>
+
+<dtml-if "l_ > psize">
+<div class="form-text">
+  <dtml-if previous-size>
+    <a href="<dtml-var URL>?offset=<dtml-var "offset-psize">&path=&dtml-r_path;&meta_type=&dtml-r_meta_type;&sort_by_path=&dtml-r_sort_by_path;&distinct=&dtml-r_distinct;">
+      [Previous <dtml-var previous-size> entries]
+    </a>
+  </dtml-if>
+  <dtml-if next-size>
+    <a href="<dtml-var URL>?offset=<dtml-var "offset+psize">&path=&dtml-r_path;&meta_type=&dtml-r_meta_type;&sort_by_path=&dtml-r_sort_by_path;&distinct=&dtml-r_distinct;">
+      [Next <dtml-var next-size> entries]
+    </a>
+  </dtml-if>
+<br />
+</div>
+</dtml-if>
+
+<table width="100%" cellspacing="0" cellpadding="3" border="0">
+  <dtml-in results mapping>
+    <dtml-if sequence-start>
+<tr class="list-header">
+      <dtml-if r_distinct>
+  <td align="left" valign="top">
+    <div class="list-item">Name</div>
+  </td>
+  <td align="left" valign="top">
+    <div class="list-item">Value</div>
+  </td>
+  <td align="left" valign="top">
+    <div class="list-item">Pos</div>
+  </td>
+      <dtml-else>
+  <td align="left" valign="top" style="padding-right:10px;" nowrap>
+    <div class="list-item">RID</div>
+  </td>
+  <td align="left" valign="top" nowrap>
+    <div class="list-item">Object Identifier</div>
+  </td>
+  <td align="left" valign="top">
+    <div class="list-item">Value</div>
+  </td>
+      </dtml-if>
+</tr>
+    </dtml-if>
+    <dtml-if sequence-odd>
+<tr class="row-normal">
+    <dtml-else>
+<tr class="row-hilite">
+    </dtml-if>
+    <dtml-if r_distinct>
+  <td valign="top"><div class="form-text"><dtml-var name></div></td>
+  <td valign="top" width="100%"><div class="form-text"><dtml-var value></div></td>
+  <td valign="top"><div class="form-text"><dtml-var pos></div></td>
+    <dtml-else>
+  <th valign="top" style="padding-right:10px" nowrap><div>&dtml-RID;</div></th>
+  <td valign="top"><div class="form-text"><dtml-var uid newline_to_br></div></td>
+  <td valign="top"><div class="form-text"><dtml-var value></div></td>
+    </dtml-if>
+</tr>
+  </dtml-in>
+</table>
+
+</div>
+
+</dtml-let>
+
+<dtml-var manage_page_footer>

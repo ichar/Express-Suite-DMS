@@ -1,0 +1,119 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'My Documents Instance')">
+<dtml-call "REQUEST.set('margin', 0)">
+
+<script type="text/javascript" src="&dtml-portal_url;/callback.js"></script>
+
+<body>
+
+<dtml-let instance="portal_properties.instance_name() or 'docs'"
+          name="'%s_data' % instance"
+          sign="'%s_sign' % instance"
+          print_preview="REQUEST.get('print_preview')"
+          x="portal_catalog.getMyDocumentsInProgress(REQUEST=REQUEST)"
+          results="x[1]"
+          total="x[0]"
+>
+
+<script type="text/javascript">
+<!--
+registerCallback(window, 'onLoad', function (ev) { 
+  var container = window.parent.document.getElementById('&dtml-name;');
+  var counter = window.parent.document.getElementById('counter');
+  var source = document.all['&dtml-name;'];
+  if( typeof(source) == 'object' ) {
+    var data = source.outerHTML;
+    container.outerHTML = data;
+    source.outerHTML = '';
+  }
+<dtml-unless print_preview>
+  try { displayParentFrameElement('&dtml-sign;', this, 0); }
+  catch (error) {}
+</dtml-unless>
+  if( typeof(counter) == 'object' ) {
+    counter.innerHTML = parseInt(counter.innerHTML)+parseInt('<dtml-var total>');
+  }
+});
+// -->
+</script>
+
+<dtml-if results>
+<table id="&dtml-name;" name="content" bgcolor="#FFFFFF" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <dtml-in results mapping>
+    <dtml-let row="'%s_%s' % (instance, category)">
+<tr>
+  <td class="inline"><img id="&dtml-row;_icon" src="row_e.gif" onclick="javascript:displayDataOfCategory('&dtml-row;')" style="cursor:hand;"></td>
+  <td class="description" style="font-size:x-small;width:100%;" align="left" nowrap><span onclick="javascript:displayDataOfCategory('&dtml-row;')" style="cursor:hand;"><font color="#AE004C"><strong><dtml-var "msg(category)"></strong></font>&nbsp;&nbsp;[ <dtml-var "_.len(documents)"> ]</span></td>
+</tr>
+<tr>
+  <td colspan="2">
+  <div id="&dtml-row;" name="row_of_category" style="display:block">
+    <dtml-in documents mapping sort="sortkey" reverse>
+      <dtml-if sequence-start>
+<table cellspacing="1" cellpadding="0" bgcolor="#FFFFFF" width="100%" border="0">
+<tr>
+  <td class="inline" width="22" height="1"><img src="&dtml-portal_url;/spacer.gif" width="22" height="1"></td>
+  <td class="inline" height="1" width="100%"><img src="&dtml-portal_url;/spacer.gif" height="1"></td>
+  <td class="inline" width="82" height="1"><img src="&dtml-portal_url;/spacer.gif" width="82" height="1"></td>
+  <td class="inline" width="152" height="1"><img src="&dtml-portal_url;/spacer.gif" width="152" height="1"></td>
+  <td class="inline" width="142" height="1"><img src="&dtml-portal_url;/spacer.gif" width="142" height="1"></td>
+</tr>
+      </dtml-if>
+      <dtml-let index="_['sequence-index']+1" members="signatory+executor">
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center" valign="middle"><dtml-var index></td>
+  <td class="description" align="left" valign="top">
+    <table cellspacing="0" cellpadding="0" width="100%" border="0">
+    <tr>
+      <td align="left" width="100%">
+        <a target="_blank" href="&dtml-view_url;"><dtml-var document_title html_quote></a><br>
+        <dtml-if document_description><span style="font-weight:normal;color:#606060;"><dtml-var document_description html_quote></span><br></dtml-if>
+        <dtml-if registry_id>&dtml-registry_id;<br></dtml-if>
+      </td>
+      <td align="right" valign="top" style="padding-left:10px">
+        <dtml-if new><img src="&dtml-portal_url;/newlink.gif" width="31"></dtml-if>
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td class="workarea" align="center" nowrap><dtml-if creation_date><dtml-try><dtml-var creation_date fmt="%d.%m.%Y"><dtml-except><dtml-var creation_date></dtml-try></dtml-if></td>
+  <td class="workarea" align="left"><dtml-var recipient_agency></td>
+  <td class="workarea" align="left">
+    <span class="p_member" style="color:blue">
+        <dtml-in members>
+          <dtml-if "_['sequence-item']">
+    <dtml-var "portal_membership.getMemberBriefName(_['sequence-item'], 'LFM')"><dtml-if "_['sequence-index']+1 < _['sequence-length']"><br></dtml-if>
+          </dtml-if>
+        </dtml-in>
+    </span>
+  </td>
+</tr>
+        <dtml-if resolution>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="center" valign="middle">&nbsp;</td>
+  <td id="r_&dtml-index;" class="workarea" align="left" colspan="4">
+    <dtml-var resolution>
+  </td>
+</tr>
+        </dtml-if>
+      </dtml-let>
+      <dtml-if sequence-end>
+</table>
+      </dtml-if>
+    </dtml-in>
+  </div>
+  </td>
+</tr>
+    </dtml-let>
+  </dtml-in>
+</table>
+</dtml-if>
+
+</dtml-let>
+
+</body>
+</html>

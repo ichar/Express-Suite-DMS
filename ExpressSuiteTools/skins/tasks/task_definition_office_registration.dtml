@@ -1,0 +1,83 @@
+<dtml-if "registration_type == 'auto'">
+  <dtml-let wf=Workflow
+            mask="taskDefinitionArray.get('mask') or ''"
+            default_category="taskDefinitionArray.get('default_category', '')"
+            current_registry="taskDefinitionArray.get('current_registry', None) or ''"
+            private_only="taskDefinitionArray.get('private_only', None) or ''"
+            registry_uid="taskDefinitionArray.get('registry_uid') or ''"
+            registry_description="taskDefinitionArray.get('registry_description') or ''"
+            registry_URL="taskDefinitionArray.get('registry_URL')"
+            activate_action="taskDefinitionArray.get('activate_action')"
+            available_transitions="portal_workflow[wf].getSortedTransitionsList(wf)"
+  >
+
+<tr class="row_even">
+  <td><strong><dtml-var "msg('Registry id mask')"></strong></td>
+  <td><input type="text" size="20" name="mask" value="&dtml-mask;"></td>
+</tr>
+<tr class="row_even">
+  <td><strong><dtml-var "msg('Registry default category')"><strong></td>
+  <td>
+  <dtml-let categories="portal_metadata.getCategories()">
+    <select name="default_category:string">
+      <option value="" <dtml-var "not default_category and 'selected' or ''">><dtml-var "msg('None')"></option>
+    <dtml-in categories>
+      <option value="&dtml-getId;" <dtml-var "getId()==default_category and 'selected' or ''">><dtml-var "msg(Title(), add=None)"></option>
+    </dtml-in>
+    </select>
+  </dtml-let>
+  </td>
+</tr>
+<tr class="row_even">
+  <td nowrap><dtml-var "msg('Current period registry')">&nbsp;</td>
+  <td>
+    <input type="checkbox" value="1" name="current_registry" <dtml-var "current_registry and 'checked' or ''"> />
+  </td>
+</tr>  
+<tr class="row_even">
+  <td nowrap><dtml-var "msg('Registry private document only')">&nbsp;</td>
+  <td>
+    <input type="checkbox" value="1" name="private_only" <dtml-var "private_only and 'checked' or ''"> />
+  </td>
+</tr>  
+<tr class="row_odd">
+  <td class="smallHeader" nowrap colspan="2"><dtml-var "msg('Associated registry')">:</td>
+</tr>  
+<tr class="row_even">
+  <td nowrap><dtml-var "msg('Description')">&nbsp;</td>
+  <td>
+  <dtml-if registry_URL>
+    <a target="_blank" href="&dtml-registry_URL;/inFrame?link=view">&dtml-registry_description;</a>
+  <dtml-else>
+    <span id="description">&dtml-registry_description;</span>
+  </dtml-if>
+  </td>
+</tr>  
+  <dtml-if registry_uid>
+<tr>
+  <td class="dump" valign="top" colspan="2">
+    <nobr><strong>Registry UID:</strong>&nbsp;<span id="uid">&dtml-registry_uid;</span></nobr>
+  </td>
+</tr>
+  </dtml-if>
+
+<tr class="row_odd">
+  <td class="smallHeader" nowrap colspan="2"><dtml-var "msg('If template was done success')">:</td>
+</tr>  
+<tr class="row_even">
+  <td nowrap><strong><dtml-var "msg('Execute transition')"></strong></td>
+  <td>
+    <select name="activate_action" size="1">
+      <option value="" <dtml-var "not activate_action and 'selected' or ''">><dtml-var "msg('None')"></option>
+    <dtml-in available_transitions>
+      <dtml-let selected="_['sequence-item'] == activate_action and 'selected' or ''"
+                transition_title="portal_workflow[wf].transitions[_['sequence-item']].title">
+      <option value="&dtml-sequence-item;" &dtml-selected;><dtml-var transition_title></option>
+      </dtml-let>
+    </dtml-in>
+    </select>
+  </td>
+</tr>  
+
+  </dtml-let>
+</dtml-if>

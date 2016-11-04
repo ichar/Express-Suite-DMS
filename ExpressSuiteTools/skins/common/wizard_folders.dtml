@@ -1,0 +1,137 @@
+<head>
+
+<script type="text/javascript">
+<!--
+    var commonImages   = ['department_icon.gif','folder_icon.gif','fs_folder_icon.gif','folder_closed.gif','gray_of.gif'];
+    var portalRootURL  = '<dtml-var "portal_url()">';
+    var objectBaseURL  = '<dtml-var "absolute_url()">';
+    var openInFrame    = '<dtml-var "REQUEST.get('OpenInFrame')" null="">';
+    var updateSections = '<dtml-var "' '.join( REQUEST.get('_UpdateSections',[]) )">';
+//-->
+</script>
+
+<dtml-let uid_field="REQUEST.get('uid_field') or 'dest_folder_uid'"
+          title_field="REQUEST.get('title_field') or 'dest_folder_title'"
+>
+
+<script language="javascript">
+<!--
+function SaveAndReturn( uid , title) {
+  opener.setFolderUrl( uid, title || '<dtml-var "msg('Object selected')">', '&dtml-uid_field;', '&dtml-title_field;' );
+  window.close();
+}
+//-->
+</script>
+
+<dtml-if "not REQUEST.has_key('disable_dynamic')">
+<dtml-comment>Detecting dynamic-compartibility of client browser</dtml-comment>
+<script language="javascript">
+<!--
+function determineDinamic(){
+  var url = setParam( location.href, 'callback_function', callback_function );
+  url = setParam( url, 'callback_form', callback_form );
+  try {
+    // Mozilla object
+    new XMLHttpRequest();
+    url = setParam( url, 'disable_dynamic', 'no')
+    location.replace( url );
+  }
+  catch (error) { 
+    try {
+      // IE object
+      new ActiveXObject("Msxml2.XMLHTTP");
+      url = setParam( url, 'disable_dynamic', 'no')
+      location.replace( url );
+    }
+    catch (error) {
+      url = setParam( url, 'disable_dynamic', 'yes')
+      location.replace( url );
+    }
+  }
+}
+//-->
+</script>
+
+<dtml-call "REQUEST.set('disable_dynamic', 'yes')">
+</dtml-if>
+
+<script type="text/javascript" src="&dtml-portal_url;/scripts.js"></script>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+</head>
+<dtml-if "not REQUEST.has_key('disable_dynamic')">
+<body onload="determineDinamic();">
+<dtml-else>
+<body>
+</dtml-if>
+
+<script type="text/javascript">
+<!--
+// preload page common images
+if( !window.openInFrame && window.commonImages ) preloadImages( window.commonImages );
+-->
+</script>
+
+<table cellpadding="0" cellspacing="0" width="100%" border="0">
+<tr>
+  <td>
+  
+  <dtml-jungle expr="portal_url.getPortalObject().storage"
+               meta_types="['Heading','FS Folder','Fax Incoming Folder']"
+               sort_order="['Title','id']"
+               dynamic="disable_dynamic=='no'"
+               urlparam="disable_dynamic='yes'"
+  >
+
+  <table style="BORDER-COLLAPSE: collapse" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td valign="top">
+      <a class="tree" href="javascript:SaveAndReturn('&dtml-nd_uid;', '<dtml-var "Title or id">');">
+    <dtml-if tree-level>
+      <dtml-if "meta_type in ['Heading','Fax Incoming Folder']">
+        <dtml-if tree-item-department>
+          <img src="&dtml-portal_url;/department_icon.gif" width="16" height="16">
+        <dtml-elif tree-item-expanded>
+          <img src="&dtml-portal_url;/folder_opened.gif" width="16" height="16">
+        <dtml-else>
+          <img src="&dtml-portal_url;/folder_closed.gif" width="16" height="16">
+        </dtml-if>
+      <dtml-elif "meta_type in ['FS Folder']">
+        <dtml-if tree-item-expanded>
+          <img src="&dtml-portal_url;/fs_folder_opened.gif" width="16" height="16">
+        <dtml-else>
+          <img src="&dtml-portal_url;/<dtml-var getIcon>" width="16" height="16">
+        </dtml-if>
+      </dtml-if>
+    <dtml-else>
+      <img src="&dtml-portal_url;/gray_of.gif" width="16" height="16" align="absmiddle">&nbsp;
+    </dtml-if>
+      </a>
+    </td>
+    <td style="padding-left:4px;">
+      <a class="tree" href="javascript:SaveAndReturn('&dtml-nd_uid;', '<dtml-var "Title or id">');">
+    <dtml-if tree-level>
+        <dtml-var "Title or id">
+    <dtml-else>
+        <strong><dtml-var "Title or id"></strong>
+    </dtml-if>
+      </a>
+    </td>
+  </tr>
+  </table>
+
+  </dtml-jungle>
+  </td>
+</tr>
+
+<tr>
+  <td style="padding: 10px 0 15px 0" align="center">
+    <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+</body>
+

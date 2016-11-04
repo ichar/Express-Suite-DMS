@@ -1,0 +1,107 @@
+<dtml-let private_url="'/storage/members/'+uname+'/folder_contents'"
+          bgcolor="'#800040'"
+>
+
+<table class="page" bgcolor="#CCD5BB" cellpadding="5" cellspacing="0" border="0">
+<tr height="30">
+  <td style="border-bottom: 1pt solid #797900;">
+    <table>
+    <tr>
+    <dtml-in "_.range(0,2)">
+      <td bgcolor="&dtml-bgcolor;" style="padding: 0 2px 0 2px;">&nbsp;</td>
+    </dtml-in>
+    </tr>  
+    </table>  
+  </td>
+
+  <td align="center" style="padding: 0 3px 0 3px; border-bottom: 1pt solid #797900;" nowrap>
+    <p style="color:&dtml-bgcolor;;font-size:13px;font-weight:bold;font-family:times;">ПОДСИСТЕМЫ ПОРТАЛА СЭДО:</p>
+  </td>
+
+  <td style="border-bottom: 1pt solid #797900;">
+    <table>
+    <tr>
+    <dtml-in "_.range(0,5)">
+      <td bgcolor="&dtml-bgcolor;" style="padding: 0 2px 0 2px;">&nbsp;</td>
+    </dtml-in>
+    </tr>  
+    </table>  
+  </td>
+</tr>
+
+<dtml-if "instance in ['notes','payments','common']">
+<tr>
+  <td align="center">
+    <a target="_top" class="navigate" href="http://express/docs&dtml-private_url;" title="<dtml-msg "go to private folder">">
+      <img src="&dtml-portal_url;/instance.gif" border="0">
+    </a>
+  </td>
+  <td valign="left" colspan="2">
+    <span style="cursor:default">
+    <a target="_blank" class="navigate" href="&dtml-server_url;/docs" style="font-weight:normal">
+      Исходящая корреспонденция
+      <br><b style="color:purple">http://express/docs</b>
+    </a>
+    </span>
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "instance in ['docs','payments','common']">
+<tr>
+  <td align="center">
+    <a target="_top" class="navigate" href="http://express/notes&dtml-private_url;" title="<dtml-msg "go to private folder">">
+      <img src="&dtml-portal_url;/instance.gif" border="0">
+    </a>
+  </td>
+  <td valign="left" colspan="2">
+    <span style="cursor:default">
+    <a target="_blank" class="navigate" href="&dtml-server_url;/notes" style="font-weight:normal">
+      Приказы, распоряжения, протоколы совещаний, служебные записки
+      <br><b style="color:purple">http://express/notes</b>
+    </a>
+    </span>
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "instance in ['docs','notes','common']">
+<tr>
+  <td align="center">
+    <a target="_top" class="navigate" href="http://express/payments&dtml-private_url;" title="<dtml-msg "go to private folder">">
+      <img src="&dtml-portal_url;/instance.gif" border="0">
+    </a>
+  </td>
+  <td valign="left" colspan="2">
+    <span style="cursor:default">
+    <a target="_blank" class="navigate" href="&dtml-server_url;/payments" style="font-weight:normal">
+      Договоры, распорядительные записки на проведение платежей
+      <br><b style="color:purple">http://express/payments</b>
+    </a>
+    </span>
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "instance in ['docs','notes','payments']">
+<tr>
+  <td align="center">
+    <a target="_top" class="navigate" href="http://express/common">
+      <img src="&dtml-portal_url;/instance.gif" alt="" border="0">
+    </a>
+  </td>
+  <td valign="left" colspan="2">
+    <span style="cursor:default">
+    <a target="_blank" class="navigate" href="&dtml-server_url;/common" style="font-weight:normal">
+      Справочная система<br>
+      Заявки на регистрацию, факсимиле
+      <br><b style="color:purple">http://express/common</b>
+    </a>
+    </span>
+  </td>
+</tr>
+</dtml-if>
+
+</table>
+
+</dtml-let>

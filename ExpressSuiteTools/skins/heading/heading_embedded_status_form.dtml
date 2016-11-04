@@ -1,0 +1,47 @@
+<dtml-let member="portal_membership.getAuthenticatedMember()"
+  review_history="portal_workflow.getInfoFor(this(), 'review_history')">
+
+<p>
+   <strong><dtml-var "msg('Current state')">:</strong>
+   <dtml-try>
+     <dtml-var "msg(_['StateTitle'], add=0)">
+   <dtml-except>
+     &nbsp;
+   </dtml-try>
+</p>
+
+<form method="post" action="content_status_modify">
+ <table class="FormLayout" width="100%">
+  <tr>
+   <td valign=top align=left width="100%">
+    <strong><dtml-var "msg('Comment')"></strong><br>
+    <textarea name="comment" rows="5" wrap="soft"
+     style="width: 100%"></textarea>
+     <input type="hidden" name="workflow_action" value="&dtml-action;">
+   </td>
+  </tr>
+  <tr>
+   <td align=center><input type="submit" value=" <dtml-var "msg('Change state')"> "></td>
+  </tr>
+ </table>
+</form>
+
+<dtml-if review_history>
+ <p><strong><dtml-var "msg('State history')"></strong><br>
+ <dtml-in review_history mapping reverse>
+  <br>
+  <dtml-var time fmt="%Y-%m-%d %H:%M"> <dtml-if "action and action != 'None'">&dtml-action;</dtml-if>
+  <dtml-if effective_date>(дата окончания задания: <dtml-var effective_date fmt="aCommon">)</dtml-if>
+  <dtml-var "msg('By:')">&dtml-actor;
+  <dtml-if "_['sequence-item']['comments']">
+   : <em style="color:blue"><dtml-var "_['sequence-item']['comments']"></em>
+  </dtml-if>
+ </dtml-in>
+ </p>
+</dtml-if>
+
+</dtml-let>
+
+</div>
+
+<dtml-var standard_html_footer>

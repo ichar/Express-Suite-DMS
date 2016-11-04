@@ -1,0 +1,283 @@
+<dtml-var simple_html_header>
+
+<form name="manage_ldap_form" action="&dtml-absolute_url;/manage_ldap_handler" method="post">
+
+<h2><dtml-msg "LDAP authentication settings"></h2>
+
+<dtml-let ldap_users="portal_membership.getUsersSource() == 'ldap'"
+	  ldap_groups="portal_membership.getGroupsSource() == 'ldap'"
+	  ldap_settings="portal_membership.getAuthSettings('ldap')"
+	  ldap_configured="ldap_settings['address']"
+	  user_props="portal_memberdata.listEditableProperties()" >
+
+<dtml-with ldap_settings>
+
+<table width="90%">
+
+<tr>
+  <td><dtml-msg "Use LDAP authentication">:</td>
+  <td><input type="checkbox" name="ldap_users:boolean" <dtml-var ldap_users fmt=checked> />
+      <input type="hidden" name="ldap_users:boolean:default" value="" />
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Enable trusted front-end authentication">:</td>
+  <td><input type="checkbox" name="auth_frontend:boolean" <dtml-var auth_frontend fmt=checked> />
+      <input type="hidden" name="auth_frontend:boolean:default" value="" />
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2"><hr size="1" noshade="1" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "LDAP server address">:</td>
+  <td><input type="text" name="address" size="40" value="&dtml.null-address;" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Manager DN">:</td>
+  <td><input type="text" name="binduid" size="40" value="&dtml-binduid;" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Manager password">:</td>
+  <td><input type="password" name="bindpwd" size="40" value="*****" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Disallow directory modifications">:</td>
+  <td><input type="checkbox" name="read_only:boolean" <dtml-var read_only fmt=checked> />
+      <input type="hidden" name="read_only:boolean:default" value="" />
+  </td>
+</tr>
+
+<dtml-if ldap_configured>
+
+<tr>
+  <td colspan="2"><br />
+      <strong><dtml-msg "Mapping of LDAP user objects to user accounts"></strong></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Users base DN">:</td>
+  <td><input type="text" size="40" name="users_base"
+	     value="<dtml-var expr="'; '.join(_.same_type(users_base,'') and [users_base] or users_base)" html_quote>" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Users search filter">:</td>
+  <td><input type="text" size="40" name="users_filter"
+	     value="&dtml-users_filter;" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Users search scope">:</td>
+  <td>
+    <select name="users_scope:int">
+      <option value="1" <dtml-var "users_scope == 1" fmt=selected> >
+	      <dtml-msg "One level"> </option>
+      <option value="2" <dtml-var "users_scope == 2" fmt=selected> >
+	      <dtml-msg "Recursive"> </option>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "User object classes">:</td>
+  <td><input type="text" name="user_classes" size="40"
+             value="<dtml-var "','.join( user_classes )" html_quote>" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Login name attribute">:</td>
+  <td>
+    <select name="login_attr">
+      <dtml-in schema mapping>
+      <option value="&dtml-ldap_name;" <dtml-var "login_attr == ldap_name" fmt=selected> >
+	      &dtml-friendly_name; (&dtml-ldap_name;) </option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Relative DN attribute">:</td>
+  <td>
+    <select name="rdn_attr">
+      <dtml-in schema mapping>
+      <option value="&dtml-ldap_name;" <dtml-var "rdn_attr == ldap_name" fmt=selected> >
+	      &dtml-friendly_name; (&dtml-ldap_name;) </option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Password encryption method">:</td>
+  <td>
+    <select name="encryption">
+      <dtml-in encryptions>
+      <option value="&dtml-sequence-item;" <dtml-var "encryption == _['sequence-item']" fmt=selected> >
+	      &dtml-sequence-item; </option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2"><br />
+      <strong><dtml-msg "Mapping of LDAP group objects to groups of users"></strong></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Use LDAP groups">:</td>
+  <td><input type="checkbox" name="ldap_groups:boolean" <dtml-var ldap_groups fmt=checked> />
+      <input type="hidden" name="ldap_groups:boolean:default" value="" />
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Groups base DN">:</td>
+  <td><input type="text" size="40" name="groups_base"
+	     value="<dtml-var expr="'; '.join(_.same_type(groups_base,'') and [groups_base] or groups_base)" html_quote>" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Groups search filter">:</td>
+  <td><input type="text" size="40" name="groups_filter"
+	     value="&dtml-groups_filter;" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Groups search scope">:</td>
+  <td>
+    <select name="groups_scope:int">
+      <option value="1" <dtml-var "groups_scope == 1" fmt=selected> >
+	      <dtml-msg "One level"> </option>
+      <option value="2" <dtml-var "groups_scope == 2" fmt=selected> >
+	      <dtml-msg "Recursive"> </option>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Portal managers group">:</td>
+  <td>
+    <select name="managers_group">
+      <option value="" <dtml-var "not managers_group" fmt=selected> >(<dtml-msg "not selected">)</option>
+      <dtml-in groups mapping>
+      <option value="&dtml-id;" <dtml-var "managers_group == id" fmt=selected> >
+	      &dtml-title;</option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Enable pseudo-groups support">:</td>
+  <td><input type="checkbox" name="enable_pseudogroups:boolean" <dtml-var enable_pseudogroups fmt=checked> />
+      <input type="hidden" name="enable_pseudogroups:boolean:default" value="" />
+  </td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Pseudo-group object classes">:</td>
+  <td><input type="text" size="40" name="pseudogroup_classes"
+	     value="<dtml-var "','.join( pseudogroup_classes )" html_quote>" /></td>
+</tr>
+
+</dtml-if>
+
+<tr>
+  <td>&nbsp;</td>
+  <td><br />
+      <input type="submit" name="save_settings" value="<dtml-msg "Save">" /></td>
+</tr>
+
+<dtml-if ldap_configured>
+
+<tr>
+  <td colspan="2"><hr size="1" noshade="1" /></td>
+</tr>
+
+<tr>
+  <td colspan="2"><strong><dtml-msg "Mapping of user properties to LDAP attributes"></strong></td>
+</tr>
+
+<dtml-in user_props mapping>
+
+<tr>
+  <td><dtml-msg expr="title">:</td>
+  <td>
+    <select name="schema_map.&dtml-id;:record">
+      <option value="">(<dtml-msg "not selected">)</option>
+      <dtml-in schema mapping>
+      <option value="&dtml-ldap_name;" <dtml-var "public_name == id" fmt="selected">
+	      >&dtml-friendly_name; (&dtml-ldap_name;)</option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+</dtml-in>
+
+<tr>
+  <td>&nbsp;</td>
+  <td><br />
+      <input type="submit" name="save_schema" value="<dtml-msg "Save">" /></td>
+</tr>
+
+<tr>
+  <td colspan="2">
+      <strong><dtml-msg "Add or change LDAP attribute definition"></strong></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "LDAP attribute name">:</td>
+  <td><input type="text" size="40" name="attribute.id:record" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "LDAP attribute title">:</td>
+  <td><input type="text" size="40" name="attribute.title:record" /></td>
+</tr>
+
+<tr>
+  <td><dtml-msg "Map the attribute to user property">:</td>
+  <td>
+    <select name="attribute.property:record">
+      <option value="" selected="1">(<dtml-msg "not selected">)</option>
+      <dtml-in user_props mapping>
+      <option value="&dtml-id;"><dtml-msg expr="title"></option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td><br />
+      <input type="submit" name="add_attribute" value="<dtml-msg "Add">" /></td>
+</tr>
+
+<tr>
+  <td colspan="2"><hr size="1" noshade="1" /></td>
+</tr>
+
+<tr>
+  <td><strong><dtml-msg "Force reloading of user records from LDAP">:</strong></td>
+  <td><input type="submit" name="refresh" value="<dtml-msg "Reload">" /></td>
+</tr>
+
+</dtml-if>
+
+</table>
+
+
+</dtml-with>
+</dtml-let>
+
+<dtml-var simple_html_footer>

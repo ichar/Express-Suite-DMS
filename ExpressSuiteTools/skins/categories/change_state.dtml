@@ -1,0 +1,148 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+var IsStateDisabled = false;
+var i=0;
+var k=0;
+  
+var on_submit_array = new Array(); // i
+var on_check_array = new Array(); // k
+
+function onSubmitForm( frm ) {
+    for( j = 0; j < k; j++ ) {
+        if (!on_check_array[j]( frm )) return false;
+    }
+    for( j = 0; j < i; j++ ) { 
+        on_submit_array[j]( frm ); 
+    }
+    disableForm(frm);
+    return true;
+}
+  
+function disableForm( frm ) {
+    for( i = 0; i < frm.length; i++ ) {
+        var tempobj = frm.elements[i];
+        if ( tempobj.type.toLowerCase() == "submit" ) tempobj.disabled = true;
+    }
+}
+//-->
+</script>
+
+<dtml-let with_respond="implements('isTaskItem')"
+          container="with_respond and this().getBase() or this()"
+          member="portal_membership.getAuthenticatedMember()"
+          review_history="portal_workflow.getInfoFor(container, 'review_history')"
+          state="portal_workflow.getInfoFor(container, 'state', '')"
+          wf="portal_metadata.getCategoryById(Category()).Workflow()"
+>
+
+<dtml-with "portal_workflow.getTransitionInfo(wf, transition)" mapping>
+
+<form name="confirm" method="post" action="content_status_modify" target="workspace" onSubmit="return onSubmitForm(this);" enctype="multipart/form-data">
+<input type="hidden" name="workflow_action" value="&dtml-transition;">
+<input type="hidden" name="notify_after_commit" value="">
+<input type="hidden" name="no_commit" value="1">
+<input type="hidden" name="with_respond" value="&dtml-with_respond;">
+
+<table class="FormLayout" cellpadding="0" cellspacing="2" width="100%" border="0">
+<tr>
+  <td class="smallHeader" colspan="2" valign="top" align="left" style="padding:3px 0 10px">
+    <strong style="color:purple"><dtml-var "msg(title)"></strong>
+  </td>
+</tr>
+<tr>
+  <td valign="top" align="left">
+     <strong><dtml-var "msg('Current state')">:</strong>
+     <dtml-var "msg(portal_workflow.getStateTitle(wf, state), add=None)">
+  </td>
+</tr>
+
+<dtml-let newstate="msg(portal_workflow.getStateTitle(wf, new_state_id), add=None)">
+  <dtml-if "newstate">
+<tr>
+  <td valign="top" align="left">
+    <strong><dtml-var "msg('Destination state')">:</strong>
+    <dtml-var newstate>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+<tr><td height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+
+<tr>
+  <td valign="top" align="left" style="width:100%;">
+    <strong><dtml-var "msg('Changes log message')">:</strong><br>
+    <dtml-call "REQUEST.set('comment_rows', '3')">
+    <dtml-var "comment_template( container, form='confirm', field='comment', context='state' )">
+  </td>
+</tr>
+
+<dtml-if with_respond>
+<tr><td><strong><dtml-var "msg('File')"></strong>:</td></tr>
+<tr>
+  <td>
+    <input type="file" name="attachment" size="120">
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="checkbox" id="baseattachment" name="make_as_baseattachment" value="1" checked>
+    <label for="baseattachment"><dtml-msg "Make an attachment"></label>
+  </td>
+</tr>
+</dtml-if>
+
+<tr><td height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+
+<tr>
+  <td width="100%">
+    <dtml-var "list_activated_action_templates_emb(container, transition=transition)">
+  </td>
+</tr>
+<tr>
+  <td>
+    <input id="ChangeStateButton" type="submit" value=" <dtml-var "msg('Change state')"> ">
+  </td>
+</tr>
+
+<tr><td height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+
+<tr>
+  <td>
+<dtml-in review_history mapping reverse>
+  <dtml-if sequence-start>
+    <table>
+    <tr><td><strong><dtml-var "msg('State history')"></strong></td></tr>
+  </dtml-if>
+    <tr>
+      <td nowrap>
+        <dtml-var time fmt="%Y-%m-%d %H:%M"> <dtml-var "portal_workflow.getStateTitle(wf, _['state'])">.
+        <dtml-var "msg('By:')"> <dtml-var "portal_membership.getMemberName(actor)">
+      </td>
+    </tr>
+  <dtml-if "_['sequence-item']['comments']">
+    <tr><td><em style="color:blue;"><dtml-var "_['sequence-item']['comments']"></em></td></tr>
+  </dtml-if>
+  <dtml-if sequence-end>
+    </table>
+  </dtml-if>
+</dtml-in>
+  </td>
+</tr>
+
+</form>
+</table>
+
+<script type="text/javascript">
+if( typeof(document.all.ChangeStateButton) == 'object' ) {
+    document.all.ChangeStateButton.disabled = IsStateDisabled;
+}
+</script>
+
+</dtml-with>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

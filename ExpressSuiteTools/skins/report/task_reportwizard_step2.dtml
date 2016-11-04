@@ -1,0 +1,307 @@
+<dtml-var simple_html_header>
+
+<dtml-let template="REQUEST.get('template', '')"
+          inc_inf="REQUEST.get('inc_inf', '')"
+          IsWorkAround="template.find('workaround') > -1 and 1 or 0"
+>
+
+<script language="javascript">
+<!--
+function DisableForm( frm ) {
+    frm.cancel.disabled = true;
+    frm.goback.disabled = true;
+    frm.gonext.disabled = true;
+    frm.selectAll.disabled = true;
+    frm.selectCommit.disabled = true;
+    frm.selectPending.disabled = true;
+}
+
+function SubmitForm( action ) {
+    var frm = document.step2_form;
+    DisableForm(frm);
+    frm.action = '&dtml-absolute_url;/' + action;
+    frm.submit();
+}
+
+function SetState( obj_checkbox, obj_task, task_id ) {
+    return;
+    if(typeof(obj_checkbox) != 'object' || typeof(obj_task) != 'object') return;
+    if(obj_checkbox.checked){ 
+	  obj_task.value = task_id;
+	} else { 
+	  obj_task.value = '';
+	}
+}
+
+function OpenSourceWnd( user, task ) {
+	wnd_popup = window.open("&dtml-absolute_url;/task_source_form?userid=" + user + "&task_id=" + task, 
+        "wnd_popup_menu", "toolbar=no,scrollbars=yes,width=350,height=300,resizable=yes");
+}
+
+var isSelected = true;
+var isCommit = false;
+var isPending = false;
+var checked_member = '';
+
+function toggleSelect( mode ) {
+  var form = document.step2_form;
+  if( !mode ) mode = 0;
+
+  if( mode==0 ) { 
+    isSelected = !isSelected; 
+  } else if( mode==-1 ) { 
+    isSelected = false; 
+  } else if( mode==1 ) { 
+    isSelected = true; 
+  } else if( mode==2 ) { 
+    var status = new Array('commit','review','satisfy','sign','informed');
+    isCommit = true;
+    isPending = false;
+  } else { 
+    var status = new Array('pending');
+    isCommit = false;
+    isPending = true;
+  }
+
+  for( var i = 0; i < form.elements.length; i++ ) {
+    var elem = form.elements[ i ];
+    if( elem.type != 'checkbox' ) continue;
+    if( mode <= 1 ) {
+      if( elem.name.substr(0, 5) == 'task_' ) elem.checked = isSelected;
+    } else {
+      var response = elem.value.split('|');
+      var code = response[0];
+      var member = response[1];
+
+    <dtml-if IsWorkAround>
+      //var date = (response.length > 2 ? response[2] : null);
+      if( checked_member == member ) continue;
+    </dtml-if>
+
+      for( var j = 0; j < status.length; j++ ) {
+        if( code==status[j] ) {
+          elem.checked = ( mode==2 ? isCommit : isPending );
+          checked_member = member;
+          break;
+        }
+      }
+    }
+  }
+	
+  var objSelectAll = document.all["selectAll"];
+  var txtValue = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All users')">';
+	
+  if( objSelectAll.length > 1 ) {
+    for( var i = 0; i <= 1; i++ ) {
+      var obj = objSelectAll[i];
+      if( typeof(obj) == 'object' ) obj.value = txtValue;
+    }
+  } else if( typeof(objSelectAll) == 'object' ) {
+    objSelectAll.value = txtValue;
+  }
+
+  return isSelected;
+}
+
+function checkItems() {
+  <dtml-if IsWorkAround>
+  var form = document.step2_form;
+  var looked_members = {};
+  var member_item = [];
+  var items = [];
+
+  for( var i = 0; i < form.elements.length; i++ ) {
+    var elem = form.elements[ i ];
+    if( elem.type != 'checkbox' ) continue;
+
+    var response = elem.value.split('|');
+    var member = response[1];
+    var date = ( response.length > 2 ? response[2] : 0 );
+    var id = elem.id;
+
+    if( typeof(looked_members[member]) == 'object' ) { 
+      member_item = looked_members[member]; 
+    } else { 
+      member_item = looked_members[member] = [date, id]; 
+      items[items.length] = member;
+    }
+
+    if( date > member_item[0] ) {
+      looked_members[member] = [date, id];
+    }
+  }
+
+  for( var i = 0; i < items.length; i++ ) {
+    id = looked_members[items[i]][1];
+    document.all[id].checked = true;
+  }
+  </dtml-if>
+  return;
+};
+//-->
+</script>
+
+<div class="Desktop">
+
+<h1> <dtml-var aboveInThread> </h1>
+<h1> <dtml-var "msg('Report wizard')">, <dtml-var "msg('step')"> 2</h1>
+
+<p><dtml-var "msg('At this step you can edit the contents of the general report')"></p>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<form name="step2_form" method="POST" action="&dtml-absolute_url;">
+
+<dtml-in selected_tasks>
+  <dtml-call "REQUEST.set('flag', 1)">
+  <dtml-let task_id=sequence-item>
+    <dtml-with "followup.getTask(task_id)">
+<tr>
+  <td valign="middle" style="padding-right:5px;" align="left" colspan="2">
+    <h4 style="background-color:#FFFFFF; padding: 5px 10px 7px 10px; border: 1pt solid black;">&dtml-Title;</h4>
+  </td>
+</tr>
+<tr>
+  <td style="width: 9px;">&nbsp;</td>
+  <td align="left" style="width:99%;">
+      <dtml-in listResponseTypes mapping>
+        <dtml-if "id not in ('finalize', 'send_to_review', 'enable')">
+    <table cellpadding="0" width="100%" border="0">
+    <tr class="task_title">
+      <td class="smallHeader"><dtml-var "msg(progresslist_title, add=0)"></td>
+    </tr>
+    <tr>
+      <td>
+          <dtml-in "searchResponses(status=id)" sort="date" reverse_expr="IsWorkAround" mapping>
+            <dtml-if sequence-start>
+        <table width="100%" border="0">
+            </dtml-if>
+        <tr>
+          <td>
+            <input type="checkbox" 
+                   id="i_&dtml-task_id;_&dtml-status;_&dtml-member;_<dtml-var "_['sequence-index']">"
+                   name="&dtml-task_id;_responses:list" 
+                   value="&dtml-status;|&dtml-member;|&dtml-date;"
+                   onClick="SetState(this, this.form.task_&dtml-task_id;, '&dtml-task_id;')"
+                   <dtml-if "not IsWorkAround">checked</dtml-if>
+            />
+          </td>
+          <td valign="middle" class="smallHeader" width="99%">
+            <dtml-var "member_name(this(), member=member)">&nbsp; [<dtml-var "rDate(this(), time=date).strip()">]
+            <dtml-comment>
+            &nbsp; <img onClick="JavaScript:OpenSourceWnd('&dtml-Creator;', '&dtml-task_id;')" 
+                        alt="<dtml-var "msg('Original text')">" 
+                        src="&dtml-portal_url;/source_icon.gif"
+                        height="9" width="9" border="0" 
+                        style="cursor: hand"
+                   />
+            </dtml-comment>
+          </td>
+        </tr>
+            <dtml-if text>
+        <tr>
+          <td>&nbsp;</td>
+          <td class="smallHeader" width="100%">
+            <em style="width:100%;color:blue;font-weight:normal;" name="r_&dtml-task_id;_&dtml-member;"><dtml-var text></em>
+            <dtml-comment>
+            <textarea disabled style="width:100%;" name="r_&dtml-task_id;_&dtml-member;" cols="120" rows="5"><dtml-var text></textarea>
+            </dtml-comment>
+          </td>
+        </tr>
+            </dtml-if>
+            <dtml-if sequence-end>
+        </table>
+          <br>
+              <dtml-if flag>
+                <dtml-call "REQUEST.set('flag', 0)">
+          <input type="hidden" id="task_&dtml-task_id;" name="selected_tasks:list" value="&dtml-task_id;">
+              </dtml-if>
+          <br>
+            </dtml-if>
+          </dtml-in>
+      </td>
+    </tr>
+    </table>
+        </dtml-if>
+      </dtml-in>
+  </td>
+</tr>
+
+      <dtml-let userids="PendingUsers(force=1)"
+                pending_users="portal_membership.listSortedUserNames(userids)">
+        <dtml-if pending_users>
+<tr>
+  <td style="width: 9px;">&nbsp;</td>
+  <td>
+          <dtml-in pending_users mapping>
+            <dtml-if sequence-start>
+    <table cellpadding="0" width="100%" border="0">
+    <tr class="task_title">
+      <td class="smallHeader"><dtml-var "msg('Pending reply from')"></td>
+    </tr>
+            </dtml-if>
+    <tr>
+      <td>
+        <table width="100%" border="0">
+        <tr>
+          <td>
+            <input type="checkbox"
+                   id="i_&dtml-task_id;_pending_&dtml-user_id;_<dtml-var "_['sequence-index']">"
+                   name="&dtml-task_id;_pending:list" 
+                   value="pending|&dtml-user_id;"
+                   onClick="SetState(this, this.form.r_&dtml-task_id;_&dtml-user_id;)"
+                   <dtml-if "not IsWorkAround">checked</dtml-if>
+            />
+          </td>
+          <td valign="middle" class="smallHeader" width="99%" nowrap>
+            <dtml-var "member_name(this(), member=user_id)">
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+            <dtml-if sequence-end>
+    </table><br>
+              <dtml-if flag>
+    <input type="hidden" id="task_&dtml-task_id;" name="selected_tasks:list" value="&dtml-task_id;">
+              </dtml-if>
+            </dtml-if>
+          </dtml-in>
+  </td>
+</tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-with>
+  </dtml-let>
+</dtml-in>
+
+<tr>
+  <td colspan="2" style="padding-top:10px;">
+    <input type="hidden" name="inc_inf" value="&dtml-inc_inf;" />
+    <input type="hidden" name="template" value="&dtml-template;" />
+    <input type="hidden" name="doc_view" value="" />
+
+    <input type="button" id="cancel" onclick="javascript:location.href='&dtml-absolute_url;/document_follow_up_form'" value=" <dtml-var "msg('Cancel')"> ">
+    <input type="button" id="goback" value=" &lt;&lt; <dtml-var "msg('Back')"> " onclick="javascript:SubmitForm('task_reportwizard_step1');">
+    <input type="button" id="gonext" value=" <dtml-var "msg('Next')"> &gt;&gt; " onclick="javascript:SubmitForm('task_reportwizard_step3');">
+
+  <dtml-if selected_tasks>
+    <input type="button" name="selectAll" value="<dtml-var "msg('Deselect All')">" onClick="toggleSelect(0)" style="width:120px;">
+    <input type="button" name="selectCommit" value="<dtml-var "msg('Select Commit users')">" onClick="toggleSelect(-1);toggleSelect(2)" style="width:130px;">
+    <input type="button" name="selectPending" value="<dtml-var "msg('Select Pending users')">" onClick="toggleSelect(-1);toggleSelect(3)" style="width:130px;">
+  </dtml-if>
+  </td>
+</tr>
+</table>
+</form>
+
+</div>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload = checkItems;
+//-->
+</script>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,206 @@
+<dtml-comment>
+$Id $
+
+'name'        - name of the list
+'value'       - value of dates list (can be zope DateTime or mx.DateTime instances)
+'extra_attrs' - mapping containing additional tag attributes
+</dtml-comment>
+
+<dtml-unless "REQUEST.get( '_datetime_form' )">
+<dtml-call "REQUEST.set( '_datetime_form', 1 )">
+
+<link id="calendar_css" rel="stylesheet" type="text/css" href="&dtml-portal_url;/calendar-win2k-cold-1.css" />
+
+<script type="text/javascript" src="&dtml-portal_url;/calendar.js"></script>
+<script type="text/javascript" src="&dtml-portal_url;/calendar-<dtml-var "msg.get_selected_language()">.js"></script>
+<script type="text/javascript" src="&dtml-portal_url;/calendar-setup.js"></script>
+
+<script type="text/javascript">
+<!--
+
+//fieldEditHandler.calendar_params = new Array();
+
+// -->
+</script>
+
+</dtml-unless>
+
+<dtml-let value="_.has_key('value') and value or ()" 
+          extra_attrs="_.has_key('extra_attrs')
+                       and ' '.join(['%s=\x22%s\x22' % (k, v)
+                                     for k, v in extra_attrs.items()])
+                       or ''">
+
+<dtml-unless "REQUEST.get('_dates_list_js')">
+<dtml-call "REQUEST.set('_dates_list_js', 1)">
+<script type="text/javascript">
+<!--
+//
+// Returns array [calendar, dates select] which can be acquired by
+// calendar, dates select or button.
+//
+function getCalendarAndSelect(element)
+{
+    function acquireCalendar(element)
+    {
+        // climb through TD and TR and get calendar property of TABLE inside
+        // first TD
+        return element.parentNode.parentNode
+                      .cells[0].getElementsByTagName('TABLE')[0].calendar;
+    }
+
+    function acquireSelect(element)
+    {
+        // climb through TD and TR and get SELECT inside third TD
+        return element.parentNode.parentNode
+                      .cells[2].getElementsByTagName('SELECT')[0];
+    }
+
+    if (element.constructor == Calendar)
+        return [element, acquireSelect(element.params.flat)];
+
+    if (element.type == 'select-multiple')
+        return [acquireCalendar(element), element];
+
+    // element.type == 'button'
+    return [acquireCalendar(element), acquireSelect(element)];
+}
+
+//
+// Adds custom date from calendar to select
+//
+function addDateToList(element)
+{
+    var calendar_select = getCalendarAndSelect(element),
+        calendar = calendar_select[0],
+        select   = calendar_select[1];
+
+    if (element.type == 'button') {
+        // '>>' button was clicked
+        if ( dateInsideSelect(calendar.date, select) )
+            return;
+    }
+    else
+        // calendar date was changed or clicked
+        // TODO: Act only on doubleclicks
+        if (! calendar.dateClicked)
+            return;
+
+    var date = calendar.date.valueOf();
+
+    // finds the position and insert patched date option into it
+    for (var index = 0; index < select.options.length; index++)
+        if (select.options[index].date_value > date) break;
+
+    var date_option = document.createElement('OPTION');
+    date_option.text = calendar.date.print('dd.mm.y');
+    date_option.date_value = date;
+
+    if (userAgent.IE) select.add(date_option, index);
+    else              select.add(date_option, select.options[index]); // W3C DOM
+
+    calendar.refresh();
+}
+
+//
+// Removes selected custom dates from select
+//
+function deleteDatesFromList(element)
+{
+    var calendar_select = getCalendarAndSelect(element),
+        calendar = calendar_select[0],
+        select   = calendar_select[1];
+
+    deleteSelectionFromList(select);
+    calendar.refresh();
+}
+
+//
+// Checks that date is in dates select
+//
+function dateInsideSelect(date, select)
+{
+    for (var i = select.options.length; i-- > 0;) {
+        var option_date = new Date(select.options[i].date_value);
+        if ( option_date.equalsTo(date) ) return true;
+    }
+
+    return false;
+}
+
+//
+// Factory for closure of disabling function
+//
+function dateInsideSelectFactory(select_name)
+{
+    var select = null;
+
+    return function(date)
+    {
+        if (select == null) {
+            var elements = document.getElementsByName(select_name);
+            if (! elements.length) return false;
+            select = elements[0];
+        }
+
+        return dateInsideSelect(date, select);
+    }
+}
+
+function fixDatesSelect(name)
+{
+    var sel = document.getElementsByName(name)[0];
+
+    for (var i = sel.options.length; i-- > 0;) {
+        var option = sel.options[i];
+        option.date_value = new Number(option.date_value);
+    }
+
+    getCalendarAndSelect(sel)[0].refresh();
+}
+//-->
+</script>
+</dtml-unless>
+
+<table cellpadding="0" cellspacing="10" border="0" &dtml.-extra_attrs;>
+<tr align="left" valign="middle">
+  <td>
+    <div id="&dtml-name;_calendar_container" style="width: 214px">
+      <script type="text/javascript">
+      <!--
+      Calendar.setup({ flat         : '&dtml-name;_calendar_container'
+                     , flatCallback : addDateToList
+                     , disableFunc  : dateInsideSelectFactory('&dtml-name;:list')
+                     });
+      //-->
+      </script>
+    </div>
+  </td>
+  <td style="padding: 0 10">
+    <input type="button" value=" &gt;&gt; " onClick="addDateToList(this)"><br><br>
+    <input type="button" value=" &lt;&lt; " onClick="deleteDatesFromList(this)">
+  </td>
+  <td>
+    <select name="&dtml-name;:list" size="12" style="width: 200px" multiple
+            onKeyDown="if (event.keyCode == 46) ondblclick()"
+            onDblClick="deleteDatesFromList(this)">
+    <dtml-in value prefix="v">
+      <dtml-if "_.hasattr(v_item, 'ticks')">
+      <option date_value="<dtml-var "_.int(v_item.ticks())">000"><dtml-var "v_item.strftime('%d.%m.%Y')">
+      <dtml-else>
+      <option date_value="<dtml-var "_.int(v_item.timeTime())">000"><dtml-var v_item fmt="%d.%m.%Y">
+      </dtml-if>
+    </dtml-in>
+    </select>
+    <dtml-if value>
+      <script type="text/javascript">
+      <!--
+      fixDatesSelect('&dtml-name;:list')
+      //-->
+      </script>
+    </dtml-if>
+  </td>
+</tr>
+</table>
+
+</dtml-let>

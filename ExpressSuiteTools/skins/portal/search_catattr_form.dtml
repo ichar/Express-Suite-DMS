@@ -1,0 +1,93 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title><dtml-var "msg(REQUEST.get('PageTitle','Search form'))" html_quote></title>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'Search form')">
+
+<body leftmargin="0" topmargin="10px" marginwidth="0" marginheight="0" bgcolor="white">
+
+<script type="text/javascript">
+<!--
+function OnSubmit( key ) {
+    if( !key  ) return false;
+}
+
+function SearchStrInSelect( str, select ) {
+    var strn=0, strl=0;
+    for( var i = 0; i < select.length; i++ ) {
+        select.options[i].selected = false;
+        var curl = 0;
+        var inpStr = str.toUpperCase();
+        var selStr = select.options[i].text.toUpperCase();
+        for( var l = 0; l < str.length+1; l++ ) {
+            curl = l;
+            if( inpStr.charAt(l) != selStr.charAt(l) ) break;
+        }
+        if( curl > strl ) { strl=curl; strn=i; }
+    }
+    if( ! select.multiple || str.length ) select.options[strn].selected = true;
+}
+
+function check_empty_date( frm, name ) {
+    var error;
+    if( !name ) return;
+	try {
+      var value = frm.elements[name].value;
+      frm.elements[name+'_button'].disabled = (value.substr(0,2) == custom_empty_date ? true : false);
+    }
+    catch( error ) {
+      //pass
+    }
+}
+//-->
+</script>
+
+<dtml-let cat_id="REQUEST.has_key('cat_id') and REQUEST.get('cat_id')"
+          attr_id="REQUEST.has_key('attr_id') and REQUEST.get('attr_id')"
+>
+  <dtml-if attr_id>
+
+    <dtml-let in_child="REQUEST.has_key('in_child') and REQUEST.get('in_child') or 0"
+              attr="portal_metadata.getCategoryById(cat_id).getAttributeDefinition(attr_id)"
+              value="REQUEST.has_key('attr_value') and REQUEST.get('attr_value') or None"
+              type="attr.Type()"
+              name="attr_id"
+              catattr_method="_.getitem('catattr_'+(type=='text' and 'string' or type), 0)"
+    >
+
+<form id="attr_form" name="attr_form" onsubmit="javascript: return OnSubmit( 0 );" >
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+  <td>
+    <dtml-var catattr_method>
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="checkbox" name="child" id="child" value="1" <dtml-var in_child fmt=checked> />
+    <label for="child"><b><dtml-var "msg('Search in child categories')"></b></label>
+  </td>
+</tr>
+<tr>
+  <td style="padding: 10px 0 10px 0">
+    <font color="purple"><b><dtml-var "msg('Note! Advanced search enlarges request evolution time more expensive!')"></b></font>
+  </td>
+</tr>
+</table>
+
+</form>
+    </dtml-let>
+
+  <dtml-else>
+<br />
+  </dtml-if>
+
+</dtml-let>
+
+</body>
+</html>

@@ -1,0 +1,15 @@
+<dtml-var standard_html_header>
+
+<dtml-let path="REQUEST.get('action','folder')" view_type="REQUEST.get('view_type','')">
+
+<iframe src="&dtml-absolute_url;/&dtml-path;/?view_type=&dtml-view_type;&portal_status_message=<dtml-var "REQUEST.get('portal_status_message','')">"
+	width="100%" height="100%" scrolling="auto" frameborder="0" name="workfield">
+
+    Unfortunately your browser does not support frames.<br>
+    We are sorry for inconvenience.
+
+</iframe>
+
+</dtml-let>
+
+<dtml-var standard_html_footer>

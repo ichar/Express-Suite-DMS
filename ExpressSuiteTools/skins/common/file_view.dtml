@@ -1,0 +1,29 @@
+<dtml-var standard_html_header>
+
+<div class="Desktop">
+
+<div class="File">
+
+<dtml-var content_byline>
+
+<h3>&dtml-title_or_id;</h3>
+<p>
+<b>Файл</b>: <dtml-var getId><br>
+<b>Размер</b>: <dtml-var size><br>
+<b>Тип</b>: <dtml-var content_type><br>
+<b>Описание</b>: <dtml-var name="description" newline_to_br>
+</p>
+
+<a href="&dtml-absolute_url;">Принять файл</a>
+
+<div class="Discussion">
+
+<dtml-var viewThreadsAtBottom>
+
+</div>
+
+</div>
+
+</div>
+
+<dtml-var standard_html_footer>

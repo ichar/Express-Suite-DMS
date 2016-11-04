@@ -1,0 +1,200 @@
+<dtml-revision $Revision: 1.6.10.1 $>
+
+<dtml-var simple_html_header>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: <dtml-var "msg(Title())"></a></strong></p>
+
+<p>
+<strong><a href="&dtml-absolute_url;/workflow_states">&lt;&lt; <dtml-var "msg('Document category states')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/workflow_transitions"><dtml-var "msg('Document category transitions')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/task_template_list"><dtml-var "msg('Actions templates')"></a></strong>
+</p>
+
+<dtml-let cat_id=getId
+          wf=Workflow
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+          templates="this().taskTemplateContainerAdapter.getTaskTemplatesAsArray(cat_id) # _.sequence.sort(, (('template_title','cmp'),))"
+          transitions="portal_workflow[wf].getSortedTransitionsList(wf) # portal_workflow[wf].transitions.objectIds()" 
+          states="portal_workflow[wf].getSortedStateList(wf) # portal_workflow[wf].states.objectIds()"
+          IsDebug="0"
+>
+
+<dtml-if IsDebug>
+  <dtml-var cat_id>:<dtml-var wf>:<dtml-var states>
+</dtml-if>
+
+<a name="transition2tasktemplate"></a>
+<form action="action_task_template_summary" method="post">
+
+<b><dtml-var "msg('Activate next task templates, when transition is performed')">:</b>
+<table border="0">
+  <tr class="row_odd">
+    <td rowspan="2" align="center"><b><dtml-var "msg('Transitions')"></b></td>
+    <td colspan="<dtml-var "_.len(this().taskTemplateContainerAdapter.getTaskTemplatesAsArray(cat_id))">">
+      <b><dtml-var "msg('Actions templates')"></b>
+    </td>
+  </tr>
+  <tr class="row_even">
+  <dtml-in templates sort=template_title mapping>
+    <td align="center">
+      <dtml-var template_title>
+    </td>
+  </dtml-in>
+  </tr>
+  <dtml-in transitions>
+  <tr class="row_even">
+    <td>
+    <dtml-let transition_title="portal_workflow[wf].transitions[_['sequence-item']].title">
+      <dtml-var transition_title>
+    </dtml-let>
+    </td>
+    <dtml-let transition_id="_['sequence-item']"
+              transition_array="portal_metadata.taskTemplateContainerAdapter.getTransition2TaskTemplateArray( cat_id, transition_id )"
+    >
+      <dtml-in templates sort=template_title mapping>
+    <td align="center">
+        <dtml-let checked="template_id in transition_array and 'checked' or ' '">
+          <input &dtml-checked; type="checkbox" name="&dtml-transition_id;_task_templates:list" value="<dtml-var template_id>">
+        </dtml-let>
+    </td>
+      </dtml-in>
+    </dtml-let>
+  </tr>
+  </dtml-in>
+</table>
+
+<dtml-if IsAdmin>
+  <input type="submit" name="save_transition2tasktemplate" value="<dtml-var "msg('Save')">" style="width:100px;">
+</dtml-if>
+
+</form>
+
+<hr size="1" noshade>
+
+<a name="save_state2tasktemplatedie"></a>
+
+<b><dtml-var "msg('Finalize in this states tasks based on next actions templates')">:</b>
+<dtml-if "this().taskTemplateContainerAdapter.getTaskTemplatesAsArray(cat_id, filter='have_result_codes')">
+
+<form action="action_task_template_summary" method="post">
+<table border="0">
+  <tr class="row_odd">
+    <td rowspan="2" align="center">
+      <b><dtml-var "msg('States')"></b>
+    </td>
+    <td align="center" colspan="<dtml-var "_.len(this().taskTemplateContainerAdapter.getTaskTemplatesAsArray(cat_id))">">
+      <b><dtml-var "msg('Actions templates')"></b>
+    </td>
+  </tr>
+  <tr class="row_even">
+  <dtml-let templates="this().taskTemplateContainerAdapter.getTaskTemplatesAsArray(cat_id, filter='have_result_codes')">
+    <dtml-in templates sort=template_title mapping>
+      <td align="center">
+        <dtml-var template_title>
+      </td>
+    </dtml-in>
+  </dtml-let>
+  </tr>
+  <dtml-in states>
+  <tr class="row_even">
+    <td>
+    <dtml-let state_title="portal_workflow[wf].states[_['sequence-item']].title">
+      <dtml-var "msg(state_title)">
+    </dtml-let>
+    </td>
+    <dtml-let state_id="_['sequence-item']"
+              templates="portal_metadata.taskTemplateContainerAdapter.getState2TaskTemplateToDieMapped( cat_id, state_id, filter='have_result_codes' )"
+	>
+      <dtml-in templates sort=title mapping>
+        <dtml-let checked="finalize and 'checked' or ''"
+                  template_title="title"
+		>
+    <td align="center">
+      <input type="checkbox" name="&dtml-state_id;_task_templates:list" &dtml-checked; value="<dtml-var template_id>">
+          
+      <select name="&dtml-state_id;_result_code_&dtml-template_id;" size="1">
+          <dtml-let result_code_selected="result_code">
+            <dtml-in result_codes mapping>
+              <dtml-let selected="id == result_code_selected and 'selected' or ''">
+        <option value="&dtml-id;" &dtml-selected;><dtml-var "msg(title)"></option>
+              </dtml-let>
+            </dtml-in>
+          </dtml-let>
+      </select>
+    </td>
+        </dtml-let>
+      </dtml-in>
+    </dtml-let>
+  </tr>
+  </dtml-in>
+</table>
+
+<dtml-if IsAdmin>
+  <input type="submit" name="save_state2tasktemplatedie" value="<dtml-var "msg('Save')">" style="width:100px;">
+</dtml-if>
+
+</form>
+
+<dtml-else>
+<br><br><dtml-var "msg('n/a')">
+</dtml-if>
+
+<hr size="1" noshade>
+
+<a name="resultcode2transition"></a>
+<b><dtml-var "msg('Run transitions when tasks will be finalized in the next states')">:</b><br><br>
+
+<dtml-var "edit_script2transition_emb(this(), container_page='task_template_summary', REQUEST=REQUEST)">
+
+<hr size="1" noshade>
+
+<a name="state2transition"></a>
+<form action="action_task_template_summary" method="post">
+<b><dtml-var "msg('Possible transitions for state')">:</b>
+<table border="0">
+  <tr class="row_odd">
+    <td rowspan="2" align="center"><b><dtml-var "msg('States')"></b></td>
+    <td align="center" colspan="<dtml-var "_.len(portal_workflow[wf].transitions.objectIds())">">
+      <b><dtml-var "msg('Transitions')"></b>
+    </td>
+  </tr>
+  <tr class="row_even">
+  <dtml-in transitions>
+    <td align="center">
+      <dtml-let transition_title="portal_workflow[wf].transitions[_['sequence-item']].title">
+        <dtml-var transition_title>
+      </dtml-let>
+    </td>
+  </dtml-in>
+  </tr>
+  <dtml-in states>
+  <tr class="row_even">
+    <td>
+      <dtml-let state_title="portal_workflow[wf].states[_['sequence-item']].title">
+        <dtml-var "msg(state_title)">
+      </dtml-let>
+    </td>
+      <dtml-let state_id="_['sequence-item']">
+        <dtml-in transitions>
+    <td align="center">
+          <dtml-let checked="_['sequence-item'] in portal_workflow[wf].states[state_id].transitions and 'checked' or ' '">
+            <input type="checkbox" name="&dtml-state_id;_transitions:list"  value="&dtml-sequence-item;" &dtml-checked; />
+          </dtml-let>
+    </td>
+        </dtml-in>
+      </dtml-let>
+    </tr>
+  </dtml-in>
+</table>
+
+<dtml-if IsAdmin>
+  <input type="submit" name="save_state2transition" value="<dtml-var "msg('Save')">" style="width:100px;">
+</dtml-if>
+
+</form>
+
+</dtml-let>
+
+<dtml-var "'<p>&nbsp;</p>\n'*0">
+
+<dtml-var simple_html_footer>

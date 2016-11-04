@@ -1,0 +1,42 @@
+<dtml-call "REQUEST.set('OpenInFrame', 'menuSearch')">
+
+<dtml-var simple_html_header>
+
+<dtml-if advanced>
+  <dtml-var search_advanced>
+<dtml-else>
+<div class="Desktop">
+
+<h1><dtml-var "msg('Search')"></h1>
+
+(<a href="&dtml-relative_url;/search_form?advanced=1<dtml-if profile_id>&profile_id=&dtml-profile_id;</dtml-if>"><dtml-var "msg('Advanced search')"></a>)
+
+<dtml-var search_simple>
+</div>
+</dtml-if>
+
+<dtml-let user_storage_type="portal_properties.storage_type()"
+          IsArchive="user_storage_type=='archive' and 1 or 0"
+>
+  <dtml-if "not IsArchive">
+    <dtml-in "portal_catalog.searchResults(implements='isSearchProfile', parent_path=portal_membership.getPersonalFolderPath(0,'searches'))">
+      <dtml-if sequence-start>
+<form name="profile_form" action="&dtml-relative_url;/search_form" method="POST">
+        <dtml-if advanced>
+<input type="hidden" name="advanced" value="1" />
+        </dtml-if>
+<h2><dtml-var "msg('Saved search profiles')"></h2>
+<select name="profile_id" style="width:99%">
+      </dtml-if>
+  <option value="&dtml-nd_uid;" <dtml-var "_.has_key('profile_id') and nd_uid == profile_id" fmt="selected"> >&dtml-Title;</option>
+      <dtml-if sequence-end>
+</select>
+<br />
+<input type="submit" name="load" value="<dtml-var "msg('Load')">" style="width:72px;" />
+</form>
+      </dtml-if>
+    </dtml-in>
+  </dtml-if>
+</dtml-let>
+
+<dtml-var simple_html_footer>

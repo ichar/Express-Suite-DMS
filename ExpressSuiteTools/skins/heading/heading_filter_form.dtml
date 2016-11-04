@@ -1,0 +1,148 @@
+<script type="text/javascript">
+<!--
+var filterImages = [
+	'create_new_filter_over.gif', 'create_new_filter_click.gif',
+	'load_filter_click.gif', 'load_filter_over.gif',
+	'save_filter_over.gif', 'save_filter_click.gif',
+	'delete_filter_click.gif', 'delete_filter_over.gif',
+	'disable_filter_click.gif', 'disable_filter_over.gif'
+    ];
+
+preloadImages( filterImages );
+
+function saveFilter(form) {
+    form.action_save_filter.value = 1;
+    form.submit();
+}
+//-->
+</script>
+
+<dtml-let filter_id="getSession('current_filter_id')"
+          qs="_.has_key('qs') and qs or ''"
+          Type="()"
+          State="()"
+          Subject="''"
+          Creator="()"
+          Root="0">
+
+<form name="filterForm" action="portal_membership/processFilterActions" method="POST" target="workfield">
+<input type="hidden" name="action_save_filter" value="">
+<input type="hidden" name="qs" value="<dtml-var qs>">
+<input type="hidden" name="view_type" value="<dtml-var view_type>">
+
+<dtml-with content_filter mapping>
+
+<table cellspacing="2" cellpadding="0" bgColor="#FFFFFF" border="0">
+<tr>
+  <td>
+    <TABLE BORDER="0" cellspacing="0" cellpadding="2" bgcolor="#E5E5E5">
+    <TR>
+      <td colspan="2" bgcolor="#CCCCFF">
+        <table cellspacing="0" cellpadding="0">
+        <tr>
+          <td><img align="absmiddle" src="&dtml-portal_url;/filter_logo.gif"></td>
+          <td width="100%">
+            <a name="filter">
+            <dtml-if content_filter>
+              &nbsp;<dtml-var "msg('Current filter')">: <dtml-var "name or '(%s)' % msg('no name')" html_quote>
+            <dtml-else>
+              <dtml-var "msg('The filtering is off')">
+            </dtml-if>
+            </a>
+          </td>
+          <td><input type="image" name="close_filter_form" align="absmiddle" src="&dtml-portal_url;/filter_out.gif" alt="<dtml-var "msg('Hide filter form')">"></td>
+        </tr>
+        </table>
+      </td>
+    </TR>
+    <TR>
+      <td valign="top">
+        <table cellspacing="5" cellpadding="0" border="0">
+        <tr>
+          <td colspan="2">
+            <input type="image" name="create_new_filter" src="&dtml-portal_url;/create_new_filter.gif"
+             onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick='change(this,3);'
+             alt="" title="<dtml-var "msg('Create filter')">" width="18" height="18">
+            <input type="image" name="load_filter" src="&dtml-portal_url;/load_filter.gif"
+             onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick='change(this,3);'
+             alt="" title="<dtml-var "msg('Load filter')">" width="18" height="18">
+            <input type="image" name="save_filter" src="&dtml-portal_url;/save_filter.gif"
+             onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick='change(this,3);'
+             alt="" title="<dtml-var "msg('Save filter')">" width="18" height="18">
+            <input type="image" name="delete_filter" src="&dtml-portal_url;/delete_filter.gif"
+             onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick='change(this,3);'
+             alt="" title="<dtml-var "msg('Delete filter')">" width="18" height="18">
+            <input type="image" name="disable_filter" src="&dtml-portal_url;/disable_filter.gif"
+             onMouseOver='change(this,1);' onMouseOut='change(this,2);' onClick='change(this,3);'
+             alt="" title="<dtml-var "msg('Disable filter')">" width="18" height="18">
+          </td>
+        </tr>
+        <tr>
+          <td align="right"><dtml-var "msg('Filter name')"></td>
+          <td><input type="text" name="filter_name" value="&dtml.missing.html_quote-name;" style="width:240px;"></td>
+        </tr>
+        <tr>
+          <td align="right"><dtml-var "msg('Filter list')"></td>
+          <td>
+            <select name="filterList" style="width:240px;" <dtml-unless "portal_membership.listFilters()">disabled</dtml-unless>>
+            <dtml-in "portal_membership.listFilters()" sort="name" mapping>
+ 	        <option value="&dtml-id;" <dtml-var "id==filter_id and 'selected' or ''"> >
+	          <dtml-var "name or '(%s)' % msg('no name')" html_quote>
+            </option>
+            </dtml-in>
+            </select>
+          </td>
+        </tr>
+
+    <dtml-if "getId()=='storage' and portal_membership.checkPermission('Manage portal', this())">
+        <tr>
+          <td align="right"><dtml-var "msg('Manage root folder')"></td>
+          <td><input type="checkbox" name="filter_by_Root" value="1" <dtml-var "Root and 'checked'"> /></td>
+        </tr>
+    </dtml-if>
+
+        <tr>
+          <td align="right"><dtml-var "msg('Use as main filter')"></td>
+          <td><input type="checkbox" name="set_main_filter" value="1" <dtml-var "portal_membership.isMainFilterId(filter_id) and 'checked' or ''"> ></td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <table>
+        <tr>
+          <td><dtml-var "msg('Objects')">:<br>
+            <select name="filter_by_Type:list" multiple size="8" onDblClick="javascript:saveFilter(this.form);">
+            <dtml-let filter_types="Type">
+              <dtml-in "allowedContentTypes( restrict=0 )" sort="sort_order">
+            <option value="&dtml-getId;" 
+              <dtml-if expr="not filter_types or (getId() in filter_types)">selected</dtml-if>><dtml-var "msg(title_or_id(), add=0)">
+            </option>
+              </dtml-in>
+            </dtml-let>
+            </select>
+          </td>
+          <td><dtml-var "msg('Creator')">:<br>
+            <select name="filter_by_Creator:list" multiple size="8" onDblClick="javascript:saveFilter(this.form);">
+            <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+            <option value="&dtml-user_id;" 
+              <dtml-if "user_id in Creator">selected</dtml-if>>&dtml-user_name;
+            </option>
+            </dtml-in>
+            </select>
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+</dtml-with>
+
+</form>
+
+</dtml-let>

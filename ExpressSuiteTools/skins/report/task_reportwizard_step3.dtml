@@ -1,0 +1,137 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<script type="text/javascript">
+<!--
+function setDestContainer( ob ) {
+    if( ob.checked ) {
+        save_destination_wnd.style.display = 'none';
+        step3_form.dest_folder_uid.disabled = true;
+    } else {
+        save_destination_wnd.style.display = 'block';
+        step3_form.dest_folder_uid.disabled = false;
+    }
+}
+
+function DisableForm( frm ) {
+    frm.cancel.disabled = true;
+    frm.goback.disabled = true;
+    frm.save.disabled = true;
+}
+
+function SubmitForm( action ) {
+    var frm = document.step3_form;
+    DisableForm(frm);
+    frm.action = '&dtml-absolute_url;/' + action;
+    frm.submit();
+}
+//-->
+</script>
+
+<div class="Desktop">
+
+<h1> <dtml-var aboveInThread> </h1>
+<h1> <dtml-var "msg('Report wizard')">, <dtml-var "msg('step')"> 3</h1>
+
+<h4><dtml-var "msg('Check the report and change it if necessary')">:</h4>
+<form name="step3_form" method="POST" action="&dtml-absolute_url;">
+
+<dtml-if selected_tasks>
+
+<dtml-in selected_tasks>
+  <dtml-let task_id=sequence-item
+            response_request_code="'%s_responses' % task_id"
+            selected_responses="REQUEST.has_key(response_request_code) and _[response_request_code] or []"
+            pending_code="'%s_pending' % task_id"
+            selected_pending="REQUEST.has_key(pending_code) and _[pending_code] or []"
+  >
+    <input type="hidden" name="selected_tasks:list" value="&dtml-task_id;">
+    <dtml-in selected_responses>
+      <input type="hidden" name="&dtml-task_id;_responses:list" value="&dtml-sequence-item;">
+    </dtml-in>
+    <dtml-in selected_pending>
+      <input type="hidden" name="&dtml-task_id;_pending:list" value="&dtml-sequence-item;">
+    </dtml-in>
+  </dtml-let>
+</dtml-in>
+
+<dtml-var "_.apply(_.getitem(REQUEST.get('template', '')), (this(), REQUEST))">
+
+<dtml-let report_name="REQUEST.get('report_name','') or 'Signing list'"
+          report_title="'%s: %s' % (msg(report_name), Title())">
+
+<table border="0">
+<colgroup>
+<col width="165px">
+<col>
+<tr>
+  <td class="small" style="padding-top:10px;" colspan="2">
+    <h4><dtml-var "msg('Report wizard will now create an ordinary HTML document based on your report. Please specify the document\'s title and description.')"></h4>
+  </td>
+</tr>
+<tr>
+  <td class="smallHeader" align="right"><dtml-var "msg('Title')">:</td>
+  <td><input type="text" name="task_title" value="&dtml-report_title;" size="101"></td>
+</tr>
+<tr>
+  <td class="smallHeader" align="right"><dtml-var "msg('Description')">:</td>
+  <td>
+<textarea name="task_description" rows="5" cols="100">
+<dtml-var "msg('Signing report')">
+<dtml-var ZopeTime>
+</textarea>
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td>
+    <input type="checkbox" id="no_css" name="no_css" value="1" disabled />
+    <label for="no_css"><dtml-var "msg('Disable stylesheets')"></label>
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td>
+    <input type="checkbox" id="save_inside" onclick="javascript:setDestContainer(this);" onchange="javascript:setDestContainer(this);" checked />
+    <label for="save_inside"><dtml-var "msg('Save report inside the given container (recommended)')"></label>
+  </td>
+</tr>
+
+<tr id="save_destination_wnd" style="display:none">
+  <td class="smallHeader" align="right">
+    <dtml-var "msg('Save report to folder')">:
+  </td>
+  <td>
+    <input type="text" size="66" value="" id="dest_folder_title" disabled />
+    <input type="button" value="<dtml-var "msg('Browse...')">" onclick="return open_folders_wnd();" />
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2" style="padding-top:20px;">
+    <input type="hidden" name="dest_folder_uid" value="">
+    <input type="hidden" name="inc_inf" value="&dtml-inc_inf;">
+    <input type="hidden" name="template" value="<dtml-var "REQUEST.get('template', '')">">
+    <input type="hidden" name="doc_view" value="1">
+    <input type="button" id="cancel" onclick="javascript:location.href='&dtml-absolute_url;/document_follow_up_form'" value=" <dtml-var "msg('Cancel')"> ">
+
+  <dtml-if selected_tasks>
+    <input type="button" id="goback" value=" &lt;&lt; <dtml-var "msg('Back')"> " onclick="javascript:SubmitForm('task_reportwizard_step2');">
+    <input type="button" id="save" value=" <dtml-var "msg('Save report')"> " onclick="javascript:SubmitForm('task_reportwizard_step4');">
+  </dtml-if>
+  </td>
+</tr>
+</table>
+</form>
+
+</dtml-let>
+
+<dtml-else>
+  <p><i><dtml-var "msg('You have to specify at least one report')"></i></p>
+</dtml-if>
+
+</div>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,112 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'User Information')">
+
+<dtml-var simple_html_header>
+
+<dtml-let info="portal_membership.getUserInfo(_['userid'])"
+          isAnon="portal_membership.isAnonymousUser()"
+          uname="isAnon and 'Guest' or portal_membership.getAuthenticatedMember().getUserName()"
+          len_info="info.has_key('notes') and info['notes'] and _.len(info['notes']) or 0"
+          rows="len_info > 50 and 6 or 12"
+>
+  <dtml-if info>
+    <dtml-with info mapping>
+<table class="FormLayout" width="440px" border="0">
+<colgroup>
+<col style="WIDTH:50%">
+<col style="WIDTH:50%">
+<tbody>
+<tr>
+  <th><dtml-var "msg('User')"></th>
+  <td class="ViewField"><dtml-var userid> </td>
+</tr>
+<tr>
+  <th><dtml-var "msg('E-mail address')"></th>
+  <td style="padding-left:4px;"><a href="mailto:&dtml-email;">&dtml-email;</a></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Last name')"></th>
+  <td class="ViewField">&dtml-lname;</td>
+</tr>
+<tr>
+  <th><dtml-var "msg('First name')"></th>
+  <td class="ViewField">&dtml-fname;</td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Middle name')"></th>
+  <td class="ViewField">&dtml-mname;</td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Company')"></th>
+  <td class="ViewField"><dtml-var "getDepartmentDictionary().getCompanyTitle(id=company, name=1)"></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Users department')"></th>
+  <td class="ViewField"><dtml-var "getDepartmentDictionary().getDepartmentTitle(id=department)"></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Phone')"></th>
+  <td class="ViewField">&dtml-phone;</td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Comments')"></th>
+  <td class="ViewField">&dtml-notes;</td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Login time')"></th>
+  <td class="ViewField">
+    <dtml-let x="portal_membership.getMemberActivity(userid)"
+              login_time="x and _.str(x)[0:16] or None">
+      <dtml-if login_time>&dtml-login_time;<dtml-else><font color="#ff0000"><dtml-var "msg('absent')"></font></dtml-if>
+    </dtml-let>
+  </td>
+</tr>
+<tbody></table>
+
+<script type="text/javascript">
+<!--
+function validateForm( frm,allowEmpty ) {
+	if( typeof(frm.subj) == 'object' ) {
+		if(!testField( frm.subj, null, '<dtml-var "msg('Put the mail subject please.')">', allowEmpty )) return false;
+	}
+	if( typeof(frm.mail_text) == 'object' ) {	
+		if(!testField( frm.mail_text, null, '<dtml-var "msg('You should type the mail body!')">', allowEmpty )) return false;
+	}
+	var message = '<dtml-var "msg('Do you really want to send mail?')">';
+	return confirm(message);
+}
+//-->
+</script>
+
+<h3 style="padding: 15px 0 10px 3px"><dtml-var "msg('Send mail message')">:</h3>
+
+<table class="FormLayout">
+<form action="&dtml-portal_url;/send_simple_mail" method="POST" onSubmit="return validateForm(this,false);">
+<tr>
+  <td valign="bottom"><dtml-var "msg('Subject')">:&nbsp;</td>
+  <td width="100%"><input type="text" name="subj" size="68"></td>
+</tr>
+<tr>
+  <td colspan="2">
+    <input type="hidden" name="f_addr" value="<dtml-var "portal_membership.getMemberEmail(_['uname'])">" size="40">
+    <input type="hidden" name="t_addr" value="&dtml-userid;">
+    <textarea name="mail_text" cols="83" rows="&dtml-rows;"></textarea>
+  </td>
+</tr>
+<tr>
+  <td style="padding-top:10px" colspan="2" align="left">
+    <input type="submit" value="<dtml-var "msg('Send')">" style="width:100px;">
+    <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Cancel')">" style="width:100px;">
+  </td>
+</tr>
+</form>
+</table>
+
+    </dtml-with>
+  <dtml-else>
+<p><dtml-var userid>: <dtml-var "msg('User info is empty')"></p>
+  </dtml-if>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

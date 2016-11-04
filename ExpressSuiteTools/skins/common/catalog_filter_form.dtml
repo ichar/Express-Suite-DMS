@@ -1,0 +1,213 @@
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<dtml-if table_columns>
+
+<dtml-let conditions="filter.get('conditions')"
+          columns=table_columns
+          query="filter.get('query')"
+          IsSetFilterSession="conditions and columns and query and 1 or 0"
+          category2="_.has_key('category2') and category2 or this()"
+          uid="_.has_key('uid') and uid or None"
+>
+
+<script type="text/javascript">
+<!--
+var columns = <dtml-var columns>;
+var conditions = <dtml-var conditions>;
+var items = conditions.length;
+
+function SetCondition( frm, id, turn ) {
+    var done = 0;
+    if( !turn ) {
+        var state = [];
+        var i = 0;
+        for( x in conditions ) { 
+            var item = conditions[ x ];
+            if( item != id ) state[i++] = item; else done = ( x < items ? 1 : 0 ); 
+        }
+        conditions = state;
+    } else {
+        for( x in conditions ) if( conditions[ x ] == id ) return 0;
+        conditions[conditions.length] = id; done = 1;
+    }
+
+    var display = ( turn ? 'block' : 'none' );
+    var divs = [ 'DIV_'+id+'_title', 'DIV_'+id+'_value' ];
+
+    for( x in divs ) {
+        var div = document.getElementById( divs[x] );
+        if( typeof(div) != 'object' ) continue;
+        div.style.display = display; 
+    }
+
+    document.getElementById('buttons').style.display = ( conditions.length ? 'block' : 'none' );
+    return done;
+}
+
+function AddCondition( frm, id ) {
+    SetCondition( frm, id, 1 );
+    for( col in columns ) if( columns[ col ]['id'] == id ) break;
+    var name = 'filter_'+id+':'+columns[ col ]['type'];
+    try { frm.elements[ name ].focus(); }
+    catch (error) {};
+}
+
+function DelCondition( frm ) {
+    var state = conditions;
+    var done = 0;
+
+    for( q in state ) {
+        var id = state[ q ];
+        var obj = document.getElementById('checkbox_'+id);
+        if( !obj.checked ) continue;
+
+        if( SetCondition( frm, id, 0 ) ) { 
+            frm.remove_conditions.value += ' '+id;
+            done=1;
+        }
+        obj.checked = false;
+
+        for( col in columns ) {
+            var name = 'filter_'+conditions[ id ]+':'+columns[ col ]['type'];
+            if( frm.elements[ name ] != null )
+                frm.elements[ name ].value = '';
+            else {
+                var ignore_empty = name + ':ignore_empty';
+                if( frm.elements[ ignore_empty ] != null ) frm.elements[ ignore_empty ].value = '';
+            }
+        }
+    }
+
+    if( done ) frm.submit();
+}
+
+var IsValidated = false;
+
+function Validate( frm ) {
+    var reg_spec = /[\!\@\#\$\%\^\&\(\)\+\=\?\,\;\/\\]/g;
+    var reg_comma = /[«»\*"']/g;
+
+    for( q in conditions ) {
+        var id = conditions[ q ];
+        for( col in columns ) { if( columns[ col ]['id'] == id ) break; }
+/*
+        if( columns[ col ]['type'] == 'string' || columns[ col ]['type'] == 'text' ) {
+            var x = 'filter_'+conditions[ q ];
+            if( typeof(frm.elements[ x ]) != 'object' ) {
+                x += ':'+columns[ col ]['type'];
+                if( typeof(frm.elements[ x ]) != 'object' ) continue;
+            }
+            var obj = frm.elements[ x ];
+            if( typeof(obj) != 'object' ) continue;
+
+            var str = obj.value;
+            var pos = str.indexOf('\"');
+            for( var count = 0; pos != -1; count++ ) pos = str.indexOf('\"', pos + '\"'.length);
+
+            if(( count % 2 ) == 1 || ( str.length == count & count > 0 )) {
+                alert('<dtml-var "msg('Incorrect query')">');
+                frm.focus();
+                return false;
+            }
+        }
+*/
+        document.getElementById('checkbox_'+id).checked = true;
+    }
+
+    IsValidated = validateForm(frm, 1);
+    return IsValidated;
+}
+
+function OnSubmit( frm ) {
+    if( !IsValidated && typeof(frm) == 'object' ) return Validate(frm);
+    return true;
+}
+
+var IsSelected = false;
+
+function toggleSelect( frm ) {
+    IsSelected = ( IsSelected ? false : true );
+    for( q in conditions )
+        document.getElementById('checkbox_'+conditions[ q ]).checked = IsSelected;
+    frm.selectAll.value = ( IsSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All')">' );
+}
+//-->
+</script>
+
+<dtml-if IsSetFilterSession>
+  <dtml-call "setSession('%s_filter' % filter_id, filter)">
+</dtml-if>
+
+<form class="inline" name="catalog_filter" method="post" enctype="multipart/form-data"
+ action="<dtml-var "absolute_url(action='catalog_filter')" html_quote>" onsubmit="javascript: return OnSubmit(this);"
+>
+<input type="hidden" name="uid" value="&dtml-uid;">
+<input type="hidden" name="remove_conditions" value="">
+
+<table border="0">
+<tr class="row_title"><td class="smallHeader" colspan="2"><dtml-var "msg('View filter')"></td></tr>
+
+<dtml-in columns mapping>
+  <dtml-let column_title=title
+            column_type=type
+            x="query.get(id, [])"
+            IsQuery="_.same_type(x, {}) and 1 or 0"
+            v="IsQuery and x.get('query') or x"
+            operator="IsQuery and x.get('operator')"
+            range="IsQuery and x.get('range')"
+            value="_.same_type(v, '') and v.replace('%','') or v"
+            IsActive="conditions and id in conditions"
+            checkbox="'checkbox_%s' % id"
+            block="IsActive and 'block' or 'none'"
+            color="IsActive and 'black' or 'gray'"
+  >
+<tr class="row_even">
+  <td class="smallHeader" style="padding-right:10px;">
+    <div id="DIV_<dtml-var id>_title" style="display:&dtml-block;">
+    <input type="checkbox" id="&dtml-checkbox;" name="selected_conditions:list" value="&dtml-id;"> 
+    <label for="&dtml-checkbox;"><span class="mousepointer"><font color="&dtml-color;"><dtml-var "msg(column_title)"></font></span></label>
+    </div>
+  </td>
+  <td>
+    <div id="DIV_<dtml-var id>_value" style="display:&dtml-block;">
+      <dtml-var catalog_filter_item>
+    </div>
+  </td>
+</tr>
+  </dtml-let>
+
+  <dtml-if sequence-end>
+<tr class="row_title">
+  <td colspan="2" id="buttons" style="display:<dtml-var "conditions and 'block' or 'none'">">
+    <input type="submit" name="apply_filter" value="<dtml-var "msg('Apply filter')">">
+    <input type="button" value="<dtml-var "msg('Remove condition')">" onClick="javascript:DelCondition(this.form);">
+    <input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelect(this.form);" style="width:140px;">
+  </td>
+</tr>
+  </dtml-if>
+</dtml-in>
+
+<tr class="row_title">
+  <td class="smallHeader"><dtml-var "msg('Column:')"></td>
+  <td>
+    <select name="condition">
+    <dtml-in columns mapping>
+      <dtml-if "id not in ('DocumentFolder',)">
+    <option value="&dtml-id;"><dtml-var "msg(title, add=None)"></option>
+      </dtml-if>
+    </dtml-in>
+    </select>
+    <input type="button" value="<dtml-var "msg('Add condition')">" onClick="javascript:AddCondition(this.form, condition.value);">
+  </td>
+</tr>
+<tr>
+  <td colspan="2"><dtml-var "msg('Note: Filter can execute only full matched text search.')"></td>
+</tr>
+</table>
+
+<input type="hidden" name="filter_id" value="<dtml-var "_.has_key('filter_id') and filter_id or getUid()">">
+</form>
+
+</dtml-let>
+
+</dtml-if>

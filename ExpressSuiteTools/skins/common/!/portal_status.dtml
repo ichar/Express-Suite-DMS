@@ -1,0 +1,22 @@
+<dtml-if portal_status_message>
+<div onclick="this.style.display='none'"> <!--  style="position:absolute; padding: 1px 0 0 3px;" -->
+  <dtml-let IsError="_.has_key('portal_status_style') and portal_status_style in ['error'] and 1 or 0"
+            bgcolor="IsError and '#ff0000' or '#00ff00'">
+    <dtml-if IsError>
+<table bgcolor="&dtml-bgcolor;" cellspacing="5" cellpadding="20" border="0">
+<tr>
+  <td align="center" style="border: 1px solid white;">
+	<p><font color="#ffffff">
+	<dtml-if IsError><b><dtml-var "msg('Error')">!</b><br></dtml-if>
+	<dtml-msgtext data=REQUEST><dtml-var portal_status_message></dtml-msgtext>
+	<dtml-if portal_status_info>&dtml-portal_status_info;</dtml-if></font>
+	</p>
+  </td>
+</tr>
+</table>
+    <dtml-else>
+	<dtml-msgtext data=REQUEST><dtml-var portal_status_message></dtml-msgtext>
+    </dtml-if>
+  </dtml-let>
+</div>
+</dtml-if>

@@ -1,0 +1,153 @@
+<dtml-comment>
+Form field view template.
+Template params:
+  'type'          -- Field type.
+Allowed values are 'string', 'boolean', 'int', 'float', 'text', 'date', 'lines', 'items', 'userlist', 'link'.
+  'name'          -- Field id.
+  'value'         -- Field value.
+  'default_value' -- Field default_value
+  'value_size'    -- Field value size for text
+</dtml-comment>
+
+<font style="<dtml-var "REQUEST.has_key('view_font_style') and REQUEST.get('view_font_style') or 'color:black;font-weight:normal;font-size:110%;'">">
+
+<dtml-if "value or value==0">
+
+<dtml-if "type=='string'">
+  <dtml-var value newline_to_br>
+<dtml-elif "type in ['date','date_time','date_only']">
+  <dtml-if "value is not None">
+    <dtml-let value="not _.hasattr(value, 'day') and _.DateTime(value) or value">
+      <dtml-if "type=='date_only' or _.hasattr(value, 'hour') and not value.hour()">
+        <nobr><dtml-var value fmt="%Y-%m-%d"></nobr>
+      <dtml-elif "type=='date_time'">
+        <nobr><dtml-var value fmt="%Y-%m-%d"></nobr><br>
+        <nobr><dtml-var value fmt="%H:%M"></nobr>
+      <dtml-else>
+        <nobr><dtml-var value fmt="%Y-%m-%d %H:%M"></nobr>
+      </dtml-if>
+    </dtml-let>
+  </dtml-if>
+<dtml-elif "type=='boolean'">
+  <dtml-if value>
+    <dtml-var "msg('Yes')">
+  <dtml-else>
+    <dtml-var "msg('No')">
+  </dtml-if>
+<dtml-elif "type=='text'">
+  <dtml-if "_.has_key('value_size') and value_size==1">
+    <dtml-var value size=120 html_quote newline_to_br>
+  <dtml-else>
+    <dtml-var value newline_to_br>
+  </dtml-if>
+<dtml-elif "type=='file'">    
+  <dtml-if "value.startswith('uid:')">
+    <dtml-in "portal_links.searchLinks( source_uid=getUid(), field_id=name )">
+      <dtml-var "link_view_embedded(this(), link_id=id)">
+    </dtml-in>
+  <dtml-else>
+    <a href="&dtml-absolute_url;/&dtml-value;" target="_blank">&dtml-value;</a>
+  </dtml-if>
+<dtml-elif "type=='lines'">
+  <dtml-let val="_.has_key('default_value') and default_value[1:] or value or ['nonselected']"
+            value="_.same_type(val, [], ()) and val or [val]"
+            text="'\n'.join(value)"
+  >
+    <dtml-if "value==['nonselected']">
+      <dtml-var "msg(value[0])" html_quote>
+    <dtml-elif "_.has_key('mode')">
+      <textarea name="&dtml-name;:lines" rows="1" cols="50" disabled><dtml-var text></textarea>
+    <dtml-else>
+      <dtml-var text html_quote newline_to_br>
+    </dtml-if>
+  </dtml-let>
+<dtml-elif "type=='items'">
+  <dtml-let val="_.has_key('default_value') and default_value[1:] or value"
+            values="getAttributeDefinition(name).getDefaultValue(val)"
+            text="'\n'.join([x['title'] for x in values])"
+  >
+    <dtml-if "val in ['nonselected']">
+      <dtml-var "msg(val)" html_quote newline_to_br>
+    <dtml-elif "_.has_key('mode')">
+      <textarea name="&dtml-name;:lines" rows="1" cols="50" disabled><dtml-var text></textarea>
+    <dtml-elif "_.has_key('default_value')">
+      <dtml-var text html_quote>
+    <dtml-else>
+      <dtml-var text html_quote newline_to_br>
+    </dtml-if>
+  </dtml-let>
+<dtml-elif "type=='listitem'">
+  <dtml-var value>
+<dtml-elif "type=='userlist'">
+  <dtml-let val="_.has_key('default_value') and default_value[1:] or value or []"
+            user_data="[user['user_name'] for user in portal_membership.listSortedUserNames(val) if user['user_id'] is not None]"
+            text="'\n'.join(user_data)"
+  >
+    <dtml-var text html_quote newline_to_br>
+  </dtml-let>
+<dtml-elif "type=='link'">
+  <dtml-let mode="_.has_key('mode') and mode"
+            attr="getAttributeDefinition(name,1)"
+            get_default="attr is not None and attr.getComputedDefault() or _.has_key('get_default') and get_default or [0]"
+            linked_folder_objects="get_default[0]==1"
+            linked_category_objects="get_default[0]==2"
+            view_as_selected="mode in ['invoke','metadata','registry','state'] and linked_folder_objects and 1 or 0"
+  >
+    <dtml-if "view_as_selected or _.same_type(value, [], ())">
+      <dtml-let val="_.has_key('value') and value or ['nonselected']"
+                value="_.same_type(val, [], ()) and val or [val]"
+                default_value="attr.getDefaultValue(value)"
+                text="'\n'.join([ item['title'] for item in default_value ])"
+      >
+        <dtml-if "mode in ['registry']">
+      <input type="hidden" name="&dtml-name;" value="<dtml-var text>" />
+        </dtml-if>
+        <dtml-var text html_quote newline_to_br>
+      </dtml-let>
+    <dtml-else>
+      <dtml-let ob="portal_catalog.getRemoteObjectByUid(value)"
+                ob_info="ob is not None and ob.implements('isDocument') and ob.getInfoForLink() or ''"
+                ob_title="ob is not None and (ob_info or ob.title) or is_remote_value and value['title'] or ''"
+                ob_link="ob is not None and ob.absolute_url(canonical=1)+'?expand=1' or is_remote_value and portal_properties.remote_url(value['url'])+'?expand=1' or ''"
+      >
+        <dtml-if "mode in ['registry']">
+      <input type="hidden" name="&dtml-name;" value="<dtml-var ob_title>" />
+        </dtml-if>
+        <dtml-if ob_link>
+      <a class="info" target="_blank" href="&dtml-ob_link;">&dtml-ob_title;</a>
+        <dtml-else>
+          <dtml-var value>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+  </dtml-let>
+<dtml-elif "type=='table'">
+  <dtml-let mode="_.has_key('mode') and mode"
+            value="_.has_key('value') and _.same_type(value, {}) and value or {}"
+            count="value.get('count') or 0"
+            values="value.get('values') or []"
+            view_as_selected="mode in ['registry'] and 1 or 0"
+  >
+    <dtml-if "view_as_selected and _.same_type(values, [], ())">
+      <dtml-let default_value="getCustomCookedTableTranslit( context, name, values )"
+                text="'\n'.join([ item for item in default_value ])"
+      >
+        <dtml-if "mode in ['registry']">
+      <textarea style="display:none" name="&dtml-name;"><dtml-var text></textarea>
+        </dtml-if>
+        <dtml-var text newline_to_br>
+      </dtml-let>
+    <dtml-else>
+      <nobr><dtml-var count> (<dtml-var "msg('total rows inside the table')">)</nobr>
+    </dtml-if>
+  </dtml-let>
+<dtml-else>
+  &dtml.null-value;
+</dtml-if>
+
+<dtml-elif "type=='userlist'">
+  <dtml-var "msg('nonselected')">
+</dtml-if>
+
+</font>
+

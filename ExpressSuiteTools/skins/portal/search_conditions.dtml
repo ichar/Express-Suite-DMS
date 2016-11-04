@@ -1,0 +1,23 @@
+<dtml-let cat_id="REQUEST.has_key('cat_id') and REQUEST.get('cat_id')"
+          attr_id="REQUEST.has_key('attr_id') and REQUEST.get('attr_id')"
+          in_child="REQUEST.has_key('in_child') and REQUEST.get('in_child') or 0"
+          attr="portal_metadata.getCategoryById(cat_id).getAttributeDefinition(attr_id)"
+          value="REQUEST.has_key('attr_value') and REQUEST.get('attr_value') or None"
+          type="attr.Type()"
+          name="attr_id"
+          catattr_method="_.getitem('catattr_'+(type=='text' and 'string' or type), 0)"
+>
+<table width="100%" cellpadding="2" cellspacing="2" border="0">
+<tr class="row_odd">
+  <td width="5%">
+    <input type="checkbox" name="fields:list" value="&dtml-cat_id;_<dtml-var "attr.getId()">_div" />
+  </td>
+  <td width="45%">
+    <dtml-msg expr="attr.Title()">
+  </td>
+  <td width="50%">
+    <dtml-var "catattr_method( this(), attr=attr, value=value, mode='view' )">
+  </td>
+</tr>
+
+</dtml-let>

@@ -1,0 +1,4 @@
+<dtml-call "REQUEST.set('PageTitle', 'Groups Information')">
+<dtml-call "REQUEST.set('view_only', 1)">
+
+<dtml-var manage_groups_form>

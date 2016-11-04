@@ -1,0 +1,78 @@
+<dtml-revision $Revision: 1.1.16.2 $>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+<h2><dtml-var registry_icon.gif>&nbsp;&dtml-title_or_id;</h2>
+
+<p>&dtml-description;</p>
+
+<form name="registry" method="post" action="&dtml-absolute_url;">
+
+<p><h1><dtml-var "msg('Export to MS Excel')"></h1>
+<p>
+<dtml-let clmns=listColumns >
+<table border=0>
+  <tr class="row_title">
+    <td rowspan="3">
+      <dtml-var "msg('Columns to export')">
+    </td>
+    <dtml-in clmns prefix="clmn">
+      <td><dtml-var "msg(clmn_item.Title(), add=None)"></td>
+    </dtml-in>
+    <td><dtml-var "msg('Changes log')">
+    </td>
+  </tr>
+  <tr class="row_even">
+    
+    <dtml-in clmns prefix="clmn">
+      <td align="center"><input type="checkbox" 
+                                <dtml-var "clmn_item.isExportable()" fmt=checked>
+                                name="<dtml-var "clmn_item.getId()">">&nbsp;
+      </td>
+    </dtml-in>
+      <td align="center"><input type="checkbox" name="include_changes_log">&nbsp;
+      </td>
+  </tr>
+  <tr>
+    <dtml-in clmns prefix="clmn">
+      <td align="center">
+        <select name="<dtml-var "'width_%s'%clmn_item.getId()">" >
+          <dtml-in "_.range(200)">
+           <option value="<dtml-var sequence-item>" <dtml-var "_['sequence-item']==clmn_item.getWidth()" fmt=selected> >
+              <dtml-var sequence-item>
+          </dtml-in>
+        </select>
+      </td>
+    </dtml-in>
+      <td align="center">&nbsp;
+      </td>
+  </tr>
+</table>
+
+</dtml-let>
+<table>
+<tr><td>
+<input type="checkbox" 
+       name="landscape_view:boolean" 
+       value="&dtml-excel_landscape_view;"
+       <dtml-var "excel_landscape_view" fmt=checked> >
+  <dtml-msg "Landscape view">
+</td></tr>
+<tr><td>
+<select name="font_size:int">
+  <dtml-in "_.range(5,21,1)">
+    <option value="&dtml-sequence-item;" 
+      <dtml-var "excel_font_size==_['sequence-item']" fmt=selected> >&dtml-sequence-item;
+  </dtml-in>
+</select>
+  <dtml-msg "Font size">
+</td></tr>
+<tr><td>
+<input type="submit" name="exportToExcel:method" value="<dtml-msg "Export">" style="width: 15em;">
+</td></tr>
+</table>
+
+</form>
+
+<dtml-var simple_html_footer>

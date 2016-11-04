@@ -1,0 +1,50 @@
+<br>
+<b><dtml-var "msg('You are able to create one of the following tasks')">:</b>
+
+<dtml-let container="this()"
+          document="container.implements('isDocument') and container or None"
+          archive="document and document.archive() and 1 or 0"
+          registered_brains="portal_followup.listAllowedTaskTypes(container, visible=1)"
+          user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.has_role('Manager') and 1 or 0"
+>
+
+<table cellspacing="4" cellpadding="0">
+<tr>
+  <dtml-in registered_brains sort="sortkey" mapping>
+    <dtml-if "id not in ['signature_request'] or IsManager">
+  <td>
+    <table cellspacing="1" cellpadding="0" bgcolor="#E5E5E5" border="0">
+    <tr>
+      <td class="row_button" align="center" style="padding: 2px 10px 3px 10px" nowrap>
+      <dtml-if "archive and id not in ['information']">
+        <span style="cursor:not-allowed;color:888888;">&nbsp;<dtml-var "msg(title, add=0)">&nbsp;</span>
+      <dtml-else>
+        <a class="tabs" onclick="javascript:this.disabled=true;" href="&dtml-absolute_url;/&dtml-url;?brains_type=&dtml-id;">&nbsp;<dtml-var "msg(title, add=0)">&nbsp;</a>
+      </dtml-if>
+      </td>
+    </tr>
+    </table>
+  </td>
+    </dtml-if>
+  </dtml-in>
+  
+  <dtml-let actions="portal_actions.listFilteredActionsFor(container, object_url=relative_url(frame='inFrame'))"
+            Status="actions['workflow']"
+  >
+    <dtml-if "not archive and 'ToSelfSignature' in [x['action'] for x in Status]">
+  <td>
+    <table cellspacing="1" cellpadding="0" bgcolor="#E5E5E5" border="0">
+    <tr>
+      <td class="row_button" align="center" style="padding: 2px 10px 3px 10px" nowrap>
+        <a class="tabs" onclick="javascript:this.disabled=true;" href="&dtml-absolute_url;/self_signature_form">&nbsp;<dtml-var "msg('Self signature')">&nbsp;</a>
+      </td>
+    </tr>
+    </table>
+  </td>
+    </dtml-if>
+  </dtml-let>
+</tr>
+</table>
+
+</dtml-let>

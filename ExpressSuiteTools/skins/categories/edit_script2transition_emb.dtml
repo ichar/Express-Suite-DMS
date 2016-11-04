@@ -1,0 +1,194 @@
+
+<b><dtml-var "msg('Result codes to automated transition')"></b>
+<br><br>
+
+<dtml-let cat_id=getId
+          wf=Workflow
+          model="this().taskTemplateContainerAdapter.callModel"
+          transitions="portal_workflow[wf].getSortedTransitionsList(wf) # portal_workflow[wf].transitions.objectIds()"
+          states="portal_workflow[wf].getSortedStateList(wf) # getWorkflow().states.values()"
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+
+<script language="JavaScript">
+<!--
+function addResultCode( form_name, template_id ) {
+    select_id = 'resultcode_'+template_id;
+    result_code = document[form_name][select_id].value;
+    text = 'result_codes[\''+template_id+'\']==\''+result_code+'\' ';
+    insertText( form_name, text );
+}
+  
+function addState( form_name ) {
+    select_id = 'state_id';
+    state_id = document[form_name][select_id].value;
+    text = 'state==\''+state_id+'\' ';
+    insertText( form_name, text );
+}
+
+function insertText( form_name, text ) {
+    insertAtCaret( document[form_name].python_script, text );
+}
+
+function storeCaret(textEl) {
+   if (textEl.createTextRange) {
+       textEl.caretPos = document.selection.createRange().duplicate();
+   }
+}
+
+function insertAtCaret(textEl, text) {
+   if (textEl.createTextRange && textEl.caretPos) {
+     var caretPos = textEl.caretPos;
+     caretPos.text =
+       caretPos.text.charAt(caretPos.text.length - 1) == ' ' ?
+         text + ' ' : text;
+   } else
+     textEl.value = textEl.value + text;
+}
+-->
+</script>
+
+  <dtml-if "model( cat_id, 'getTemplateIds', 'have_result_codes' )">
+
+    <dtml-let error_id="REQUEST.get('ret')">
+      <dtml-if error_id>
+<div class="Error">
+  <dtml-var "msg('Error')">: <dtml-var "msg(model( cat_id, 'getErrorStringById', error_id ))">
+</div><p>
+      </dtml-if>
+    </dtml-let>
+
+<table cellspacing="2" cellpadding="2" border="0">
+<tr class="row_odd">
+  <td align="center"><b><dtml-var "msg('Python script')"></b></td>
+  <td align="center"><b><dtml-var "msg('Transition')"></b></td>
+  <td align="center"><b><dtml-var "msg('Note')"></b></td>
+  <td align="center">&nbsp;</td>
+</tr>
+ 
+    <dtml-in "model( cat_id, 'getVariantIds' )">
+      <dtml-let id_variant_for_edit="_.int(REQUEST.get('id_variant_for_edit', 0))"
+                id_variant="_['sequence-item']"
+                edit_mode="id_variant_for_edit==id_variant and IsAdmin"
+                variant="model( cat_id, 'getVariantById', id_variant )"
+      >
+        <dtml-if edit_mode>
+<form name="script2transition_change" action="actionOverTable" method="POST">
+<input type="hidden" name="c_id" value="&dtml-getId;">
+<input type="hidden" name="type" value="script">
+        </dtml-if>
+<tr class="row_even">
+  <td nowrap>
+    <!-- python script -->
+        <dtml-if edit_mode>
+          <dtml-var "python_script_emb(this(), c_id=cat_id, model=model, mode='script2transition_change', variant=variant, states=states )">
+        <dtml-else>
+          <dtml-var "variant['python_script']">
+        </dtml-if>
+    <!-- /python script -->
+  </td>
+  <td align="center">
+    <!-- transition -->
+        <dtml-if edit_mode>
+    <select size="1" name="transition">
+          <dtml-in transitions>
+             <dtml-let selected="_['sequence-item']==variant['transition'] and ' selected' or ''"
+                       transition_title="portal_workflow[wf].transitions[_['sequence-item']].title">
+      <option value="&dtml-sequence-item;"&dtml-selected;><dtml-var transition_title></option>
+             </dtml-let>
+          </dtml-in>
+    </select>
+        <dtml-else>
+          <dtml-try>
+            <dtml-let transition_title="portal_workflow[wf].transitions[variant['transition']].title">
+              <dtml-var transition_title>
+            </dtml-let>
+          <dtml-except>error</dtml-try>
+        </dtml-if>
+    <!-- /transition -->
+  </td>
+        <dtml-if edit_mode>
+  <td colspan="2"><textarea cols="40" rows="3" name="note"><dtml-var "variant['note']" html_quote></textarea></td>
+        <dtml-else>
+  <td nowrap><dtml-var "variant['note']" html_quote></td>
+        </dtml-if>
+    <!-- actions -->
+        <dtml-if edit_mode>
+</tr>
+<tr class="row_odd">
+  <td colspan="4" align="center">
+     <input type="submit" value="<dtml-var "msg('Save')">" style="width:100px;">
+     <input type="button" onClick="location.href='<dtml-var container_page>#resultcode2transition'" value="<dtml-var "msg('Cancel')">" style="width:100px;">
+     <input type="button" onClick="location.href='actionOverTable?id_variant=&dtml-id_variant;&action=delete&c_id=&dtml-cat_id;'" value="<dtml-var "msg('Delete')">" style="width:100px;">
+  </td>
+        <dtml-elif IsAdmin>
+  <td>
+    <a href="<dtml-var container_page>?id_variant_for_edit=<dtml-var "_['sequence-item']">#resultcode2transition">
+      <small><dtml-var "msg('edit')"></small>
+    </a>
+  </td>
+        </dtml-if>
+</tr>
+    <!-- /actions -->
+        <dtml-if edit_mode>
+<input type="hidden" name="action" value="change">
+<input type="hidden" name="id_variant" value="<dtml-var id_variant>">
+</form>
+        </dtml-if>
+      </dtml-let>
+    </dtml-in>
+  
+</table>
+
+<dtml-comment>----------------------------[ Form add ]-----------------------------</dtml-comment>
+
+    <dtml-if IsAdmin>
+
+<br><br>
+<b><dtml-var "msg('Add')"></b>:
+
+<table cellspacing="2" cellpadding="2" border="0">
+<tr class="row_odd">
+  <td align="center"><b><dtml-var "msg('Python script')"></b></td>
+  <td align="center"><b><dtml-var "msg('Transition')"></b></td>
+  <td align="center"><b><dtml-var "msg('Note')"></b></td>
+</tr>
+
+<form name="script2transition_add" action="actionOverTable" method="POST">
+<input type="hidden" name="action" value="add_script">
+<input type="hidden" name="c_id" value="&dtml-getId;">
+
+<tr class="row_even">
+  <td align="center">
+    <dtml-var "python_script_emb(this(), c_id=cat_id, model=model, mode='script2transition_add', states=states )">
+  </td>
+  <td bgcolor="#f6f6f6">
+    <select size="1" name="transition">
+      <dtml-in transitions>
+        <dtml-let transition_title="portal_workflow[wf].transitions[_['sequence-item']].title">
+          <option value="&dtml-sequence-item;"><dtml-var transition_title></option>
+        </dtml-let>
+      </dtml-in>
+    </select>
+  </td>
+  <td>
+    <textarea cols="40" rows="3" name="note"></textarea>
+  </td>
+</tr>
+<tr class="row_odd">
+  <td colspan="3" align="left">
+    <input type="submit" value="<dtml-var "msg('Add')">" style="width:100px;">
+  </td>
+</tr>
+
+</form>
+
+</table>
+
+    </dtml-if>
+
+  <dtml-else>
+    <dtml-var "msg('n/a')">
+  </dtml-if>
+
+</dtml-let>

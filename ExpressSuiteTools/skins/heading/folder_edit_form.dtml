@@ -1,0 +1,255 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<div class="File">
+
+<h2><dtml-var "msg(Type())"></h2>
+
+<form action="&dtml-absolute_url;/folder_edit" method="post" onsubmit="return Validate(this)" name="folder_edit">
+
+<script type="text/javascript">
+<!--
+function Validate( frm ) {
+    selectAll(frm.allowed_categories);
+
+    if( validateIdentifier(frm.elements['id'], '<dtml-var "msg('Object id is invalid')">', true) == false )
+        return false;
+
+    if(! frm.title.value) {
+        alert('<dtml-var "msg('Specify the topic title')">');
+        return false;
+    }
+    return true;
+}
+//-->
+</script>
+
+<table class="FormLayout" border="0">
+<tr valign="top">
+  <th align="right" width="30%"><dtml-var "msg('Id')"></th>
+  <td><input type="text" name="id" value="<dtml-var id>" style="width:100%"></td>
+</tr>
+
+<script type="text/javascript">
+   document.folder_edit.id.focus();
+</script>
+
+<tr valign="top">
+  <th align="right" width="30%"> <dtml-var "msg('Title')"></th>
+  <td><input type="text" name="title" value="&dtml-title;" style="width:100%"></td>
+</tr>
+<tr valign="top">
+  <th align="right"> <dtml-var "msg('Description')"></th>
+  <td><textarea name="description:text" rows="5" style="width:100%">&dtml-description;</textarea></td>
+</tr>
+
+<tr valign="top"><td colspan="2"></td></tr>
+
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Nomenclative number')"></th>
+  <td><input type="text" name="nomencl_num" value="<dtml-var getNomenclativeNumber>" size="65"></td>
+</tr>
+
+<tr valign="top">
+  <th align="right"> <dtml-var "msg('Postfix')"></th>
+  <td>
+    <input type="text" name="postfix" value="<dtml-var getPostfix>" size="65">
+    <br><dtml-var "msg('Note: values of these fields are used at formation of nomenclative numbers in registries.')">
+  </td>
+</tr>
+
+<tr valign="top">
+  <th align="right"><dtml-var "msg('Created/Modified')"></th>
+  <td style="padding-top:4px"><span><nobr><dtml-var created fmt="%Y-%m-%d %H:%M:%S">&nbsp;(<dtml-var modified fmt="%Y-%m-%d %H:%M:%S">)</nobr></span></td>
+</tr>
+<tr valign="top">
+  <th align="right">UID</th>
+  <td style="padding-top:4px"><span><dtml-var getUid></span></td>
+</tr>
+
+<tr valign="top"><td colspan="2"></td></tr>
+
+<dtml-let availableCategories="portal_metadata.getCategories()">
+  <dtml-if availableCategories>
+
+<tr valign="top">
+  <th><dtml-var "msg('Documents of the following categories can be created in this folder')"></th>
+  <td class="small" align="left">
+    <table cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td class="smallHeader" nowrap><dtml-var "msg('Content categories')"></td>
+      <td>&nbsp;</td>
+      <td class="smallHeader" nowrap><dtml-var "msg('Allowed categories')"></td>
+    </tr>
+    <tr>
+      <td>
+        <select name="available_categories" style="width:210px" size="10" multiple onDblClick="javascript:addSelectionToList(available_categories, allowed_categories);">
+          <dtml-in availableCategories>
+           <dtml-if sequence-item>
+            <option value="&dtml-getId;"> <dtml-var "msg(Title(), add=None)"> </option>
+           </dtml-if>
+          </dtml-in>
+        </select>
+      </td>
+      <td align="center" style="padding: 20px 10px 0 10px">
+        <input type="button" onClick="javascript:addSelectionToList(available_categories, allowed_categories);" value=" >> "> <br>
+        <input type="button" onClick="javascript:deleteSelectionFromList(allowed_categories);" value=" << ">
+      </td>
+      <td style="width:100%">
+        <select id="allowed_categories" name="allowed_categories:list" size="10" multiple onDblClick="javascript:deleteSelectionFromList(allowed_categories);">
+          <dtml-in "listAllowedCategories('folders')">
+           <dtml-if sequence-item>
+            <option value="&dtml-getId;"> <dtml-var "msg(Title(), add=None)"> </option>
+           </dtml-if>
+          </dtml-in>
+        </select>
+      </td>
+    </tr>
+
+    <tr>
+      <td nowrap><dtml-var "msg('Fast search')">: <input type="text" value="" onKeyUp="SearchStrInSelect(value, available_categories);"></td>
+      <td class="small">&nbsp;</td>
+      <td class="small">&nbsp;</td>
+    </tr>
+    <tr>
+      <td colspan="3" nowrap>
+        <input type="checkbox" id="category_inheritance" name="category_inheritance" <dtml-if "getCategoryInheritance()">checked</dtml-if> value="1">
+        <label for="category_inheritance"><dtml-var "msg('Use allowed categories list from the parent folder')"></label>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3">
+	    <b><dtml-var "msg('Allowed categories in the parent folder')">:</b><br>
+        <dtml-let inherited="listAllowedCategories('parent_cats')">
+          <dtml-in inherited>
+            <dtml-if sequence-item>
+              <dtml-var "msg(Title(), add=None)"><dtml-var "_['sequence-end'] and '.' or ', '">
+            </dtml-if>
+          <dtml-else>
+            <dtml-var "msg('No')">
+          </dtml-in>
+        </dtml-let>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+<dtml-if "implements('isIncomingMailFolder')">
+<tr>
+  <th><dtml-var "msg('Mail account name')"></th>
+  <td class="small">
+    <input type="text" name="mail_login" value="&dtml-mail_login;" size="25">
+  </td>
+</tr>
+
+<tr>
+  <th><dtml-var "msg('Password')"></th>
+  <td class="small">
+    <input type="password" name="mail_password" value="*****" size="25">
+    <br>
+    <input type="password" name="mail_password2" value="" size="25">
+    (<dtml-var "msg('confirm password')">)
+  </td>
+</tr>
+
+<tr>
+  <th><dtml-var "msg('Keep messages on server')"></th>
+  <td class="small">
+    <input type="radio" name="mail_keep" value="1" <dtml-var "mail_keep and 'checked=1' or ''"> ><dtml-var "msg('Yes')">
+    &nbsp;
+    <input type="radio" name="mail_keep" value="" <dtml-var "not mail_keep and 'checked=1' or ''"> ><dtml-var "msg('No')">
+  </td>
+</tr>
+
+<tr>
+  <th><dtml-var "msg('Activity scheduler interval')"></th>
+  <td>
+    <table cellpadding="0" cellspacing="0" border="0">
+    <tr>
+      <td><input type="text" name="start_time_hour:int" value="&dtml-start_time_hour;" size="2" maxlength="2" style="text-align:center"></td>
+      <td style="padding: 3px 2px 0 2px;">:</td>
+      <td><input type="text" name="start_time_minute:int" value="&dtml-start_time_minute;" size="2" maxlength="2" style="text-align:center"></td>
+      <td style="padding: 5px 4px 0 4px;">-</td>
+      <td><input type="text" name="finish_time_hour:int" value="&dtml-finish_time_hour;" size="2" maxlength="2" style="text-align:center"></td>
+      <td style="padding: 3px 2px 0 2px;">:</td>
+      <td><input type="text" name="finish_time_minute:int" value="&dtml-finish_time_minute;" size="2" maxlength="2" style="text-align:center"></td>
+      <td style="width:90%">&nbsp;</td>
+    </tr>
+    <tr>
+      <td colspan="8">
+        <input type="checkbox" id="scheduler_workday_only" name="scheduler_workday_only" <dtml-if scheduler_workday_only>checked</dtml-if> value="1">
+        <label for="scheduler_workday_only"><dtml-var "msg('Activate scheduler in working days only')"></label>
+        <br>
+        <input type="checkbox" id="activate_timestamp" name="activate_timestamp" <dtml-if activate_timestamp>checked</dtml-if> value="1">
+        <label for="activate_timestamp"><dtml-var "msg('Apply timestamp')"></label>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <th><dtml-var "msg('Mail check interval')"></th>
+  <td class="small">
+    <input type="text" name="mail_interval" value="&dtml-mail_interval;" size="6" style="text-align:center">
+    (<dtml-var "msg('minutes')">)
+  </td>
+</tr>
+
+<dtml-comment>
+<tr>
+  <th><dtml-var "msg('Accepted senders')"></th>
+  <td class="small">
+    <textarea name="mail_senders" cols="65" rows="5" wrap="soft"
+    ><dtml-if "REQUEST.has_key('mail_senders')"><dtml-var mail_senders html_quote
+    ><dtml-else><dtml-var expr="'\n'.join(getAllowedSenders())" html_quote
+    ></dtml-if></textarea>
+  </td>
+</tr>
+</dtml-comment>
+</dtml-if>
+
+<dtml-if "implements('isOutgoingMailFolder')">
+<tr>
+  <th><dtml-var "msg('From field name')"></th>
+  <td class="small">
+    <input type="text" name="mail_from_name" value="&dtml-mail_from_name;" size="65">
+  </td>
+</tr>
+
+<tr>
+  <th><dtml-var "msg('From field address')"></th>
+  <td class="small">
+    <input type="text" name="mail_from_address" value="&dtml-mail_from_address;" size="65">
+  </td>
+</tr>
+
+<tr>
+  <th><dtml-var "msg('Mail recipients')"></th>
+  <td class="small">
+    <textarea name="mail_recipients" cols="65" rows="5" wrap="soft"
+    ><dtml-if "REQUEST.has_key('mail_recipients')"><dtml-var mail_recipients html_quote
+    ><dtml-else><dtml-var expr="'\n'.join(getRecipients())" html_quote
+    ></dtml-if></textarea>
+  </td>
+</tr>
+</dtml-if>
+
+<dtml-if "_.SecurityCheckPermission('Modify portal content', this())">
+<tr>
+  <td><br></td>
+  <td style="padding-top:10px"><input type="submit" value=" <dtml-var "msg('Save')"> "></td>
+</tr>
+</dtml-if>
+</table>
+</form>
+
+</div>
+
+</div>
+
+<dtml-var simple_html_footer>

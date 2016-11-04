@@ -1,0 +1,110 @@
+<script language="Javascript">
+function go_ToHref(a) { window.location.href=a; }
+</script>
+
+<table width="100%" cellspacing="3" cellpadding="0" border="0">
+<tr>
+  <form name="followup" method="post" action="&dtml-absolute_url;">
+  <td nowrap>
+    <input type="hidden" name="selectall" value="1">
+    <table cellspacing="3" cellpadding="0" bgcolor="#E5E5E5" border="0">
+    <tr>
+      <td><img src="&dtml-portal_url;/task_report.gif" alt="<dtml-var "msg('Report wizard')">"></td>
+      <td class="row_button" nowrap><a onclick="javascript:this.disabled=true;" class="tabs" href="&dtml-absolute_url;/task_reportwizard_form"><dtml-var "msg('Report wizard')"></a></td>
+    </tr>
+    </table>
+  </td>
+
+<dtml-if "isInvolved() or isCreator()">
+  <td nowrap>
+    <table cellspacing="3" cellpadding="0" bgcolor="#E5E5E5" border="0">
+    <tr>
+      <td><img src="&dtml-portal_url;/task_delegate.gif" alt="<dtml-var "msg('Define a subtask')">"></td>
+      <td class="row_button" nowrap><a onclick="javascript:this.disabled=true;" class="tabs" href="&dtml-absolute_url;/task_add_form"><dtml-var "msg('Define a subtask')"></a></td>
+    </tr>
+    </table>
+  </td>
+</dtml-if>
+
+<dtml-if "IsAdmin # and not isFinalized() and not listUsersWithClosedReports()">
+  <td nowrap>
+    <table cellspacing="3" cellpadding="0" bgcolor="#E5E5E5" border="0">
+    <tr>
+      <td><img src="&dtml-portal_url;/task_reject.gif" alt="<dtml-var "msg('Delete task')">"></td>
+      <td class="row_button" nowrap><a onclick="javascript:this.disabled=true;" class="tabs" href="&dtml-absolute_url;/task_delete_confirmation"><dtml-var "msg('Delete task')"></a></td>
+    </tr>
+    </table>
+  </td>
+</dtml-if>
+
+  <td style="width:90%" nowrap>
+    <table cellspacing="3" cellpadding="0" bgcolor="#E5E5E5" border="0">
+    <tr>
+      <td><img name="print" src="&dtml-portal_url;/print.gif" alt="<dtml-var "msg('Task print preview')">" width="18" height="18"></td>
+      <td class="row_button" nowrap><a target="_blank" class="tabs" href="&dtml-absolute_url;/task_preview_form"><dtml-var "msg('Print preview')"></a></td>
+    </tr>
+    </table>
+  </td>
+  </form>
+</tr>
+</table>
+
+<dtml-unless isFinalized>
+  <dtml-in "listAllowedResponseTypes(check_demand_revision=1)" mapping>
+    <dtml-if sequence-start>
+  <br>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td class="smallHeader" colspan="3" style="padding-bottom:3px;"><dtml-var "msg('Actions list')">:</td></tr>
+<tr>
+  <td style="padding-left:0px;" nowrap>
+    <table cellspacing="5" cellpadding="4" bgcolor="#E5E5E5">
+    <tr>
+    </dtml-if>
+    <dtml-if "id=='*change_state*'">
+      <dtml-let actions="portal_actions.listWorkflowActionsFor(this(), url)">
+        <dtml-in actions sort="name" mapping>
+      <td class="col_button" align="center" valign="middle" style="padding: 4px 15px 4px 15px" nowrap
+          bgColor="#C4E1C4"
+          onmouseover="javascript:this.bgColor='#E4F1E4'" 
+          onmouseout="javascript:this.bgColor='#C4E1C4'" 
+          onclick="go_ToHref('&dtml-url;')">
+        <a onclick="javascript:this.disabled=true;" class="tabs" href="&dtml-url;"><dtml-var "msg(name, add=0)"></a>
+      </td>
+        </dtml-in>
+      </dtml-let>
+    <dtml-elif "id=='task_register' and container is not None and container.registry_ids()">
+    <dtml-else>
+      <td class="col_button" align="center" valign="middle" nowrap
+      <dtml-if "id in ['commit','sign','satisfy']">
+          bgColor="#C4E1C4"
+          onmouseover="javascript:this.bgColor='#E4F1E4'" 
+          onmouseout="javascript:this.bgColor='#C4E1C4'" 
+      <dtml-elif "id in ['failure','reject','revise']">
+          bgColor="#FFB7B7"
+          onmouseover="javascript:this.bgColor='#FFD5D5'" 
+          onmouseout="javascript:this.bgColor='#FFB7B7'" 
+      <dtml-else>
+          bgColor="#C5C5E2"
+          onmouseover="javascript:this.bgColor='#DEDEEF'" 
+          onmouseout="javascript:this.bgColor='#C5C5E2'" 
+      </dtml-if>
+      <dtml-if "id in ['task_start','task_register']">
+          style="padding-bottom:4px;width:200px;cursor:Hand;text-align:center;" 
+      <dtml-elif "id in ['deliver']">
+          style="padding-bottom:4px;width:220px;cursor:Hand;text-align:center;" 
+      <dtml-else>
+          style="padding-bottom:4px;width:130px;cursor:Hand;text-align:center;" 
+      </dtml-if>
+          onclick="go_ToHref('&dtml-absolute_url;/&dtml-url;?status=&dtml-id;')">
+        <a onclick="javascript:this.disabled=true;" class="tabs" href="&dtml-absolute_url;/&dtml-url;?status=&dtml-id;"><dtml-var "msg(title, add=0)"></a>
+      </td>
+    </dtml-if>
+    <dtml-if sequence-end>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+    </dtml-if>
+  </dtml-in>
+</dtml-unless>

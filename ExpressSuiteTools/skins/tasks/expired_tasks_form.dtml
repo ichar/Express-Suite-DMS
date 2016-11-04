@@ -1,0 +1,84 @@
+<dtml-revision $Revision: 1.0.0.0 $>
+
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'Expired Tasks')">
+
+<dtml-var simple_html_header>
+
+<h1 align="center" style="color:red;padding: 20px 0 0 0"><dtml-var "msg('User Expired Tasks')"></h1>
+
+<dtml-let x="portal_followup.getExpiredTaskList(REQUEST=REQUEST)"
+          results="x[1]"
+          total="x[0]"
+>
+
+<table class="FormLayout" cellspacing="5" cellpadding="5" bgcolor="#FFFFFF" width="100%" border="0">
+<form action="&dtml-portal_url;/expired_tasks_form" method="POST">
+
+<dtml-if results>
+<tr>
+  <td class="small" style="padding-left:10px;" nowrap><dtml-var "msg('Total expired tasks')">:</td>
+  <td class="smallHeader" style="width:99%">&dtml-total;</td>
+</tr>
+<tr>
+  <td align="left" colspan="2">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_title">
+      <td class="smallHeader" style="vertical-align:middle;"><dtml-var "msg('Document')"></td>
+      <td class="smallHeader" style="vertical-align:middle;"><dtml-var "msg('Author')"></td>
+      <td class="smallHeader"><dtml-var "msg('Expired days')"></td>
+    </tr>
+
+  <dtml-in results mapping>
+    <dtml-in tasks mapping sort="sortkey" reverse>
+
+      <dtml-if sequence-start>
+    <tr>
+      <td class="smallHeader" align="left" style="padding: 10px 0 10px 5px;" colspan="3" nowrap><font color="#3366CC"><dtml-var "msg(category)"></font></td>
+    </tr>
+      </dtml-if>
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td align="left">
+        <a target="_blank" href="&dtml-view_url;"><dtml-var document_title></a><br>
+        &dtml-registry_id;<br>
+        <img src="&dtml-portal_url;/spacer.gif" height="3"><br>
+        <nobr>
+        <img src="&dtml-portal_url;/&dtml-task_type;.gif" height="8" width="21">
+        <span style="font-weight:normal;color:#606060;"><dtml-var "msg(task_type)"></span>
+        </nobr>
+      </td>
+      <td><font size="1"><dtml-var "member_name(this(), member=creator, brief=0)"></font></td>
+      <td class="small" align="left"><font color="purple">&dtml-expired_days;</font></td>
+    </tr>
+
+    </dtml-in>
+  </dtml-in>
+
+    </table>
+  </td>
+</tr>
+<dtml-else>
+<tr>
+  <td align="center" style="padding: 100px 80px 100px 80px;" colspan="2">
+    <table align="center" cellspacing="5" bgcolor="#99CC99" border="0">
+    <tr>
+      <td class="smallHeader" align="center" style="padding: 40px 80px 40px 80px; border: 1pt solid white;" colspan="2"><dtml-var "msg('Expired tasks not found')"></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</dtml-if>
+
+<tr>
+  <td style="padding-top:10px" align="center" colspan="2">
+    <input type="submit" value="<dtml-var "msg('Refresh')">" style="width:100px;">
+    <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+  </td>
+</tr>
+
+</form>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

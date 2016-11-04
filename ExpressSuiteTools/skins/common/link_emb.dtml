@@ -1,0 +1,22 @@
+<dtml-comment>
+Link template params:
+  'dest_uid'          -- Link field UID
+  'dest_title'        -- Link field title
+Parent form should implement following tag names:
+  'dest_folder_uid'   -- uid input
+  'dest_folder_title' -- title input
+</dtml-comment>
+
+<table cellpadding="0" cellspacing="0" border="0">
+<tr>
+  <td nowrap>
+    <input type="text" disabled size="50" id="dest_folder_title" value="&dtml-dest_title;">
+    <input type="hidden" id="dest_folder_uid" name="dest_folder_uid" value="&dtml-dest_uid;" >
+    <input type="button" value="<dtml-var "msg('Browse...')">" onClick="return open_folders_wnd();">
+  </td>
+  <td style="padding-left:3px;">
+    <img name="delete" onMouseOver="change(this,1);" onMouseOut="change(this,2);" onClick="change(this,3); clearLinkField('dest_folder_uid', 'dest_folder_title');"
+     src="&dtml-portal_url;/delete.gif" alt="<dtml-var "msg('Remove this document')">" width="18" height="18">
+  </td>
+</tr>
+</table>

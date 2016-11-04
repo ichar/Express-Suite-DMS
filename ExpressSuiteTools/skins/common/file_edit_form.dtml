@@ -1,0 +1,52 @@
+<dtml-var standard_html_header>
+
+<div class="Desktop">
+
+<dtml-if message>
+ <p>&dtml-message;</p>
+ <hr>
+</dtml-if>
+
+<div class="File">
+
+<h2>Файл &dtml-title_or_id; (&dtml-getId;)</h2>
+
+<form action="file_edit" method="post" enctype="multipart/form-data">
+<table class="FormLayout">
+
+ <tr>
+  <th> Название </th>
+  <td> <dtml-var Title> </td>
+ </tr>
+
+ <tr>
+  <th> Описание </th>
+  <td> <dtml-var Description> </td>
+ </tr>
+
+ <tr>
+  <th> Тип </th>
+  <td> &dtml-Format; </td>
+ </tr>
+
+ <tr>
+  <th> Файл </th>
+  <td> <input type="file" name="file" size="25"> </td>
+ </tr>
+ <tr>
+  <td> &nbsp; </td>
+      <td><input name="Status" type="checkbox" value="publish" checked> Немедленно опубликовать </td>
+ </tr>
+ <tr>
+  <td> <br> </td>
+  <td><input type="submit" name="submit" value=" Сохранить " /></td>
+ </tr>
+
+</table>
+</form>
+
+</div>
+
+</div>
+
+<dtml-var standard_html_footer>

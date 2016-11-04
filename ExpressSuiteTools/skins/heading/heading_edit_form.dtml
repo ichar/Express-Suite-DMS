@@ -1,0 +1,31 @@
+<dtml-call "REQUEST.set('noCache',1)">
+<dtml-call "REQUEST.set('action', 'edit')">
+
+<dtml-comment>
+<dtml-var standard_html_header>
+</dtml-comment>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<h1><dtml-var "msg('Topic editing')"></h1>
+
+<dtml-if message>
+ <h2 class="DesktopTitle">&dtml-message;</h2>
+</dtml-if>
+
+<p>
+<dtml-var "msg('Editable topic can be updated with new documents, access rights are granted according to the topic settings.')">
+</p>
+
+<dtml-var heading_embedded_status_form>
+
+</div>
+
+</body>
+</html>
+
+<dtml-comment>
+<dtml-var standard_html_footer>
+</dtml-comment>

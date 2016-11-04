@@ -1,0 +1,80 @@
+<dtml-comment>
+$Id: involved_users_emb.dtml,v 1.2.16.3.6.3 2004/12/20 09:13:58 kfirsov Exp $
+</dtml-comment>
+<dtml-revision $Revision: 1.2.16.3.6.3 $>
+
+<script type="text/javascript" src="&dtml-portal_url;/selected.js"></script>
+
+<dtml-let requested_users_id="template_id+'_involved_users'"
+          style="_.has_key('style') and style or ''"
+          IsOrder="_.has_key('with_order') and with_order or 0"
+>
+
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td class="smallHeader" style="padding-bottom:5px;" nowrap><dtml-var "msg('All users')"></td>
+  <td class="smallHeader" style="padding-bottom:5px;" nowrap colspan="3" align="left"><dtml-var "msg('Responsible members')"></td>
+</tr>
+<tr>
+  <td align="left" valign="top">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td>
+        <select name="&dtml-template_id;_all_users" 
+                size="<dtml-var size missing=10>" multiple 
+                onDblClick="javascript:addSelectionToList(&dtml-template_id;_all_users, &dtml-requested_users_id;);"
+                style="<dtml-var style>"
+        >
+          <dtml-in "[user_id for user_id in involved_users if user_id.startswith('__role_')]">
+            <dtml-let role_name="_['sequence-item'][_.len('__role_'):]">
+              <option value="&dtml-sequence-item;"><dtml-var "msg('Role')">: <dtml-var "msg(role_name)"></option>
+            </dtml-let>
+          </dtml-in>
+          <dtml-let allowed_users="_.has_key('allowed_users') and allowed_users or portal_membership.listMemberIds()"
+                    userids="task_definition_full_userlist and allowed_users or [user_id for user_id in involved_users if not user_id.startswith('__role_')]"
+                    userlist="portal_membership.listSortedUserNames(userids)">
+            <dtml-in userlist mapping>
+              <option value="<dtml-var user_id>"><dtml-var user_name></option>
+            </dtml-in>
+          </dtml-let>
+        </select>
+      </td>
+      <td class="small" style="padding: 0 10px 0 10px; vertical-align: middle;">
+        <input type=button onClick="javascript:addSelectionToList(&dtml-template_id;_all_users, &dtml-requested_users_id;);" value=" >> "> <br>
+        <input type=button onClick="javascript:deleteSelectionFromList(&dtml-requested_users_id;);" value=" << ">
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td align="left" valign="top">
+    <select id="&dtml-requested_users_id;" 
+            size="<dtml-var size missing=10>" multiple 
+            name="_new_&dtml-requested_users_id;:list" 
+            onDblClick="javascript:deleteSelectionFromList( &dtml-requested_users_id; );"
+    >
+      <dtml-in "[user_id for user_id in involved_users if user_id.startswith('__role_')]">
+        <dtml-let role_name="_['sequence-item'][_.len('__role_'):]">
+          <option value="&dtml-sequence-item;"><dtml-var "msg('Role')">: <dtml-var "msg(role_name)"></option>
+        </dtml-let>
+      </dtml-in>
+      <dtml-in "portal_membership.listSortedUserNames([user_id for user_id in involved_users if not user_id.startswith('__role_')])" mapping>
+        <option value="<dtml-var user_id>"><dtml-var user_name></option>
+      </dtml-in>
+    </select>
+  </td>
+  <dtml-if IsOrder>
+  <td align="left" style="padding-left:10px; vertical-align:middle;">
+    <dtml-var review_arrow.gif>
+  </td>
+  <td align="left" style="padding: 0 10px 20px 10px; vertical-align:middle;">
+    <input type=button style="width:120px;" onClick="javascript:upSelected('&dtml-requested_users_id;');" value="<dtml-var "msg('Move up')">">
+    <input type=button style="width:120px;" onClick="javascript:downSelected('&dtml-requested_users_id;');" value="<dtml-var "msg('Move down')">">
+  </td>
+  </dtml-if>
+</tr>
+<tr>
+  <td style="padding-top:6px;" nowrap><dtml-var "msg('Fast search')">: <input type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-template_id;_all_users);" size="20"></td>
+</tr>
+</table>
+
+</dtml-let>

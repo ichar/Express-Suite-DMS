@@ -1,0 +1,193 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<p class="form-help">
+This list defines what per object meta data the Catalog will store. When objects get cataloged, the values of 
+any attributes they may have which match a name in this list will get stored in a table in the Catalog.  
+The Catalog then uses this information to create result objects that are returned whenever the catalog is 
+searched.  It is important to understand that when the Catalog is searched, it returns a list of result objects, 
+<i>not the cataloged objects themselves</i>, so if you want to use the value of an object's attribute in the 
+result of a search, that attribute must be in this list.
+</p>
+
+<p class="form-help">
+It is generally a good idea to keep this list lightweight.  It is useful, for example, to keep the 'summary' 
+meta data of a text document (like the first 200 characters) but <i>not</i> the text content in it's entirety 
+(it is useful in this example to <i>index</i> the text contents, which is configured in the <b>Indexes</b> View 
+tab).  This way, the summary data may be shown in the search results.
+</p>
+
+<script type="text/javascript">
+<!-- 
+function changeState(obj) {
+    if( typeof(obj) != 'object' ) return;
+    var s = (obj.style.display == 'block' ? 'none' : 'block');
+    obj.style.display = s;
+}
+
+function checkItem(obj) {
+    if( typeof(obj) != 'object' ) return;
+    obj.checked = !obj.checked;
+}
+
+function setOptions(obj) {
+    if( typeof(obj) != 'object' ) return;
+    var root = obj.form.root;
+    if( obj.options[obj.selectedIndex].value == 0 )
+        root.disabled = false; 
+    else {
+        root.checked = false;
+        root.disabled = true;
+    }
+}
+
+function Validate(form, action) {
+    switch (action) {
+    case 'add':
+        if( !form.name.value ) {
+            alert('Specify Attribute ID');
+            form.name.focus();
+            return false;
+        }
+        if( !form.ext_spec.value ) {
+            alert('Specify SQL type for destination field');
+            form.ext_spec.focus();
+            return false;
+        }
+        break;
+    case 'del':
+        var items = document.getElementsByTagName('input');
+        var IsChecked = 0;
+        for( var i = 0; i < items.length; i++ ) {
+            if( items[i].type == 'checkbox' && items[i].id.substr(0,3) == 'del' )
+                if( items[i].checked ) {
+                    IsChecked = 1;
+                    break;
+                }
+        }
+        if( !IsChecked ) {
+            alert('Select item(s) for deletion');
+            return false;
+        }
+        break;
+    }
+    return true;
+}
+
+function DisableForm(form) {
+    try {
+        form.add.disabled=true;
+        form.del.disabled=true;
+    }
+    catch (error) {}
+}
+
+function SubmitForm(action) {
+    var form = document.objectItems;
+    if( Validate(form, action) ) {
+        DisableForm(form);
+        form.action += '/'+(action == 'add'? 'manage_addColumn' : 'manage_delColumn');
+        //alert('submit: '+form.action);
+        form.submit();
+    }
+}
+//-->
+</script>
+
+<form name="objectItems" action="&dtml-URL1;" method="POST">
+<table cellspacing="0" cellpadding="2" border="0">
+<dtml-in schema sort=sequence-item>
+<tr>
+  <td align="left" valign="top">
+    <input type="checkbox" id="del_&dtml-sequence-item;" name="names:list" value="&dtml-sequence-item;" />
+  </td>
+  <td align="left" valign="top">
+    <div class="list-item"><a href="Columns/&dtml.url_quote-sequence-item;/manage_workspace">&dtml-sequence-item;</a></div>
+    <dtml-comment><div class="form-item"><span onclick="javascript:checkItem(del_&dtml-sequence-item;);">&dtml-sequence-item;</div></dtml-comment>
+  </td>
+</tr>
+  <dtml-if sequence-end>
+<tr>
+  <td align="left" valign="top"></td>
+  <td align="left" valign="top" style="padding-top:5px">
+    <div class="form-element">
+    <input class="form-element" type="button" name="del" value=" Delete " style="width:80px" onclick="javascript:SubmitForm(this.name);">
+    </div>
+  </td>
+</tr>
+  </dtml-if>
+
+<dtml-else>
+<tr>
+  <td></td>
+  <td><em class="std-text">There are currently no metadata elements.</em></td>
+</tr>
+</dtml-in>
+</table>
+
+<br />
+<table width="100%" cellspacing="0" cellpadding="" border="0">
+<tr>
+  <td style="padding: 0 3px 0 4px;"><img name="popup_selector" src="/p_/r_arrow_gif" onclick="javascript:changeState(add_extension);" style="cursor:hand;" width="16" height="16"></td>
+  <td valign="middle" style="width:100%;padding-left:2px;">
+    <span class="form-action" onclick="javascript:changeState(add_extension);">
+    <b>Add catalog extension (metadata)</b></span>
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding: 5px 0 0 0;">
+    <div id="add_extension" style="display:none;">
+    <table width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tr>
+      <td align="left" valign="top">
+        <div class="form-label">Attribute ID:</div>
+      </td>
+      <td align="left" valign="top" style="width:100%">
+        <input name="name" type="text" size="40" />
+      </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top">
+        <div class="form-selection">Extension type:</div>
+      </td>
+      <td align="left" valign="top">
+        <select name="ext_type" onchange="javascript:setOptions(this);">
+      <dtml-in extensionTypes mapping sort="value">
+        <option value="&dtml-value;">&dtml-name;</option>
+      </dtml-in>
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top" nowrap>
+        <div class="form-label">SQL type for destination field:</div>
+      </td>
+      <td align="left" valign="top">
+        <textarea name="ext_spec" rows="3" style="width:80%"></textarea>
+     </td>
+    </tr>
+    <tr>
+      <td align="left" valign="top"><div class="form-selection">Root:</div></td>
+      <td align="left" valign="top"><input type="checkbox" name="as_root" id="root" value="1"></td>
+    </tr>
+    <tr>
+      <td align="left" valign="top"><div class="form-selection">Indexable field:</div></td>
+      <td align="left" valign="top"><input type="checkbox" name="indexable" value="1" checked></td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td align="left" valign="top" style="padding-top:5px;">
+        <div class="form-element">
+        <input class="form-element" type="button" name="add" value=" Add " style="width:80px" onclick="javascript:SubmitForm(this.name);">
+        </div>
+      </td>
+    </tr>
+    </table>
+    </div>
+  </td>
+</tr>
+</table>
+</form>
+
+<dtml-var manage_page_footer>

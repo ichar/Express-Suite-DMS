@@ -1,0 +1,20 @@
+<dtml-call "REQUEST.set('noCache',1)">
+<dtml-call "REQUEST.set('action', 'freeze')">
+
+<dtml-var simple_html_header>
+
+<h1><dtml-var "msg('Freeze the topic')"></h1>
+
+<div class="DesktopTitle">
+
+<dtml-if message>
+ <h2 class="DesktopTitle">&dtml-message;</h2>
+</dtml-if>
+
+</div>
+
+<p><dtml-var "msg('Documents of the frozen topic are for reading only.')"></p>
+
+<dtml-var heading_embedded_status_form>
+
+<dtml-var simple_html_footer>

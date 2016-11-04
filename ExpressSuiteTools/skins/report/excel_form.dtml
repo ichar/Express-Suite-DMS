@@ -1,0 +1,178 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:x="urn:schemas-microsoft-com:office:excel"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1251">
+<meta name=ProgId content=Excel.Sheet>
+<meta name=Generator content="Express Suite DMS &dtml-productVersion;">
+
+<dtml-let creator_info="portal_membership.getUserInfo(Creator())"
+          user_name="portal_membership.getAuthenticatedMember().getUserName()"
+          user_info="portal_membership.getUserInfo(user_name)"
+          c_name="creator_info and creator_info['lname']+' '+creator_info['fname']+' '+creator_info['mname'] or Creator()"
+          u_name="user_info and (user_info['lname']+' '+user_info['fname']+' '+user_info['mname']) or user_name"
+>
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author><dtml-var c_name></o:Author>
+  <o:LastAuthor><dtml-var u_name></o:LastAuthor>
+  <o:Created><dtml-var "ZopeTime().ISO()"></o:Created>
+  <o:LastSaved><dtml-var "ZopeTime().ISO()"></o:LastSaved>
+ </o:DocumentProperties>
+</xml><![endif]-->
+</dtml-let>
+<!--[if gte mso 9]><xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name><dtml-var "msg('Sheet')">1</x:Name>
+    <x:WorksheetOptions>
+     <x:Selected/>
+     <x:ProtectContents>True</x:ProtectContents>
+     <x:ProtectObjects>False</x:ProtectObjects>
+     <x:ProtectScenarios>False</x:ProtectScenarios>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+  <x:ProtectStructure>True</x:ProtectStructure>
+  <x:ProtectWindows>False</x:ProtectWindows>
+ </x:ExcelWorkbook>
+</xml><![endif]-->
+<style>
+td {
+	vertical-align: top;
+}
+.smallHeader {
+    font-family: times;
+    font-size: 20px;
+    font-weight: bold;
+	vertical-align: middle;
+    color: blue;
+}
+.xl24
+    {mso-style-parent:style0;
+    mso-number-format:General;
+    white-space:normal;
+    }
+.xl25
+    {mso-style-parent:style0;
+    mso-number-format:"General Date";
+    white-space:normal;
+    }
+.xl26
+    {mso-style-parent:style0;
+    mso-number-format:"Yes\/No";
+    white-space:normal;
+    }
+.xl27
+    {mso-style-parent:style0;
+    mso-number-format:Standard;
+    white-space:normal;
+    }
+</style>
+</head>
+<body>
+
+<dtml-let brains_type="REQUEST.get('brains_type')"
+          created="REQUEST.get('show_created')"
+          expires="REQUEST.get('show_expires')"
+>
+<dtml-call "REQUEST.set('created', {'query':created, 'range':'min'})">
+<dtml-call "REQUEST.set('expires', {'query':expires, 'range':'max'})">
+
+<dtml-call "REQUEST.set('sort_on', 'created')">
+<dtml-call "REQUEST.set('sort_order', '')">
+
+<table>
+<tr>
+  <td class="smallHeader" x:str colspan="6"><dtml-var "msg('Followup tasks progress statistics')">&nbsp;<dtml-var "msg('since')">&nbsp;<dtml-var "_.DateTime(created)" fmt="%d-%m-%Y">&nbsp;<dtml-var "msg('till')">&nbsp;<dtml-var "_.DateTime(expires)" fmt="%d-%m-%Y"></strong></td>
+</tr>
+<tr><td></td></tr>
+<tr>
+  <td class="x124" x:str height="100px">
+    <strong><dtml-var "msg('Title')"></strong>
+  </td>
+  <td class="x124" x:str>
+    <strong><dtml-var "msg('Creator')"></strong>
+  </td>
+  <td class="x124" x:str>
+    <strong><dtml-var "msg('Description')"></strong>
+  </td>
+  <td>
+    <strong><dtml-var "msg('Involved Users')"></strong>
+  </td>
+  <td class="x124" x:str>
+    <strong><dtml-var "msg('Creation date')"></strong>
+  </td>
+  <td class="x124" x:str>
+    <strong><dtml-var "msg('Reports')"></strong>
+  </td>
+</tr>
+
+<dtml-let res="portal_followup.searchTasks(REQUEST=REQUEST, IsCatalog=1, BrainsType=brains_type, sort_limit=100)"
+          total_objects="res[0]"
+          results="res[1]"
+          our_tasks="[ x for x in results if not tasks or x['id'] in tasks ]"
+>
+<dtml-var total_objects>
+  <dtml-in our_tasks>
+<tr>
+  <td class="x124" x:str>
+    <dtml-let alarm_date="expires - (expires - effective) / 10"
+              task_state="_['isFinalized'] and 'finalized' or expires.isPast() and 'expired' or alarm_date < _.DateTime() and 'beforeexpiration' or 'inprogress'">
+      <dtml-var Title>&nbsp;(<dtml-var "msg(task_state)">)
+    </dtml-let>
+  </td>
+  <td class="x124" x:str>
+    <b><dtml-var "member_name(this(), member=Creator, brief=1)"></b>
+  </td>
+  <td class="x124" x:str>
+    <dtml-var Description>
+  </td>
+  <td>
+    <dtml-in InvolvedUsers>
+      <b><dtml-var "member_name(this(), member=_['sequence-item'], brief=1)"></b>
+      <dtml-if sequence-end><dtml-else><br></dtml-if>
+    </dtml-in>
+  </td>
+  <td class="x125" x:date align="left">
+    <dtml-var "created" fmt="%Y-%m-%d %H:%M">
+  </td>
+  <td>
+    <dtml-with getObject>
+      <dtml-in listResponseTypes mapping>
+        <dtml-if sequence-start>
+    <table>
+        </dtml-if>
+    <tr>
+      <td><dtml-var "msg(progresslist_title, add=0)"></td>
+    </tr>
+    <tr>
+      <td>
+        <dtml-in "searchResponses(status=id)" mapping>
+          <dtml-var "member_name(this(), member=member, brief=1)">
+          <dtml-if isclosed>- <dtml-var "msg('report closed')"></dtml-if>
+         [<dtml-var "rDate(this(), time=date).strip()">]
+          <dtml-var text newline_to_br>
+        <dtml-else>
+          <dtml-var "msg('No reports')">
+        </dtml-in>
+      </td>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+        </dtml-if>
+      </dtml-in>
+    </dtml-with>
+  </td>
+</tr>
+  </dtml-in>
+</dtml-let>
+</table>
+
+</dtml-let>
+
+</body>
+</html>

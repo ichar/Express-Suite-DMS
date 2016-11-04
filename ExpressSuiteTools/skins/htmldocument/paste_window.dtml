@@ -1,0 +1,186 @@
+<dtml-revision $Revision: 1.0.0.0 $>
+
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', msg('Paste into text'))">
+<dtml-call "REQUEST.set('BackgroundColor','#F2F2F2')">
+
+<dtml-var simple_html_header>
+
+<style type="text/css">
+td.option {
+padding: 4px 0 0 3px;
+color: #000000;
+}
+</style>
+
+<div class="Desktop">
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script type="text/javascript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category=Category())">
+
+function CleanAndPaste() {
+  window.clearTimeout( TID );
+
+  if( ( l = editor.innerHTML.length ) > 1024*200 ) {
+    alert('<dtml-msg "Text is too long (not allowed), size=">' + l);
+    return;
+  }
+
+  var html = editor.innerHTML;
+  dirt_info.value = html;
+
+  if( IsNoClear() ) { 
+    CopyToWindow( clean_info.value=html ); 
+    return; 
+  }
+
+  clean_html = HTMLCleanup( html, 1, IsSoftClear(), IsKeepFormatting(), IsRemoveEmpty() )
+  CopyToWindow( clean_info.value=clean_html=final_cleaning( clean_html ) );
+}
+
+function final_cleaning( s ) {
+  s = s.replace(/&nbsp;[ ]+/g, '&nbsp;');
+  return s;
+}
+
+function IsSoftClear() {
+  return (!soft_clear.disabled && soft_clear.checked ? 1 : 0);
+}
+
+function IsKeepFormatting() {
+  return (!keep_formatting.disabled && keep_formatting.checked ? 1 : 0);
+}
+
+function IsRemoveEmpty() {
+  return (!remove_empty_tags.disabled && remove_empty_tags.checked ? 1 : 0);
+}
+
+function IsNoClear() {
+  return (no_clear.checked ? 1 : 0);
+}
+
+function noClear() {
+  var disabled = (no_clear.checked ? true : false);
+  soft_clear.disabled = disabled;
+  keep_formatting.disabled = disabled;
+  remove_empty_tags.disabled = disabled;
+}
+
+function activate() {
+  if( editor.innerHTML.length > 0 ) { 
+    paste_button.disabled = false;
+    editor.onkeypress = null;
+    editor.onmousemove = null;
+  }
+}
+
+function unlock() {
+  paste_button.disabled = false;
+}
+
+function lock() {
+  paste_button.disabled = true;
+  TID = window.setTimeout("CleanAndPaste()", 100);
+}
+
+function CopyToWindow( html ) {
+  unlock();
+  window.opener.UnlockAndFocusEditor();
+  var range = window.opener.idEdit.document.selection.createRange();
+  range.select();
+  var sel = window.opener.idEdit.document.selection.createRange();
+  sel.pasteHTML( html );
+  window.close();
+}
+//-->
+</script>
+
+<dtml-let user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+>
+
+<table width="100%" border="0"><tr><td style="padding: 0 5px 0 5px;"><br>
+
+<table class="FormLayout" cellspacing="0" cellpadding="3" width="100%" border="0">
+<tr>
+  <td><input name="paste_button" type="button" value="<dtml-var "msg('Copy into text')">" onClick="javascript:lock();" disabled style="
+       height:38px;width:140px;
+       font-family:verdana;font-size:12px;
+       background-color:#D6D3CE;
+       font-weight:normal;
+       color:#400000;
+      ">
+  </td>
+  <td align="left" style="padding: 5px 0 0 20px; width:100%;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td class="smallHeader" align="left"><font color="purple"><dtml-msg "Paste into text form"></font></td>
+    </tr>
+    <tr style="padding-top:5px;">
+      <td><font face="arial" style="font-size:12px"><dtml-msg "You can convert any native text into HTML (Ctrl+V) and include inside the document"></font></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2" style="padding: 10px 8px 0 4px;">
+<div id="editor" onkeyup="javascript:activate();" onmousemove="javascript:activate();" contenteditable style="
+       background-color:#FFFFFF;
+       border:1pt solid blue;
+       width:100%;
+       height:280px;
+       padding:10px;
+       overflow:auto;
+       font-size:14px; 
+" on></div>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2" style="padding-top:10px;">
+    <table width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><input type="checkbox" id="soft_clear"></td>
+      <td class="option" nowrap><label for="soft_clear"><dtml-msg "Soft cleaning"></label></td>
+      <td rowspan="3" align="right" style="padding:35px 60px 0 0; width:100%;"><input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;"></td>
+    </tr>
+    <tr>
+      <td><input type="checkbox" id="keep_formatting"></td>
+      <td class="option" nowrap><label for="keep_formatting"><dtml-msg "Keep formatting the text"></label></td>
+    </tr>
+    <tr>
+      <td><input type="checkbox" id="remove_empty_tags" checked></td>
+      <td class="option" nowrap><label for="remove_empty_tags"><dtml-msg "Remove empty tags"></label></td>
+    </tr>
+    <tr>
+      <td><input type="checkbox" id="no_clear" <dtml-if IsAdmin>onclick="javascript:noClear();"<dtml-else>disabled</dtml-if> /></td>
+      <td class="option" nowrap><label for="no_clear"><dtml-msg "No formatting"></label></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2" style="display:none;width:100%;">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr><td><textarea id="keys_info" rows="5" style="width:100%;"></textarea></td></tr>
+    <tr><td><input id="stack_info" style="width:100%;" value=""></td></tr>
+    <tr><td><textarea id="dirt_info" rows="14" style="width:100%;"></textarea></td></tr>
+    <tr><td><textarea id="clean_info" rows="14" style="width:100%;"></textarea></td></tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+</td></tr></table>
+
+</dtml-let>
+
+</div>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,108 @@
+<dtml-in selected_tasks>
+  <dtml-let task_id=sequence-item
+            task="getTask(task_id)"
+            task_index="_['sequence-index'] + 1"
+            task_title="task.Title()"
+            response_request_code="'%s_responses' % task_id"
+            involved_users="listInvolvedMembers()"
+            supervisors="Supervisors()"
+            selected_responses="REQUEST.has_key(response_request_code) and _[response_request_code] or []"
+  >
+    <dtml-with "task">
+      <dtml-in selected_responses>
+        <dtml-let response="task.getTaskResponses().getUserResponse(_['sequence-item'])"
+                  response_index="_['sequence-index'] + 1">
+          <dtml-if sequence-start>
+<table border="0">
+<tr>
+  <td bgcolor="#FFFFFF" colspan="2">
+    <h2>&dtml-task_title;</h2>
+
+            <dtml-if inc_inf>
+    <table cellpadding="2" border="0">
+    <tr class="task_title">
+      <td class="smallHeader" colspan="2"><dtml-var "msg('Task type')">: <dtml-var "msg(TaskType())"></td>
+    </tr>
+    <tr class="row_even">
+      <td class="smallHeader"><dtml-var "msg('Description')">:</td>
+      <td class="small"><dtml-var Description newline_to_br></td>
+    </tr>
+    <tr class="row_even">
+      <td class="smallHeader"><dtml-var "msg('Assigned by')">:</td>
+      <td class="small">
+        <a OnClick="return OpenMenuWnd('&dtml-Creator;')" style="cursor: hand">
+          <dtml-var "portal_membership.getMemberName(_['Creator'])">
+        </a>
+      </td>
+    </tr>
+    <tr class="row_even">
+      <td class="smallHeader"><dtml-var "msg('Expiration date')">:</td>
+      <td class="small" nowrap>
+        <dtml-var "expiration_date.ISO()">
+        <dtml-unless "isEffective(_.DateTime())">
+          <b><dtml-var "msg('expired')"></b>
+        </dtml-unless>
+      </td>
+    </tr>
+              <dtml-if supervisors>
+    <tr class="row_even">
+      <td class="smallHeader"><dtml-var "msg('Supervisor')">:</td>
+      <td class="small">
+                <dtml-in supervisors sort="id">
+        <a OnClick="return OpenMenuWnd('&dtml-sequence-item;')" style="cursor: hand"><dtml-var "portal_membership.getMemberName(_['sequence-item'])"></a>
+        <dtml-unless sequence_end><br></dtml-unless>
+                </dtml-in>
+      </td>
+    </tr>
+              </dtml-if>
+
+              <dtml-if involved_users>
+    <tr class="row_even">
+      <td class="smallHeader"><dtml-var "msg('Involved members')">:</td>
+      <td>
+        <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td class="small">
+                <dtml-in involved_users sort="id">
+            <a OnClick="return OpenMenuWnd('&dtml-sequence-item;')" style="cursor: hand"><dtml-var "portal_membership.getMemberName(_['sequence-item'])"></a>
+   	        <br>
+                  <dtml-if "(_['sequence-length'] > 10) and _['sequence-index'] == _['sequence-length'] / 2">
+                  <dtml-comment> End of first column </dtml-comment>
+          </td> 
+   	      <td width="1"><dtml-var spacer.gif></td>
+          <td class="col_even">
+                  </dtml-if>
+                <dtml-else>
+            -
+                </dtml-in>
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+              </dtml-if>
+    </table>
+            </dtml-if>
+  </td>
+</tr>
+          </dtml-if>
+
+          <dtml-with response>
+<tr class="row_even">
+  <td>&nbsp;</td>
+  <td class="small">
+    <a OnClick="return OpenMenuWnd('&dtml-Creator;')" style="cursor: hand">
+      <b><dtml-var "portal_membership.getMemberName(Creator())"></b>
+    </a>
+    [<dtml-var "rDate(this(), time=Date()).strip()">]
+    <br>
+    <dtml-var "Text().replace('\n', '<br>')">
+  </td>
+</tr>
+          </dtml-with>
+</table>
+        </dtml-let>
+      </dtml-in>
+    </dtml-with>
+  </dtml-let>
+</dtml-in>

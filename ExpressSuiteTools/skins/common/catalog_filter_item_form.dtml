@@ -1,0 +1,45 @@
+<table cellpadding="0" cellspacing="0" border="0">
+<tr class="row_even">
+  <td>
+
+<dtml-if "column_type == 'date'">
+    <table>
+    <tr>
+      <td><dtml-var "msg('from')">:</td>
+      <td><dtml-var "entry_field_edit(this(), type=column_type, name='filter_min_%s' % id, value=_.len(value)==2 and value[0])"></td>
+      <td><dtml-var "msg('till')">:</td>
+      <td><dtml-var "entry_field_edit(this(), type=column_type, name='filter_max_%s' % id, value=_.len(value)==2 and value[1])"></td>
+    </tr>
+    </table>
+    <input type="hidden" name="<dtml-var "'%s_range' % id">" value="min:max">
+
+<dtml-elif "id in ['Creator','Supervisors','InvolvedUsers']">
+  <dtml-var "user_list(this(),
+                       name='filter_%s' % id, 
+                       selected_users=value,
+                       size=10,
+                       IsSimple=1
+                       )">
+
+<dtml-elif "column_type in ['int','float']">
+  <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value)">
+  <dtml-var "msg('usage:')"> 
+    <select name="<dtml-var "'%s_range' % id">">
+  <dtml-in "('max', 'less than'), ('', 'equal'), ('min', 'greater than')">
+    <option value="&dtml-sequence-key;" <dtml-var "_['sequence-key']==range and 'selected' or ''">> <dtml-var "msg(_['sequence-item'])"></option>
+  </dtml-in>
+    </select>
+
+<dtml-elif "column_type in ['list']">
+  <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value, options=(_.has_key('options') and options))">
+
+<dtml-elif "column_type in ['items'] and category2 is not None">
+  <dtml-var "entry_field_edit(category2, type=column_type, name='filter_%s' % id, value=value, context=None)">
+
+<dtml-else>
+  <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value or '')">
+
+</dtml-if>
+  </td>
+</tr>
+</table>

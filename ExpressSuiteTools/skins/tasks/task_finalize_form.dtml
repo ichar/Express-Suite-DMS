@@ -1,0 +1,98 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script language="JavaScript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.finalizeForm;
+    if( frm.result_code.value == 'cancelled' ) {
+        if( !confirm('<dtml-var "msg('Do you really want to cancel the task?')">') ) return;
+    }
+    DisableForm(frm);
+    CheckAndRefreshCommentFields(frm, ['text']);
+    frm.submit();
+}
+
+function DisableResults( checked ) {
+    var frm = document.finalizeForm;
+    frm.result_code.disabled = checked;
+}
+//-->
+</script>
+
+<div class="Desktop">
+
+<h1><dtml-var aboveInThread></h1>
+
+<dtml-let brains_type="BrainsType()">
+
+<form name="finalizeForm" action="&dtml-absolute_url;/Respond" method="post">
+<table class="FormLayout" width="100%" border="0">
+<tr>
+  <td valign=top align=left style="width:100%;">
+    <h3 style="font-size:11px;"><em><dtml-var "msg('Comment')">:</em></h3>
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-var "comment_template(this(), form='finalizeForm', field='text', context=('task.finalize.%s' % brains_type), value='')">
+  </td>
+</tr>
+
+  <dtml-if isSuperuser>
+<tr>
+  <td valign=top align=left>
+    <table border="0">
+    <dtml-if isEnabled>
+    <tr>
+      <td nowrap style="padding-top:4px;"><strong><dtml-var "msg('Temporary shelve the task')"></strong></td>
+      <td class="small" valign="top">
+        <input type="checkbox" id="shelve_task" name="disable" value="1" onclick="javascript:DisableResults(this.checked);" />
+      </td>
+      <td style="padding-top:4px;">
+        <label for="shelve_task"><b><font color="#800080"><dtml-var "msg('The task will be disabled from duty list while you activate it later')"></font></b></label>
+      </td>
+    </tr>
+    </dtml-if>
+
+    <tr>
+      <td valign=top align=left>
+        <strong><dtml-var "msg('Result')"></strong>:
+    <dtml-in "listResultCodes(check=1)" mapping>
+      <dtml-if sequence-start>
+        <select name="result_code">
+      </dtml-if>
+        <option value="&dtml-id;"><dtml-var "msg(_['title'], add=0)"></option>
+      <dtml-if sequence-end>
+        </select>
+      </dtml-if>
+    </dtml-in>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+<tr>
+  <td>
+    <br>
+    <input type="hidden" name="status" value="&dtml-status;">
+    <input type="button" name="OK" value=" <dtml-var "msg('OK')"> " title="<dtml-var "msg('Witness a signature')">" onclick="javascript:SubmitForm();" style="width:110px;">
+    <input type="button" name="cancel" onClick="JavaScript:location.href='&dtml-absolute_url;'" value="<dtml-var "msg('Cancel')">" style="width:110px;">
+  </td>
+</tr>
+  </dtml-if>
+
+</table>
+</form>
+
+</dtml-let>
+
+</div>
+
+<dtml-var simple_html_footer>

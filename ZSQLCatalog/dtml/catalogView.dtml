@@ -1,0 +1,178 @@
+<dtml-var manage_page_header>
+<dtml-var manage_tabs>
+
+<dtml-let r_meta_type="REQUEST.get('meta_type', '')"
+          r_nd_uid="REQUEST.get('nd_uid', '')"
+          r_path="REQUEST.get('path', '')"
+          r_sort_by_path="REQUEST.get('sort_by_path', '')"
+          psize="20"
+          offset="int(REQUEST.get('offset') or 0)"
+          limit="psize"
+          rs="searchSortedByPathResults(REQUEST=REQUEST, sort_by_path=r_sort_by_path, sort_limit=limit, sort_offset=offset, query_items=[])"
+          results="rs[1]"
+          l_="rs[0] or _.len(results)"
+          x="l_ - (offset + psize)"
+          previous-size="offset >= psize and psize or 0"
+          next-size="x > 0 and (x > psize and psize or x) or 0"
+>
+
+<form action="&dtml-URL;" name="searchQuery" method="POST">
+<div class="form-text">
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td nowrap><strong>Path:&nbsp;</strong></td>
+  <td><input name="path" size="110" value="&dtml-r_path;"></td>
+</tr>
+<tr>
+  <td nowrap><strong>Meta Type:&nbsp;</strong></td>
+  <td>
+    <select name="meta_type">
+    <option value="">-- any --</option>
+    <dtml-in metatypeIds>
+    <option value="&dtml-sequence-item;" <dtml-if "_['sequence-item']==r_meta_type">selected</dtml-if>>&dtml-sequence-item;</option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+<dtml-if "getSchema('nd_uid')">
+<tr>
+  <td nowrap><strong>UID:&nbsp;</strong></td>
+  <td><input name="nd_uid" value="&dtml-r_nd_uid;" style="width:200px;text-align:center;"></td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding-top:5px">
+    <input type="checkbox" id="sort_by_path" name="sort_by_path" value="1" <dtml-if r_sort_by_path>checked</dtml-if> />
+    <label for="sort_by_path">Sorted by path</label>
+  </td>
+</tr>
+</dtml-if>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding-top:5px">
+    <input class="form-element" type="submit" value=" Search ">
+  </td>
+</tr>
+</table>
+</div>
+</form>
+
+<dtml-if results>
+
+<script type="text/javascript">
+<!-- 
+isSelected = false;
+
+function toggleSelect() {
+  if (isSelected == false) {
+    for (i = 0; i < document.objectItems.length; i++)
+      document.objectItems.elements[i].checked = true ;
+      isSelected = true;
+      document.objectItems.selectButton.value = "Deselect All";
+      return isSelected;
+  }
+  else {
+    for (i = 0; i < document.objectItems.length; i++)
+      document.objectItems.elements[i].checked = false ;
+      isSelected = false;
+      document.objectItems.selectButton.value = "Select All";
+      return isSelected;       
+  }
+}
+//-->
+</script>
+
+<span class="form-text"><dtml-var id> contains <strong><dtml-var l_ thousands_commas></strong> record(s).</span><br /><br />
+
+<form action="&dtml-URL1;" name="objectItems" method="POST">
+<input type="hidden" name="r_meta_type" value="&dtml-r_meta_type;">
+<input type="hidden" name="r_nd_uid" value="&dtml-r_nd_uid;">
+<input type="hidden" name="r_path" value="&dtml-r_path;">
+<input type="hidden" name="r_sort_by_path" value="&dtml-r_sort_by_path;">
+<dtml-if "l_ > psize">
+<div class="form-text">
+  <dtml-if previous-size>
+    <a href="<dtml-var URL>?offset=<dtml-var "offset-psize">&path=&dtml-r_path;&nd_uid=&dtml-r_nd_uid;&meta_type=&dtml-r_meta_type;&sort_by_path=&dtml-r_sort_by_path;">
+      [Previous <dtml-var previous-size> entries]
+    </a>
+  </dtml-if>
+  <dtml-if next-size>
+    <a href="<dtml-var URL>?offset=<dtml-var "offset+psize">&path=&dtml-r_path;&nd_uid=&dtml-r_nd_uid;&meta_type=&dtml-r_meta_type;&sort_by_path=&dtml-r_sort_by_path;">
+      [Next <dtml-var next-size> entries]
+    </a>
+  </dtml-if>
+<br />
+</div>
+</dtml-if>
+
+<table width="100%" cellspacing="0" cellpadding="2" border="0">
+  <dtml-in results size=psize start=1>
+    <dtml-if name="sequence-start">
+<tr class="list-header">
+  <td width="5%" align="right" colspan="2" valign="top">&nbsp;</td>
+  <td width="80%" align="left" valign="top">
+    <div class="list-item">Object Identifier</div>
+  </td>
+  <td width="15%" align="left" valign="top">
+    <div class="list-item">Type</div>
+  </td>
+</tr>
+    </dtml-if>
+
+    <dtml-if name="sequence-odd">
+<tr class="row-normal">
+    <dtml-else>
+<tr class="row-hilite">
+    </dtml-if>
+  <td align="right" valign="top">
+    <input type="checkbox" name="urls:list" value="&dtml-getPath;">
+  </td>
+  <td align="left" valign="top">&nbsp;</td>
+  <td align="left" valign="top">
+    <div class="form-text">
+    <a href="&dtml-URL1;/manage_objectInformation?rid=&dtml-getRID;" target="_objectinfo_&dtml-getRID;">&dtml-getPath;</a>
+    </div>
+  </td>
+  <td align="left" valign="top" nowrap>
+    <div class="form-text">
+    <dtml-if expr="has_key('meta_type') and meta_type">
+      <dtml-var name="meta_type">
+    <dtml-else>
+      <i>Unknown</i>
+    </dtml-if>
+    </div>
+  </td>
+</tr>
+  </dtml-in>
+</table>
+
+<div class="form-element">
+<input type="hidden" name="force" value="1">
+<input class="form-element" type="submit" value=" Remove " name="manage_uncatalogObject:method">
+<input class="form-element" type="submit" value=" Update " name="manage_catalogObject:method">
+
+<script type="text/javascript">
+<!-- 
+if (document.forms[0]) {
+  document.write('<input class="form-element" type="submit" name="selectButton" value="Select All" onClick="toggleSelect(); return false">')
+}
+//-->
+</script>
+</div>
+
+<dtml-else>
+<p class="form-text">
+There are no objects in the Catalog.
+</p>
+</dtml-if>
+</form>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload = function() { document.searchQuery.path.focus(); }
+//-->
+</script>
+
+<dtml-var manage_page_footer>

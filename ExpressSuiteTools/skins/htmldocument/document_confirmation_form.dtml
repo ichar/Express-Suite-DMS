@@ -1,0 +1,436 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/cleanup.js"></script>
+
+<script type="text/javascript">
+<!--
+<dtml-var "getJSCleanerAttrsForCategory(context=this(), category='response')">
+
+function ConfirmDisableForm(frm) {
+    frm.OK.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.confirm;
+    if (Validate(frm)) {
+        ConfirmDisableForm(frm);
+        CheckAndRefreshCommentFields(frm, ['description']);
+        frm.submit();
+    }
+}
+//-->
+</script>
+
+<dtml-if expr="not _.hasattr(this(), 'followup') and this().meta_type != 'Task Item'">
+  <dtml-call expr="portal_followup.getTasksFor(this())">
+</dtml-if>
+
+<dtml-let brains_type="_.has_key('brains_type') and brains_type or 'request'"
+          IsNotSignatureRequest="brains_type not in ['signature_request']"
+          IsDelegationOfAuthorityAllowed="1"
+          IsFinalizeSettingsAllowed="1"
+          IsConfirmByTurnAllowed="1"
+          IsCycleByTurnAllowed="1"
+>
+
+<script type="text/javascript">
+<!--
+function switchFinalize( checked ) {
+    var obj = document.all.finalize_state;
+    if( typeof(obj) != 'object' ) return;
+    var confirm_by_turn = document.all.confirm_by_turn;
+    var check1 = ( typeof(confirm_by_turn) == 'object' ? confirm_by_turn.checked : 0 );
+    var cycle_by_turn = document.all.cycle_by_turn;
+    var check2 = ( typeof(cycle_by_turn) == 'object' ? cycle_by_turn.checked : 0 );
+    var delegation_of_authority = document.all.delegation_of_authority;
+    var check3 = ( typeof(delegation_of_authority) == 'object' ? delegation_of_authority.checked : 0 );
+    obj.style.display = ( check1 || check2 || check3 ? 'none' : 'block' );
+}
+
+function toggleList(event) {
+  var element = getEventTarget(event);
+
+  if( userAgent.MZ && element.tagName == 'LABEL' )
+    element = document.getElementById(element.htmlFor);
+
+  if( element.type == 'radio' )
+    if( element.value == 'custom' && element.checked ) 
+      displayElements(['dates_list']);
+    else 
+      displayElements(null, ['dates_list']);
+}
+
+function Validate(frm, save_template) {
+  /*
+  if ( !validateDate(frm.expiration_year.value, frm.expiration_month.value, frm.expiration_day.value)) {
+    alert('<dtml-var "msg('Invalid expiration date')">');
+    frm.expiration_day.focus()
+    return false;
+  }
+  */
+  if( save_template && ! frm['template_name'].value ){
+    alert('<dtml-msg "Please specify template title">');
+    return false;
+  }
+
+  if( document.getElementById('at_percents').checked ) {
+    var value = frm['alarm_percents:int'].value;
+    if (isNaN(value) || value <= 0 || value >= 100) {
+      alert('<dtml-var "msg('Positive integer less than 100 required')">');
+      return false; 
+    }
+  } else if( document.getElementById('at_periodical').checked ) {
+    var value = frm['alarm_period:int'].value;
+    if( isNaN(value) || value <= 0 ) {
+      alert('<dtml-var "msg('Positive integer required')">');
+      return false;
+    }
+  }
+
+  selectAll(frm.requested_selected_users);
+  selectAll(frm['alarm_dates:list']);
+  return validateForm(frm);
+}
+
+function findInList(list, what) {
+  for( var count = 0; count < list.length; count++ ) {
+    if( list.options[count] != null ) {
+      if( what == list.options[count].value ) {
+        return [list.options[count].text, list.options[count].value];
+      }
+    }
+  }
+}
+
+function selectEditorInList() {
+  var editors = &dtml-editor;
+  var destList = window.document.forms['confirm'].requested_selected_users;
+  var srcList = window.document.forms['confirm'].all_users;
+
+  for( var i = 0; i < editors.length; i++ ) {
+    foundInDest = findInList(destList, editors[i]);
+    if (!foundInDest) {
+      foundInSrc = findInList(srcList, editors[i]);
+      if (foundInSrc) {
+        destList.options[destList.length] = new Option(foundInSrc[0], foundInSrc[1]);
+      }
+    }
+  }
+}
+
+function sendForm(action) {
+  var form = document.forms['confirm'];
+
+  if( action == 'create_new_template' ) {
+    var options = form['template_list'].options;
+    var new_template = form['template_name'];
+
+    for( t = 0; t < options.length; t++ ) {
+      if( options[t].text == new_template.value ) {
+        alert('<dtml-msg "Template with such name already exist">');
+        return;
+      }
+    }
+  }
+
+  if( action == 'delete_template' && !form['template_list'].options.length ) return;
+
+  form.action = 'portal_membership/processTemplateActions';
+  form.template_action.value = action;
+    
+  if( action == 'delete_template' || Validate(form, true))
+    form.submit();
+}
+
+function setTemplate(template_id) {
+  var form = document.forms['confirm'];
+  var templates = new Array(
+    <dtml-in "portal_membership.listTaskTemplates().items()" prefix="t">
+      ['&dtml-t_key;', '<dtml-var "t_item['name']">', '<dtml-var "t_item['supervisors']">',
+       <dtml-var "t_item['responsible_users']">]<dtml-unless t_end>, </dtml-unless>
+    </dtml-in>
+                           );
+  var template_list = form[template_id];
+  if( !template_list.options.length )
+    return;
+  var template_id = template_list.options[template_list.selectedIndex].value;
+
+  for( var i=0; i < templates.length; i++ ) {
+    if( templates[i][0] == template_id ) {
+      form.template_name.value = templates[i][1];
+
+      //clear and fill up requested users
+      var destList = form.requested_selected_users;
+      clearList(destList);
+      fillupUserList(destList, form.all_users, form.all_groups, templates[i][3])
+    }
+  }
+  //return false;
+}
+//-->
+</script>
+
+<div class="Desktop" id="document_confirmation_container">
+
+<form name="confirm" method="post" action="document_confirmation">
+<input type="hidden" name="delegation_of_authority_allowed" value="<dtml-var "IsDelegationOfAuthorityAllowed and 1 or 0">" />
+<input type="hidden" name="brains_type" value="<dtml-var brains_type>">
+<input type="hidden" name="notify_after_commit" value="">
+<input type="hidden" name="no_commit" value="1">
+
+<table width="100%" cellspacing="1" cellpadding="3" bgColor="#FFFFFF" border="0">
+<tbody>
+<tr class="row_odd">
+  <td class="smallHeader" colspan="2">
+  <dtml-if IsNotSignatureRequest>
+    <dtml-var "msg('Request confirmation of the following users')">:
+  <dtml-else>
+    <dtml-var "msg('Request signature of the following users')">:
+  </dtml-if>
+  </td>
+</tr>
+<tr class="row_even">
+  <td colspan="2">
+    <table cellpadding="0" width="100%">
+    <tr>
+      <td align="left" style="vertical-align: middle;" nowrap>
+        <dtml-var "msg('Select template list')">:&nbsp;
+      </td>
+      <td>
+        <select name="template_list"
+        <dtml-unless "portal_membership.listTaskTemplates().items()">disabled</dtml-unless> />
+        <dtml-in "portal_membership.listTaskTemplates().items()" prefix="t">
+          <option value="<dtml-var "t_key">"><dtml-var "t_item['name']" ></option>
+        </dtml-in>
+        </select>
+      </td>
+      <td width="80%">
+        <nobr>
+        <a href="javascript:setTemplate('template_list')"><img
+           name="load_template" src="&dtml-portal_url;/load_filter.gif" alt="<dtml-var "msg('Load template')">"></a>
+        <a href="javascript:sendForm('delete_template')"><img
+           name="delete_template" src="&dtml-portal_url;/delete.gif" alt="<dtml-msg "Delete template">"></a>
+        &nbsp;
+        </nobr>
+      </td>
+      <td align="right" style="vertical-align: middle;" nowrap>
+        <dtml-var "msg('New template name')">:&nbsp;
+      </td>
+      <td>
+        <input type="text" name="template_name" value="">
+      </td>
+      <td>
+        <nobr>
+        &nbsp;
+        <a href="javascript:sendForm('create_new_template')"><img
+           name="create_new_template" src="&dtml-portal_url;/create_new_filter.gif" alt="<dtml-msg "Create template">"></a>
+        <a href="javascript:sendForm('save_template')"><img
+           name="save_template" src="&dtml-portal_url;/save.gif" alt="<dtml-msg "Save template">"></a>
+        </nobr>
+      </td>
+    </tr>
+    </table>
+    <input type="hidden" name="template_action" value="">
+    <input type="hidden" name="from_document_confirmation" value="yes">
+  </td>
+</tr>
+<tr class="row_even">
+  <td align=left colspan="2" style="padding: 0 0 5px 5px;">
+    <dtml-var "user_list(this(), 
+          name='requested', 
+          title_selected='Confirmation order', 
+          style='width:512px;',
+          size=12, 
+          selected_size=IsNotSignatureRequest and 8 or 5,
+          no_sort=1,
+          with_groups=1,
+          with_order=1,
+          IsAdvanced=1
+    )">
+  </td>
+</tr>
+
+<dtml-if IsFinalizeSettingsAllowed>
+  <dtml-let display="'block'">
+    <dtml-var task_finalize_settings>
+  </dtml-let>
+</dtml-if>
+
+<tr class="row_odd">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Task details')">:</td>
+</tr>
+
+<tr class="row_even">
+  <td class="smallHeader">
+    <dtml-var "msg('Expiration date')">
+  </td>
+  <td class="small" style="width:60%;">
+    <dtml-var "datetime_form( this(), prefix='expiration', date=ZopeTime() + 1.0)">
+  </td>
+</tr>
+
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-msg "Send reminders">&nbsp;</td>
+  <td onClick="toggleList(event)">
+    <input type="radio" name="alarm_type" value="percents" id="at_percents" checked>
+    <label for="at_percents">
+      <dtml-msgtext>
+        Before <input type="text" name="alarm_percents:int" value="10" size="2">%% till expiration
+      </dtml-msgtext>
+    </label><br>
+
+    <input type="radio" name="alarm_type" value="periodical" id="at_periodical">
+    <label for="at_periodical">
+      <dtml-msg "Every"> 
+      <input type="text" name="alarm_period:int" value="1" size="2">
+      <select name="alarm_period_type">
+        <dtml-in "'minutes', 'hours', 'days', 'months'" prefix="d">
+          <option value="&dtml-d_item;" ><dtml-msg expr=d_item>
+        </dtml-in>
+      </select>
+    </label><br>
+
+    <input type="radio" name="alarm_type" value="custom" id="at_custom">
+    <label for="at_custom"><dtml-msg "Using dates list">&nbsp;...</label><br>
+    <dtml-var "dates_list(None, _, name = 'alarm_dates',
+                          extra_attrs = {'id': 'dates_list', 'style': 'display: none'})">
+
+    <input type="radio" name="alarm_type" value="disable" id="at_disable" >
+    <label for="at_disable"><dtml-msg "Do not send"></label><br>
+  </td>
+</tr>
+<tr class="row_even">
+  <td class="smallHeader" nowrap><dtml-msg "Reminders text">&nbsp;</td>
+  <td>
+    <input type="checkbox" name="alarm_includes_descr" id="aid">
+    <label for="aid"><dtml-msg "Include task description"></label><br>
+    <dtml-comment><label for="an"><dtml-msg "Note"></label><br></dtml-comment>
+    <textarea name="alarm_note" rows="5" style="width:100%" id="an"></textarea>
+  </td>
+</tr>
+
+<tr class="row_odd">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Additional options')">:</td>
+</tr>
+<tr class="row_even">
+  <td colspan="2">
+    <table border="0">
+    <tr>
+      <td><input id="notify_mode" type="checkbox" name="notify_mode" value="1"></td>
+      <td valign="middle" style="padding-top:3px;"><label for="notify_mode"><strong><font color="#800080"><dtml-var "msg('Use automatical notification')"></font></strong></label></td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td><dtml-var "msg('In this mode involved user will receive all automatical notifications')">.</td>
+    </tr>
+    <tr>
+      <td><input id="simultaneously" type="radio" name="in_turn" value="0" onclick="javascript:switchFinalize(this.checked);" checked></td>
+      <td valign="middle" style="padding-top:1px;"><label for="simultaneously"><strong><dtml-var "msg('Request the confirmation simultaneously to all members')"></strong> (<dtml-var "msg('simultaneously request')">)</label></td>
+    </tr>
+<dtml-if "IsConfirmByTurnAllowed or IsCycleByTurnAllowed">
+    <tr>
+      <td>&nbsp;</td>
+      <td style="padding-top:3px;"><font color="#3366CC"><strong><dtml-var "msg('CONFIRMATION REQUESTS BY TURN')"></strong></font> (<dtml-var "msg('sequential scenario')">):</td>
+    </tr>
+  <dtml-if IsConfirmByTurnAllowed>
+    <tr>
+      <td><input id="confirm_by_turn" type="radio" name="in_turn" value="1" onclick="javascript:switchFinalize(this.checked);"></td>
+      <td valign="middle" style="padding-top:1px;"><label for="confirm_by_turn"><strong><dtml-var "msg('Use confirmation queue')"></strong></label></td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td><dtml-var "msg('Request the confirmation in the given order only')">.</td>
+    </tr>
+  </dtml-if>
+  <dtml-if IsCycleByTurnAllowed>
+    <tr>
+      <td><input id="cycle_by_turn" type="radio" name="in_turn" value="2" onclick="javascript:switchFinalize(this.checked);"></td>
+      <td valign="middle" style="padding-top:1px;"><label for="cycle_by_turn"><strong><dtml-var "msg('Use cycled queue')"></strong></label></td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td><dtml-var "msg('Request with cyclability in the given order only')">.</td>
+    </tr>
+  </dtml-if>
+</dtml-if>
+<dtml-if IsDelegationOfAuthorityAllowed>
+    <tr>
+      <td><input type="checkbox" id="delegation_of_authority" name="delegation_of_authority" value="1" onclick="javascript:switchFinalize(this.checked);"></td>
+      <td valign="middle" style="padding-top:2px;"><label for="delegation_of_authority"><strong><font color="#800080"><dtml-var "msg('Delegate members authority')"></font></strong></label></td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td><dtml-var "msg('In this mode delegation of authority in groups is allowed')">.</td>
+    </tr>
+</dtml-if>
+    </table>
+  </td>
+</tr>
+
+<tr class="row_odd">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Task title')">:</td>
+</tr>
+<tr class="row_even">
+  <td colspan="2">
+    <input name="title" value="" style="width:100%;">
+  </td>
+</tr>
+<tr class="row_odd">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Task comment')">:</td>
+</tr>
+<tr class="row_even">
+  <td class="small" colspan="2">
+  <dtml-let comment_title="'Confirmation %srequest' % (not IsNotSignatureRequest and 'signature ' or '')"
+            context="'task.%s' % brains_type"
+            notes="''"
+            padding="'0 0 0 0'">
+    <dtml-call "REQUEST.set('comment_title', comment_title)">
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-call "REQUEST.set('comment_rows', 5)">
+    <dtml-var "comment_template(this(), form='confirm', field='description', context=context, notes=notes, padding=padding)">
+  </dtml-let>
+  </td>
+</tr>
+
+<tr>
+  <td colspan="2"><input name="OK" type="button" value="<dtml-var "msg('Assign to the selected users')">" onclick="javascript:SubmitForm();"></td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</form>
+
+<dtml-if CookedBody>
+<table width="100%" bgcolor="#F2F2F2" border="0">
+<tr class="task_title">
+  <td class="smallHeader">&dtml-title_or_id;</td>
+</tr>
+<tr>
+  <td width="100%" bgcolor="#FFFFFF"><dtml-var "this().CookedBody(view=1, resolution='none')"></td>
+</tr>
+</table>
+</dtml-if>
+
+</dtml-let>
+
+<dtml-if sign>
+<script type="text/javascript">
+<!--
+  selectEditorInList()
+//-->
+</script>
+</dtml-if>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.top += document_confirmation_container.offsetHeight + 60;
+      resolution_body.style.display = 'block';
+    };
+//-->
+</script>
+
+<dtml-var simple_html_footer>

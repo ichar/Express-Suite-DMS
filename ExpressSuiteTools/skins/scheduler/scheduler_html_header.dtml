@@ -1,0 +1,17 @@
+<dtml-var simple_html_header>
+
+<h1><dtml-msg "Scheduler management"></h1>
+
+<table width="100%" cellpadding="0">
+<tr>
+  <td>
+    <dtml-let tabs="[ { 'url' : relative_url( action='manage_scheduler_form' ), 'title' : msg('scheduler.daemon') },
+                      { 'url' : relative_url( action='manage_schedule_form' ), 'title' : msg('scheduler.schedule') },
+                      { 'url' : relative_url( action='manage_queue_form' ), 'title' : msg('scheduler.queue') },
+                    ]"
+    >
+      <dtml-var "tabs_head(tabs, auto_select=1)">
+    </dtml-let>
+  </td>
+</tr>
+</table>

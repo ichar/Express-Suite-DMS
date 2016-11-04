@@ -1,0 +1,146 @@
+<!-- discussionReply -->
+
+<dtml-if expr="not _.hasattr(this(), 'talkback') and this().meta_type != 'Discussion Item'">
+  <dtml-call expr="portal_discussion.getDiscussionFor(this())">
+</dtml-if>
+
+<dtml-let isAnon="portal_membership.isAnonymousUser()"
+          member="portal_membership.getAuthenticatedMember()"
+>
+
+<script type="text/javascript">
+<!--
+function validateForm(frm, allowEmpty) {
+	if( typeof(frm.title) == 'object' ) {
+		if(!testField( frm.title, null, '<dtml-var "msg('Put the comment title please.')">', allowEmpty )) return false;
+	}
+	if( typeof(frm.text) == 'object' ) {	
+		if(!testField( frm.text, null, '<dtml-var "msg('You should type the comment body!')">', allowEmpty )) return false;
+	}
+    return true;
+}
+
+function send(obj, check_box) {
+    check_box.checked = (obj.value ? true : false);
+}
+
+function DisableForm(frm) {
+    frm.OK.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.replyForm;
+    if( validateForm(frm, false) ) {
+        DisableForm(frm);
+        return true; //frm.submit();
+    } else return false;
+}
+//-->
+</script>
+
+<form name="replyForm" action="<dtml-var "absolute_url(action='talkback')">/discussion_reply" method="POST" onsubmit="return SubmitForm();">
+<input type="hidden" name="Creator" value="&dtml-member;">
+
+<table cellspacing="1" cellpadding="0" width="100%" border="0">
+<tr class="row_title">
+  <td class="smallHeader" colspan="2">
+    <dtml-var "msg('Add a comment')">
+  </td>
+  <td bgcolor="#E5E5E5">&nbsp;</td>
+</tr>
+
+<tr class="row_even">
+  <td class="smallHeader" width="10%" nowrap valign="middle"><dtml-var "msg('Title')">&nbsp;&nbsp;</td>
+  <td><input name="title" size=121 value="<dtml-if title_override><dtml-var title_override><dtml-else><dtml-var "msg('studies on smth.')">:&nbsp;<dtml-var title></dtml-if>" style="width:100%;"></td>
+</tr>
+
+<dtml-if isAnon>
+<tr>
+  <th><dtml-var "msg('Name')"></th>
+  <td><input type="text" name="fullname" size=35 value="<dtml-var "REQUEST.get('fullname',member)">"></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('E-mail address')"></th>
+  <td><input type="text" name="email" size=35 value="<dtml-var "REQUEST.get('email','')">"></td>
+</tr>
+<dtml-else>
+  <input type="hidden" name="fullname" value="<dtml-var "REQUEST.get('fullname',member)">">
+</dtml-if>
+<tr class="row_even">
+  <td class="smallHeader" valign="top"><dtml-var "msg('Text')"></td>
+  <td><textarea name="text" cols="120" rows="10" wrap="soft" style="width:100%;"><dtml-if text_override><dtml-var text_override></dtml-if></textarea></td>
+</tr>
+
+<dtml-let x="talkback.notifiedUsersForReply(this())"
+          users="portal_membership.listSortedUserNames(x)"
+          len_users="users and _.len(users) or 0"
+          users_count="len_users <= 10 and len_users or 10"
+>
+  <dtml-if users>
+<tr class="row_even">
+  <td class="small" valign="top">&nbsp;</td>
+  <td>
+    <table border="0">
+    <tr>
+      <td><input type="checkbox" id="is_notify" name="is_notify" value="1"></td>
+      <td valign="middle" style="padding-top:1px;"><label for="is_notify" title="<dtml-var "msg('Discussion notify option info')">"><strong><font color="#800080"><dtml-var "msg('Discussion notify option')"></font></strong></label></td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <select name="users" onchange="javascript:send(this, is_notify)" multiple size="<dtml-var users_count>">
+        <dtml-in users mapping>
+          <option value="&dtml-user_id;">&dtml-user_name;</option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+  
+<tr class="row_even">
+  <dtml-if expr="_.hasattr(this(),'comment_type')">
+    <dtml-if comment_type>
+      <dtml-if "_.hasattr(this(),'parentsInThread')==0">
+  <td>Статус: <select name="status:int">
+      <option value=1 selected>Открыт</option>
+      <option value=2 >Принят</option>
+      <option value=3 >Закрыт</option>
+      <option value=4 >Отклонен</option>
+      </select>
+  </td>
+      </dtml-if>
+    <dtml-else>
+  <td>&nbsp;</td>
+    </dtml-if>
+  <dtml-else>
+  <td></td>
+  </dtml-if>
+  <td style="padding: 10px 0 10px 0;">
+  <dtml-if expr="_.hasattr(this(),'last_comment')">
+    <input type="hidden" name="last_comment:int" value=<dtml-var last_comment> />
+  <dtml-else>
+    <input type="hidden" name="last_comment:int" value=1 />
+  </dtml-if>
+    <input type="hidden" name="doc_ver" value="<dtml-var "this().implements('isVersionable') and this().getVersion().getVersionNumber()">">
+    <input type="submit" name="OK" value="<dtml-var "msg('Add a comment')">" onclick="javascript:SubmitForm();">
+  </td>
+</tr>
+
+  <dtml-if users>
+<tr><td height="10px" colspan="2" bgcolor="#E5E5E5">&nbsp;</td></tr>
+<tr class="row_odd">
+  <td colspan="2" style="font-size:10px; padding: 2px 2px 4px 2px;">
+    <font style="color:black;"><strong><dtml-var "msg('Note')">:</strong></font><br>
+    <em><dtml-var "msg('Discussion reply sending info')"></em>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+</table>
+
+</form>
+
+</dtml-let>

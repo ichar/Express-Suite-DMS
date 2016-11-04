@@ -1,0 +1,111 @@
+<dtml-let error_id="portal_errorlog.getLastEntryId()"
+          error_url="error_id and portal_errorlog.absolute_url( action='error_log_entry', params={'id':error_id} )"
+          error_code="_.str(error_type)"
+          unauthorized="error_code == 'Unauthorized'"
+          print_error_info="1 or error_code not in ['NotFound'] and 1 or 0"
+>
+<dtml-if "portal_membership.isAnonymousUser()">
+
+<html>
+<head>
+<title>Error</title>
+</head>
+<body>
+
+<p>
+<dtml-if error_id>
+<dtml-var "msg('Error ID')">: &dtml-error_id;<br/>
+</dtml-if>
+<dtml-var "msg('Error type')">: &dtml-error_type;<br/>
+<dtml-var "msg('Error value')">: &dtml-error_value;<br/>
+</p>
+
+</body>
+</html>
+
+<dtml-else>
+
+  <dtml-call "REQUEST.set( 'OpenInFrame', 'workfield' )">
+
+  <dtml-var simple_html_header>
+
+  <dtml-if portal_status_message><br></dtml-if>
+
+  <dtml-if unauthorized>
+    <h1><img src="&dtml-portal_url;/unauthorized_icon.gif" alt="" width="16" height="16">
+        <dtml-var "msg('Access denied')"></h1>
+    <p><dtml-var "msg('You have no access to the requested resource. You may try to repeat the action that caused the error, or if this doesn\'t help, report the error to the portal administrator.')"></p>
+  <dtml-elif "error_code in ['NotFound']">
+    <table width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><img src="&dtml-portal_url;/dlicon.gif" alt="" width="49" height="49"></td>
+      <td valign="bottom" style="width:99%; padding-left: 5px;"><h1><dtml-var "msg('File has been moved during docflow processing')"></h1></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="padding: 10px 10px 0 0;">
+        <p><dtml-var "msg('Docflow processing file moving comment.')"></p>
+        <p><dtml-var "msg('For searching use home page or search query.')"></p>
+        <p><dtml-var "msg('Favorites are preferred.')"></p>
+      </td>
+    </tr>
+    </table>
+  <dtml-else>
+    <table width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><img src="&dtml-portal_url;/error.gif" alt="" width="49" height="49"></td>
+      <td valign="bottom" style="width:99%; padding-left: 5px;"><h1><dtml-var "msg('Internal server error')"></h1></td>
+    </tr>
+    <tr>
+      <td colspan="2" style="padding: 10px 10px 0 0;">
+        <p><dtml-var "msg('An internal server error occured during processing of your operation. You may try to repeat the action that caused the error, or if this doesn\'t help, report the error to the portal administrator.')"></p>
+        <p><dtml-var "msg('We apologize for inconvenience.')"></p>
+      </td>
+    </tr>
+    </table>
+  </dtml-if>
+
+  <dtml-if print_error_info>
+    <p>
+    <dtml-var "msg('Error type')">: &dtml-error_type;<br />
+    <dtml-var "msg('Error value')">: &dtml-error_value;<br />
+    </p>
+
+    <dtml-if error_url>
+      <p><a href="&dtml-error_url;" target="_blank"><dtml-var "msg('View error log entry')"></a></p>
+    </dtml-if>
+
+    <h2><dtml-var "msg('Repeat action that caused the error')"></h2>
+
+    <form name="error_retry_form">
+    <input type="button" name="retry" value=" <dtml-var "msg('Retry')"> " onclick="javascript: window.location.reload(1)"/>
+    </form>
+
+    <h2><dtml-var "msg('Report error to the portal administrator')"></h2>
+
+    <form name="error_report_form" action="&dtml-portal_url;/portal_errorlog/sendErrorReport" method="post">
+    <input type="hidden" name="id" value="&dtml-error_id;" />
+    <input type="hidden" name="admin:boolean" value="1" />
+
+    <p>
+    <strong><dtml-var "msg('Comment')">:</strong><br>
+    <textarea name="comment:text" tabindex="1" wrap="soft" rows="5" style="width:100%;"></textarea><br>
+    <dtml-if "_.SecurityCheckPermission( 'Log Site Errors', this() )">
+      <input type="checkbox" name="support:boolean" id="support_box" tabindex="2"><label for="support_box"><dtml-var "msg('Notify Express Suite DMS support service')"></label><br />
+    </dtml-if>
+    </p>
+
+    <p><input type="submit" name="report" value=" <dtml-var "msg('Send')"> " tabindex="3" /></p>
+    </form>
+  </dtml-if>
+
+  <hr size="1">
+  <h2><dtml-var "msg('Return to the previous page')"></h2>
+
+  <form name="error_back_form">
+  <input type="button" name="back" value=" <dtml-var "msg('Back')"> " onclick="javascript: window.history.back()" />
+  </form>
+
+  <dtml-var simple_html_footer>
+
+</dtml-if>
+</dtml-let>

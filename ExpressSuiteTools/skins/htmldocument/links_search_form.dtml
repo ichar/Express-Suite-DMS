@@ -1,0 +1,33 @@
+<dtml-if "_.SecurityCheckPermission('View', this())">
+
+<dtml-unless templates_search>
+  <h3><dtml-var "msg('Create link to another document')">:</h3>
+</dtml-unless>
+
+<dtml-let cb="REQUEST.get('callback_form')"
+          callback="cb and '&callback_form='+REQUEST.get('callback_form')+'&callback_function='+REQUEST.get('callback_function')"
+          uf="REQUEST.get('uid_field') and '&uid_field='+REQUEST.get('uid_field') or ''"
+          tf="REQUEST.get('title_field') and '&title_field='+REQUEST.get('title_field') or ''"
+          callback="(callback or '') + uf + tf">
+
+<div class="Desktop">
+
+<dtml-if adv_search>
+<h1><dtml-var "msg('Advanced search')"></h1>
+<dtml-else>
+<h1> <dtml-var "msg('Search')"> </h1>
+</dtml-if>
+
+<dtml-if adv_search>
+  <dtml-var "search_advanced(this(), REQUEST, action='document_link_form', location=REQUEST.get('search_path'))">
+<dtml-else>
+ <dtml-unless search_path>
+  (<a href="./document_link_form?adv_search=1<dtml-var callback>"><dtml-var "msg('Advanced search')"></a>)
+ </dtml-unless>
+  <dtml-var "search_simple(this(), REQUEST, action='document_link_form', location=REQUEST.get('search_path'))">
+</dtml-if>
+
+</div>
+
+</dtml-let>
+</dtml-if>

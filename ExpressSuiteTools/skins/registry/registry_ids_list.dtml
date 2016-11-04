@@ -1,0 +1,37 @@
+<HTML>
+<HEAD>
+<TITLE><dtml-var "msg('Registration number')"></TITLE>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+</HEAD>
+<BODY>
+
+<dtml-in "registry_data.items()" prefix="t">
+  <dtml-if sequence-start>
+<table cellspacing="3" cellpadding="0" width="100%" border="0" style="padding-left:5px;">
+  </dtml-if>
+<tr><td class="smallHeader" colspan="2" style="color:purple;"><dtml-var t_key>:</td></tr>
+<tr><td width="20px">&nbsp;</td>
+  <td>
+  <dtml-in t_item prefix="reg">
+    <dtml-let registry="object_by_uid(reg_item)">
+      <dtml-if "registry is not None">
+        <dtml-var registry_icon.gif>&nbsp;
+    (<a target="_blank" href="<dtml-var "registry.absolute_url()">?expand=1"><dtml-var "registry.title"></a><dtml-var "not reg_end and ';' or''">)
+      </dtml-if registry>
+    </dtml-let>
+  </dtml-in>
+  </td>
+</tr>
+  <dtml-if sequence-end>
+<tr><td></td>
+  <td align="left"><br><br><br>
+    <input type="button" style="font-size:xx-small;width:80px;" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">"/>
+  </td>
+</tr>
+</table>
+  </dtml-if>
+</dtml-in>
+
+</BODY>
+</HTML>

@@ -1,0 +1,137 @@
+<head>
+
+<script type="text/javascript">
+<!--
+   var commonImages = ['folder_icon.gif','fs_folder_icon.gif','folder_closed.gif'];
+//-->
+</script>
+
+<script type="text/javascript">
+<!--
+    var portalRootURL  = '<dtml-var "portal_url()">';
+    var objectBaseURL  = '<dtml-var "absolute_url()">';
+    var openInFrame    = '<dtml-var "REQUEST.get('OpenInFrame')" null="">';
+    var updateSections = '<dtml-var "' '.join( REQUEST.get('_UpdateSections',[]) )">';
+//-->
+</script>
+
+<script language="javascript">
+<!--
+//-->
+</script>
+
+<dtml-if "not REQUEST.has_key('disable_dynamic')">
+<dtml-comment>
+Detecting dynamic-compartibility of client browser
+</dtml-comment>
+<script language="javascript">
+function determineDinamic(){
+  var url = setParam( location.href, 'callback_function', callback_function );
+  url = setParam( url, 'callback_form', callback_form );
+  try {
+    // Mozilla object
+    new XMLHttpRequest();
+    url = setParam( url, 'disable_dynamic', 'no')
+    location.replace( url );
+  }
+  catch (error) { 
+    try {
+      // IE object
+      new ActiveXObject("Msxml2.XMLHTTP");
+      url = setParam( url, 'disable_dynamic', 'no')
+      location.replace( url );
+    }
+    catch (error) {
+      url = setParam( url, 'disable_dynamic', 'yes')
+      location.replace( url );
+    }
+  }
+}
+</script>
+
+<dtml-call "REQUEST.set('disable_dynamic', 'yes')">
+</dtml-if>
+
+<script type="text/javascript" src="&dtml-portal_url;/scripts.js"></script>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+</head>
+<dtml-if "not REQUEST.has_key('disable_dynamic')">
+<body onload="determineDinamic();">
+<dtml-else>
+<body>
+</dtml-if>
+
+<script type="text/javascript">
+<!--
+// preload page common images
+if( !window.openInFrame && window.commonImages ) preloadImages( window.commonImages );
+-->
+</script>
+
+<table>
+<tr>
+  <td>
+  <dtml-jungle expr="portal_url.getPortalObject().storage"
+               meta_types="['Heading','Site Container','Incoming Mail Folder','Outgoing Mail Folder','Fax Incoming Folder']"
+               sort_order="['Title','id']"
+               dynamic="disable_dynamic=='no'"
+               urlparam="disable_dynamic='yes'"
+  >
+  <table style="BORDER-COLLAPSE: collapse" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td valign="top">
+      <a class="tree" href="javascript:SaveAndReturn('&dtml-nd_uid;', '<dtml-var "Title or id">');">
+    <dtml-if tree-level>
+      <dtml-if "meta_type == 'Site Container'">
+        <img src="&dtml-portal_url;/site_icon.gif" width="16" height="16">&nbsp;
+      </a>
+    </td>
+    <td>
+        <a class="tree" href="javascript:SaveAndReturn('&dtml-nd_uid;', '<dtml-var "Title or id">');">
+      <dtml-elif "meta_type in ['Heading','Incoming Mail Folder','Outgoing Mail Folder','Fax Incoming Folder']">
+        <dtml-if tree-item-expanded>
+          <img src="&dtml-portal_url;/folder_opened.gif" width="16" height="16">
+        <dtml-else>
+          <img src="&dtml-portal_url;/folder_closed.gif" width="16" height="16">
+        </dtml-if>
+        </a>
+    </td>
+    <td style="padding-left:4px;">
+        <a class="tree" href="javascript:SaveAndReturn('&dtml-nd_uid;', '<dtml-var "Title or id">');">
+      </dtml-if>
+      <dtml-var "Title or id">
+        </a>
+      <dtml-if "Creator and Creator != 'No owner' and 1==0">
+        <span style="color: #0000FF">[<dtml-var "portal_membership.getUserInfo(Creator).get('lname') or Creator">]</span>
+      </dtml-if>
+    <dtml-else>
+      <img src="&dtml-portal_url;/gray_of.gif" width="16" height="16" align="absmiddle">&nbsp;
+      </a>
+    </td>
+    <td>
+      <a class="tree" href="javascript:SaveAndReturn('&dtml-nd_uid', '<dtml-var "Title or id">');">
+      <dtml-var "Title or id"></a>
+    </dtml-if>
+    </td>
+  </tr>
+  </table>
+
+  </dtml-jungle>
+  </td>
+</tr>
+</table>
+
+<script>
+<!--
+function SaveAndReturn( folder_uid , title) {
+    opener.setFolderUrl( folder_uid, title || '<dtml-var "msg('Object selected')">' );
+    window.close();
+}
+//-->
+</script>
+
+<p align="center"><a href="javascript:window.close()"><dtml-var "msg('Close')"></a></p>
+
+</body>
+

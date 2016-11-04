@@ -1,0 +1,32 @@
+<dtml-comment>
+'name' - selectbox id
+'size' - selectbox size
+'options' - available list options
+'value' - preselected options
+</dtml-comment>
+
+<dtml-let value="_.has_key('value') and value or []"
+          multiple="_.has_key('multiple') and multiple or not _.has_key('multiple') and 1"
+>
+
+<select id="&dtml-name;" name="&dtml-name;<dtml-if multiple>:list</dtml-if>" size="<dtml-var size missing=8>" 
+        <dtml-var "multiple and 'multiple' or ''">
+>
+  <dtml-in options>
+<option value="&dtml-sequence-key;"
+     <dtml-if multiple>
+       <dtml-var "_['sequence-key'] in value and 'selected' or ''">
+     <dtml-else>
+       <dtml-var "_['sequence-key'] == value and 'selected' or ''">
+     </dtml-if>
+>
+     <dtml-var "msg(_['sequence-item'], add=None)">
+</option>
+  </dtml-in>
+</select> <br>
+
+  <dtml-if "not _.has_key('no_search')">
+<dtml-var "msg('Fast search')">: <input type="text" value="" onKeyUp="SearchStrInSelect(value, &dtml-name;);">
+  </dtml-if>
+
+</dtml-let>

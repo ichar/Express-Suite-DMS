@@ -1,0 +1,22 @@
+<dtml-comment>
+'link_id' -- Id of the link object stored in the portal_links tool.
+</dtml-comment>
+
+<dtml-revision $Revision: 1.6.2.1.4.1 $>
+
+<dtml-let link="_.getattr(portal_links, link_id, None)">
+  <dtml-if "link is not None">
+    <dtml-let target="link.getDestinationObject()"
+              version_id="link.Extra('destination_ver_id')"
+              version="version_id and target.getVersion(version_id) or None"
+              version_str="version is not None and ' (%s %s)' % (msg('Version'), version.getVersionNumber()) or ''"
+              view_url="version is not None and version.absolute_url() or target is not None and target.absolute_url() or ''"
+    >
+      <dtml-if "target is not None">
+<a href="&dtml-view_url;?expand=1" target="_blank"><dtml-var "target.title_or_id()"><dtml-var version_str></a>
+      <dtml-else>
+<dtml-var "link.getDestinationMetadata('Title')"> <dtml-var version_str>
+      </dtml-if>
+    </dtml-let>
+  </dtml-if>
+</dtml-let>

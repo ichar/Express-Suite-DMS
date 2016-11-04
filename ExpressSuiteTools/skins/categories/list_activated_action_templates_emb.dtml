@@ -1,0 +1,45 @@
+<dtml-in "portal_metadata.taskTemplateContainerAdapter.getTaskTemplates(Category(), transition)" sort="template_id">
+  <dtml-if sequence-start>
+<table class="FormLayout" cellpadding="0" cellspacing="0" width="100%" border="0">
+<tr>
+  <td class="smallHeader" align="left" style="padding: 5px 0 10px">
+    <dtml-var "msg('The following tasks will be assigned')">:
+  </td>
+</tr>
+</table>
+  </dtml-if>
+
+  <dtml-let template_id="_['sequence-item']['template_id']"
+            task_definition="portal_metadata.taskTemplateContainerAdapter.getTaskDefinitionById( Category(), template_id, '1' )">
+    <dtml-if "task_definition is not None and (task_definition['type'] != 'auto' or not registry_ids())">
+<table cellpadding="10" cellspacing="1" bgcolor="#cccccc" border="0">
+<tr>
+  <td bgcolor="#ffffff">
+    <table width="100%" border="0">
+    <tr>
+      <td class="smallHeader" nowrap><dtml-var "msg('Action type')">:&nbsp;</td>
+      <td style="padding-top:3px;width:75%;" nowrap>
+        <dtml-var "task_definition_get_type_title(this(), task_definition_type_title=portal_metadata.taskDefinitionFactory.getTaskDefinitionTypeTitle(task_definition['type']))">
+      </td>
+    </tr>
+    <tr>
+      <td class="smallHeader"><dtml-var "msg('Name')">:</td>
+      <td style="padding-top:3px;">
+        <dtml-var "task_definition['name']">
+      </td>
+    </tr>
+    </table>
+      <dtml-let dtml_name="portal_metadata.taskDefinitionFactory.getDtmlNameForInfoByType(task_definition['type'])">
+        <dtml-if dtml_name>
+    <dtml-var "_.getitem(dtml_name)( this(), template_id=template_id, task_definition=task_definition )">
+        </dtml-if>
+      </dtml-let>
+  </td>
+</tr>
+</table>
+<br>
+    </dtml-if>
+  </dtml-let>
+
+</dtml-in>
+

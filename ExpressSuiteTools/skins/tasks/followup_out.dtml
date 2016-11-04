@@ -1,0 +1,54 @@
+<script type="text/javascript">
+<!--
+    var commonImages = ['task_finalized.gif','task_inprogress.gif','task_expired.gif','task_user_committed.gif','task_user_rejected.gif','task_user_accepted.gif','sort_down.gif','sort_up.gif'];
+//-->
+</script>
+
+<dtml-call "REQUEST.set('OpenInFrame', 'followup_out')">
+
+<dtml-var simple_html_header>
+
+<dtml-let
+  modeName="REQUEST.get('showTaskMode') or 'showNew'"
+  functions="{
+    'showNew': portal_followup.listOutgoingTasksNew,
+    'showCurrent': portal_followup.listOutgoingTasksCurrent,
+    'showWithClosedReport': portal_followup.listOutgoingTasksClosed,
+    'showFinalized': portal_followup.listOutgoingTasksFinalized
+  }"
+  msg_text="{
+    'showNew': 'tasks.tabs.new',
+    'showCurrent': 'tasks.tabs.current',
+    'showWithClosedReport': 'tasks.tabs.closed',
+    'showFinalized': 'tasks.tabs.finalized'
+  }"
+  functionName="functions[modeName]"
+>
+
+<table width="100%">
+<tr>
+  <td>
+    <h1><dtml-var "msg('Outgoing tasks')"> "<dtml-var "msg(msg_text[modeName], add=0)">"</h1>
+  </td>
+</tr>
+<tr>
+  <td>
+    <dtml-var task_factory_form><br>
+  </td>
+</tr>
+<tr>
+  <td>
+    <dtml-var "task_list_embedded( this()
+                             , form_name='followup_out'
+                             , finder_method=functionName
+                             , showTabs='outgoing'
+                             , show_filter=1
+                             )"
+     >
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

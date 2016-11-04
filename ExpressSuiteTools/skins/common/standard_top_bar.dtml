@@ -1,0 +1,219 @@
+<!-- Top bar -->
+<script type="text/javascript">
+<!--
+var buttonImages = [
+    'newfolder_click.gif', 'newfolder_over.gif',
+    'newdoc_click.gif', 'newdoc_over.gif',
+    'edit_click.gif', 'edit_over.gif',
+    'access_click.gif', 'access_over.gif',
+    'bad_links_click.gif', 'bad_links_over.gif',
+    'copy_click.gif', 'copy_over.gif',
+    'delete_click.gif', 'delete_over.gif',
+    'view_click.gif', 'view_over.gif',
+    'print_click.gif', 'print_over.gif',
+    'open_filter_form_click.gif', 'open_filter_form_over.gif',
+    'stat_click.gif', 'stat_over.gif',
+    'expand.gif', 'expand_over.gif',
+    'refresh_click.gif', 'refresh_over.gif',
+    'home_click.gif', 'home_over.gif',
+    'activity_click.gif', 'activity_over.gif',
+    'user_task_expired_click.gif', 'user_task_expired_over.gif',
+    'task_commit.gif', 'task_commit_over.gif',
+    'popup_selector.gif', 'popup_selector_down.gif',
+    'add_favor_click.gif', 'add_favor_over.gif'
+    ];
+
+preloadImages( buttonImages );
+
+function OpenUserExpiredTasksWnd_( params ) {
+    var url = window.objectBaseURL + '/expired_tasks_in_progress';
+    if (!params) {
+       params = 'toolbar=no,scrollbars=yes,status=yes,top=40,left=80,width=920,height=510,resizable=yes';
+    }
+    window.open( url, '_blank', params );
+}
+
+function OpenUserActivityWnd_( params ) {
+    var url = window.objectBaseURL + '/activity_statistics_form';
+    if (!params) {
+       params = 'toolbar=no,scrollbars=no,status=yes,top=40,left=100,width=490,height=620,resizable=no';
+    }
+    window.open( url, '_blank', params );
+}
+//-->
+</script>
+
+<dtml-let ob="this()"
+          user="portal_membership.getAuthenticatedMember()"
+          access_level="user.getMemberAccessLevel(portal_properties.instance_name())"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          user_storage_type="portal_properties.storage_type()"
+          IsArchive="user_storage_type=='archive' and 1 or 0"
+          IsEditable="access_level=='W' and not getCustomDefinitions('context_disabled', context=this()) or IsAdmin"
+>
+<dtml-call "REQUEST.set('separator', 0)">
+
+<table cellpadding="0" cellspacing="0" width="100%" border="0">
+<tr>
+  <td nowrap>
+  <!--  Контекст папки -->
+  <dtml-if "implements('isPrincipiaFolderish') and meta_type not in ['FS Folder']">
+    <dtml-if "implements('isContentStorage')">
+      <!-- Добавить папку -->
+      <dtml-if expr="implements('canHaveSubfolders') and _.SecurityCheckPermission('Add portal folders', this()) and IsEditable">
+    <a href='&dtml-absolute_url;/invoke_factory_form?type_name=Heading' target="workfield"><img name="newfolder" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/newfolder.gif" alt="<dtml-var "msg('New topic')">" width="18" height="18"></a>
+        <dtml-call "REQUEST.set('separator', 1)">
+      </dtml-if>
+      <!-- Добавить документ -->
+      <dtml-if "_.SecurityCheckPermission('Add portal content', this()) and getId() != 'storage' and IsEditable">
+    <a href='&dtml-absolute_url;/invoke_factory_form?type_name=HTMLDocument' target="workfield"><img name="newdoc" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/newdoc.gif" alt="<dtml-var "msg('New document')">" width="18" height="18"></a>
+        <dtml-call "REQUEST.set('separator', 1)">
+      </dtml-if>
+    </dtml-if>
+    <dtml-unless "implements('isPortalRoot') or aq_parent.implements('isPortalRoot')">
+      <!-- Контроль доступа -->
+      <dtml-if "_.SecurityCheckPermission('Change permissions', this())">
+    <a href='&dtml-absolute_url;/manage_access_form' target="workfield"><img name="access" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/access.gif" alt="<dtml-var "msg('Access control')">" width="18" height="18"></a>
+        <dtml-call "REQUEST.set('separator', 1)">
+      </dtml-if>
+    </dtml-unless>
+  </dtml-if>
+  <!-- конец Контекст папки -->
+
+  <!-- Контекст документа -->
+  <dtml-let version="ob.implements('isVersionable') and ob.getVersion() or ob"
+            locks="wl_lockValues(killinvalids=1)"
+            creator_id="_.len(locks) and getLockCreator(locks[0])"
+            shortcut="absolute_url().find('fav_') > -1"
+  >
+    <dtml-if "implements('isDocument') or meta_type=='Registry'">
+    <a target="_blank" href="<dtml-var "relative_url(action='printPreview')">"><img name="print" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/print.gif" alt="<dtml-var "msg('Print preview')">" width="18" height="18"></a>
+      <dtml-call "REQUEST.set('separator', 1)">
+  </td><td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td><td nowrap>
+    </dtml-if>
+
+    <dtml-if "implements('isDocument')">
+      <dtml-let has_ver_permission="_.SecurityCheckPermission('Modify portal content', version)"
+                editable="IsEditable and portal_workflow.getInfoFor(ob.aq_parent,'state','') == 'editable'"
+                system_object="this().IsSystemObject()"
+                locked="implements('isLockable') and isLocked()"
+                IsEditor="editable and has_ver_permission and not system_object and not locked">
+        <dtml-if IsEditor>
+        <!-- Редактирование -->
+          <dtml-unless editMode>
+    <a href='<dtml-var "relative_url(action=getTypeInfo().getActionById( 'edit' ))">'><img name="edit" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/edit.gif" alt="<dtml-var "'%s %s' % ( msg('Edit'), msg(_['Type'], add=0))">" width="18" height="18"></a>
+          </dtml-unless>
+        <!-- Просмотр -->
+          <dtml-if editMode>
+    <a href='<dtml-var "relative_url(action=getTypeInfo().getActionById('view'))">'><img name="view" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/view.gif" alt="<dtml-var "msg('View')">" width="18" height="18"></a>
+          </dtml-if>
+        </dtml-if>
+
+        <dtml-let parent_url="aq_parent.absolute_url()"
+                  IsShortcut="parent_url.find('favorites') > -1 and 1 or 0"		
+                  IsCopy="not IsShortcut and ob.cb_isCopyable() and hasCustomPermissions(ob, 'Copy or Move') and not (implements('isLockable') and isLocked()) and access_level=='W'"
+                  delete_permissions="_.SecurityCheckPermission('Delete objects', ob) and _.SecurityCheckPermission('View', aq_parent)"
+                  IsDelete="IsEditor and IsEditable and delete_permissions and not (implements('isLockable') and isLocked())">
+          <dtml-if IsCopy>
+    <!-- Копирование документа -->
+    <a href="&dtml-parent_url;/inFrame?link=&dtml-parent_url;/folder_copy?ids:list=<dtml-var "ob.id">" target="workspace"><img name="copy" onMouseOver="change(this,1);" onMouseOut="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/copy.gif" alt="<dtml-var "msg('Copy this document')">" width="18" height="18"/></a>
+          </dtml-if>
+          <dtml-if IsDelete>
+    <!-- Удаление документа -->
+    <a href="&dtml-parent_url;/inFrame?link=&dtml-parent_url;/confirm_delete?ids:list=<dtml-var "ob.id">" target="workspace"><img name="delete" onMouseOver="change(this,1);" onMouseOut="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/delete.gif" alt="<dtml-var "msg('Remove this document')">" width="18" height="18"/></a>
+          </dtml-if>
+          <dtml-if "IsCopy or IsDelete">
+  </td><td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td><td nowrap>
+          </dtml-if>
+        </dtml-let>
+
+    <!-- Блокировка -->
+        <dtml-if "IsEditor and implements('isLockable') and isLockPermitted() and _.SecurityCheckPermission('Modify portal content', version)">
+          <dtml-if wl_isLocked>
+    <a href="&dtml-absolute_url;/inFrame?link=./document_edit_form&unlock=" target="workspace"><img src="&dtml-portal_url;/lock_attach.gif" alt="#" title="<dtml-var "msg('Unlock document')">" width="15" height="15" /></a>
+          <dtml-else>
+    <a href="&dtml-absolute_url;/inFrame?link=./document_edit_form&lock=" target="workspace"><img src="&dtml-portal_url;/lock_attach.gif" alt="#" title="<dtml-var "msg('Lock document')">" width="15" height="15" /></a>
+          </dtml-if>
+  </td><td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td><td nowrap>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+  </dtml-let>
+  <!-- конец Контекст документа -->
+
+  <dtml-if helpId>
+    <dtml-var helpLink>
+  </dtml-if>
+
+  <dtml-comment>
+  <dtml-let IsFaxIncoming="meta_type in ['Fax Incoming Folder']"
+            parent_url="aq_parent.absolute_url()"
+            IsPredefinedFolder="meta_type=='Heading' and (getDepartmentDictionary().IsPredefinedFolder(id) or id==user.getUserName())"
+  >
+    <dtml-if "implements('isPrincipiaFolderish') and not (implements('isPortalRoot') or aq_parent.implements('isPortalRoot')) and (
+              not IsFaxIncoming and not IsPredefinedFolder or IsAdmin) and IsEditable">
+    <!-- Удалить объект -->
+      <dtml-if "_.SecurityCheckPermission('Delete objects', this()) and (not IsArchive or IsAdmin)">
+    <a href="<dtml-var parent_url>/confirm_delete?ids:list=&dtml-id;" target="workfield"><img name="delete" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/delete.gif" alt="<dtml-var "msg('Remove this topic')">" width="18" height="18"></a>
+  </td><td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td><td nowrap>
+      </dtml-if>
+    </dtml-if>
+  </dtml-let>
+  </dtml-comment>
+  </td>
+  
+  <dtml-if "implements('hasContentFilter')">
+  <form action="portal_membership/processFilterActions" method="post">
+  <td>
+    <input type="image" name="open_filter_form" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);" value="1" src='&dtml-portal_url;/open_filter_form.gif' alt='<dtml-var "msg('Content filter')">' border="0" width="18" height="18">
+  </td>
+  </form>
+
+  </td><td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td><td nowrap>
+  </dtml-if>
+
+  <dtml-unless "implements('isPortalRoot') or aq_parent.implements('isPortalRoot')">
+  <td>
+    <a href="<dtml-var absolute_url>/addtoFavorites" target="workspace"><img name="add_favor" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="change(this,3);"
+     src="&dtml-portal_url;/add_favor.gif" alt="<dtml-var "msg('Add to favorites')">" width="18" height="18"></a>
+  </td>
+  </dtml-unless>
+  
+  <td width="100%"></td>
+  <td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td>
+
+  <td><img name="task_commit" style="cursor: hand" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="javascript:OpenUserExpiredTasksWnd_(0)" src="&dtml-portal_url;/task_commit.gif" alt="<dtml-var "msg('Expired tasks list')">" width="18" height="18"></td>
+  <td><img name="stat" style="cursor: hand" onmouseover="change(this,1);" onmouseout="change(this,2);" onclick="javascript:OpenUserActivityWnd_('')" src="&dtml-portal_url;/stat.gif" alt="<dtml-var "msg('Activity Statistics')">" width="18" height="18"></td>
+
+  <td>&nbsp;<img src="&dtml-portal_url;/separator.gif">&nbsp;</td>
+
+  <dtml-if "implements('isPrincipiaFolderish')">
+  <td align="right" width="100%">
+    <!-- Folder view selector -->
+    <form name="setFolderViewForm" style="margin-top: 0px; margin-right: 0px; margin-bottom: 0px; margin-left: 0px;" action="&dtml-absolute_url;/portal_membership/setFolderView" method="post" target="workspace">
+    <input type="hidden" name="qs" value="<dtml-var "REQUEST.get('qs', 1)">">
+    <select name="view_name" onchange="qs.value=workfield.qs; setFolderViewForm.submit();">
+    <dtml-in "portal_membership.listFolderViews()">
+    <option value="<dtml-var sequence-item>" <dtml-if "(REQUEST.get('view_type') or portal_membership.getCurrentFolderView())==_.getitem('sequence-item')"> selected</dtml-if>>
+      <dtml-var "msg('View as '+_.getitem('sequence-item'))">
+    </option>
+    </dtml-in>
+    </select>
+    </form>
+    <!-- End of folder view selector -->
+  </td>
+</dtml-if>
+</tr>
+</table>
+
+</dtml-let>

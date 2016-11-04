@@ -1,0 +1,45 @@
+<dtml-comment>
+<dtml-var standard_html_header>
+</dtml-comment>
+
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<div class="Image">
+
+<table border="0" cellspacing="5" cellpadding="0">
+<dtml-let state="portal_workflow.getInfoFor(this(), 'state', '')">
+
+<tr>
+<td colspan="2"><h1>&dtml-title_or_id; (&dtml-getId;)</h1></td>
+</tr>
+
+<tr>
+   <td class="smallHeader" align="right"><dtml-var "msg('State')">:</td>
+   <td width="100%" class="small">&nbsp;<dtml-var "msg(portal_workflow.getInfoFor(this(), 'state', ''))"></td>
+</tr>
+
+<tr>
+ <td colspan="2">
+  <img class="preview" src="&dtml-relative_url;" alt="&dtml-title_or_id;" />
+ </td>
+</tr>
+
+</dtml-let>
+
+<div class="Discussion">
+
+<dtml-var viewThreadsAtBottom>
+
+</div>
+
+</div>
+
+</div>
+
+<dtml-var simple_html_footer>
+
+<dtml-comment>
+<dtml-var standard_html_footer>
+</dtml-comment>

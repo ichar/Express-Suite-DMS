@@ -1,0 +1,4 @@
+<dtml-call "REQUEST.set('PageTitle', 'User Access Information')">
+<dtml-call "REQUEST.set('view_only', 1)">
+
+<dtml-var manage_access_form>

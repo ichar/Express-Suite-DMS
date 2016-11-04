@@ -1,0 +1,32 @@
+<dtml-call "REQUEST.set('OpenInFrame', 'menuFavorites')">
+
+<dtml-var simple_html_header>
+
+<H3><dtml-var "msg('Favorites')"></H3>
+<dtml-let favorites_url="portal_membership.getPersonalFolderUrl('favorites')"
+          favorites_path="portal_membership.getPersonalFolderPath(0,'favorites')"
+          my_favorites="favorites_path and portal_catalog.searchResults(path=favorites_path+'%', meta_type='Shortcut', sort_on='created') or []"
+>
+  <dtml-in my_favorites>
+    <dtml-if sequence-start>
+<table width="100%" border="0" cellspacing="1" cellpadding="1">
+    </dtml-if>
+<tr>
+  <td width="16">
+    <a class="navigate" href="&dtml-getURL;/inFrame?link=view" target="workspace"><dtml-var content_icon></a>
+  </td>
+  <td nowrap width="99%">
+    <a class="navigate" href="&dtml-getURL;/inFrame?link=view" target="workspace" title="&dtml-Description;"><dtml-var "_['Title'] or _['id']" size="45"></a>
+  </td>
+</tr>
+    <dtml-if sequence-end>
+</table>
+    <dtml-var "msg('Total')">: <dtml-var "_.len(my_favorites)"><br>
+    <a target="workspace" class="nav" href="<dtml-var favorites_url>/folder_contents"><dtml-var "msg('Favorites folder')"> &gt;&gt;</a>
+  </dtml-if>
+  <dtml-else>
+     <dtml-var "msg('No favorites were found')">
+  </dtml-in>
+</dtml-let>
+
+<dtml-var simple_html_footer>

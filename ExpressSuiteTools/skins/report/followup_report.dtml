@@ -1,0 +1,322 @@
+<script type="text/javascript">
+<!-- 
+ 	var commonImages = ['task_finalized.gif','task_inprogress.gif','task_expired.gif','task_user_committed.gif','task_user_rejected.gif','task_user_accepted.gif'];
+//-->
+</script>
+
+<dtml-call "REQUEST.set('PageTitle', 'Followup tasks progress statistics')">
+
+<dtml-var simple_html_header>
+
+<script language="JavaScript">
+<!--
+function SubmitForm( obj ) {
+  var frm = obj.form;
+  frm.apply.value = obj.name;
+  var cmds = document.getElementsByTagName('input');
+  if( cmds ) {
+    for (var i = 0; i < cmds.length; i++) {
+      try { 
+        var t = cmds[i].type;
+        if( t == 'button' || t == 'submit' ) document.all[cmds[i].name].disabled = true; }
+      catch (error) {}
+    }
+  }
+  frm.submit();
+}
+//-->
+</script>
+
+<dtml-let user="portal_membership.getAuthenticatedMember()"
+          username="user.getUserName()"
+          IsManager="user.has_role('Manager') and 1 or 0"
+          IsAdmin="user.IsAdmin()"
+
+          apply="REQUEST.get('apply')"
+          x="apply=='back' and -7 or apply=='forward' and 7 or 0"
+          IsApplyFilter="apply=='apply_filter' or x"
+          IsChange="apply=='change'"
+          IsShow="apply and apply.startswith('show')"
+
+          begin="_.DateTime()-7"
+          created_name="IsShow and 'show_created' or IsChange and 'change_created' or 'created'"
+          C="REQUEST.get(created_name) and portal_membership.getDate(created_name, REQUEST)"
+          created="(C or _.DateTime(begin.year(), begin.month(), begin.day(), 0, 0)) + x" 
+
+          end="_.DateTime()"
+          expires_name="IsShow and 'show_expires' or IsChange and 'change_expires' or 'expires'"
+          E="REQUEST.get(expires_name) and portal_membership.getDate(expires_name, REQUEST)"
+          expires="(E or _.DateTime(end.year(), end.month(), end.day(), 0, 0)) + x" 
+
+          default_brains_type="'directive'"
+          brains_type="REQUEST.get('brains_type', REQUEST.get('cookie_brains_type', default_brains_type))"
+          tti="portal_followup.getTTI(brains_type)"
+>
+
+<style type="text/css">
+td.x_cell {
+    font-family: verdana;
+    font-size: 12px;
+    font-weight: bold;
+    padding: 5px 0 5px 3px;
+    cursor: default;
+}
+</style>
+
+<dtml-if "not IsManager">
+  <dtml-call "REQUEST.set('Creator', username)">
+</dtml-if>
+
+<dtml-call "REQUEST['RESPONSE'].setCookie('cookie_brains_type', brains_type, path='/' + absolute_url(1), expires='Wed, 19 Feb 2020 14:28:00 GMT')">
+
+<dtml-call "REQUEST.set('created', {'query':created, 'range':'min'})">
+<dtml-call "REQUEST.set('expires', {'query':expires, 'range':'max'})">
+
+<h1><dtml-var "msg('Tasks report')"></h1>
+
+<table cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td colspan="2">
+    <dtml-var "msg('Followup tasks detailed statistics report description')">
+  </td>
+</tr>
+<tr>
+  <td style="padding-top:20px">
+    <h2 style="color:#800080"><dtml-var "msg(tti['title'])"></h2>
+  </td>
+  <td style="padding-top:2px">
+    <table align="right" border="0">
+    <form method="POST">
+    <input type="hidden" name="apply" value="change">
+    <input type="hidden" name="change_created" value="<dtml-var created>">
+    <input type="hidden" name="change_expires" value="<dtml-var expires>">
+    <tr>
+      <td style="padding-top:3px" nowrap><strong><dtml-var "msg('Tasks type')">:</strong></td>
+      <td>
+  <dtml-in "portal_followup.listTTIs()" mapping>
+    <dtml-if sequence-start>
+        <select name="brains_type">
+    </dtml-if>
+    <dtml-if "id in ['directive','request','signature_request','information','registration']">
+        <option value="&dtml-id;" <dtml-var "brains_type==id and 'selected' or ''">/><dtml-var "msg(title, add=0)"></option>
+    </dtml-if>
+    <dtml-if sequence-end>
+        </select>
+        <input type="button" name="change" value="<dtml-var "msg('Ok')">" style="width:40px;" onClick="javascript:SubmitForm(this);">
+    </dtml-if>
+  </dtml-in>
+      </td>
+    </tr>
+    </form>
+    </table>
+  </td>
+</tr>
+</table>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td>
+<dtml-call "REQUEST.set('sort_on', 'created')">
+<dtml-call "REQUEST.set('sort_order', '')">
+
+<dtml-let ids="REQUEST.get('ids')"
+          show_selected="REQUEST.get('showSelected')"
+          brains_type="tti['id']"
+          res="portal_followup.searchTasks(REQUEST=REQUEST, IsCatalog=1, BrainsType=brains_type, sort_limit=100)"
+          total_objects="res[0]"
+          results="res[1]"
+          visible_results="(ids and [x for x in results if x.id in ids]) or (not show_selected and results) or ([])"
+>
+<script type="text/javascript">
+<!--
+var isSelected = false;
+
+function toggleSelect() {
+  var form = document.objectItems;
+  isSelected = ! isSelected;
+  for( var i = 0; i < form.elements.length; i++ ) {
+	var elem = form.elements[ i ];
+	if( elem.name.substr( 0, 4 ) == 'ids:' ) elem.checked = isSelected;
+  }
+  form.selectAll.value = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All')">';
+  return isSelected;
+}
+
+function open_list_wnd( url ) {
+  window.open(url + '/registry_ids_list', 'wnd_popup_menu', 'toolbar=no,scrollbars=no,width=380,height=200,resizable=yes');
+}
+//-->
+</script>
+
+<dtml-if visible_results>
+  <form name="objectItems" method="POST">
+  <input type="hidden" name="apply" value="show">
+  <input type="hidden" name="brains_type" value="<dtml-var brains_type>">
+  <input type="hidden" name="show_created" value="<dtml-var created>">
+  <input type="hidden" name="show_expires" value="<dtml-var expires>">
+  <dtml-in visible_results>
+    <dtml-if sequence-start>
+    <table cellspacing="1" cellpadding="3" width="100%" border="0">
+    <tr class="row_title">
+      <td class="statHeader" valign="middle" align="center"></td>
+      <td class="statHeader" valign="middle" align="center"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Title')"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Creator')"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Description')"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Involved Users')"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Creation date')"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Expiration date')"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Reports')"></td>
+      <td class="statHeader" valign="middle" align="center"><dtml-var "msg('Registry id')"></td>
+    </tr>
+    </dtml-if>
+
+    <dtml-if id>
+    <input type="hidden" name="tasks:list" value="&dtml-id;">
+    <tr class="row_even">
+      <td class="statistics">
+        <input type="checkbox" name="ids:list" value="&dtml-id;" id="cb_&dtml-id;">
+      </td>
+      <dtml-let alarm_date="expires - (expires - effective) / 10"
+                task_state="_['isFinalized'] and 'finalized' or expires.isPast() and 'expired' or alarm_date < _.DateTime() and 'beforeexpiration' or 'inprogress'"
+                icon_name="'task_%s.gif' % task_state"
+      >
+      <td class="statistics" width="16">
+        <a href="&dtml-getURL;/view"><img width="16" height="16" src="&dtml-icon_name;" alt="<dtml-var "msg(task_state, add=0)">"/></a>
+      </td>
+      <td class="statistics">
+        <dtml-var Title><br>(<dtml-var "msg(task_state, add=0)">)
+      </td>
+      </dtml-let>
+
+      <dtml-try>
+      <dtml-with getObject>
+      <td class="statistics">
+        <b><dtml-var "member_name(this(), member=Creator(), brief=1)"></b>
+      </td>
+      <td class="statistics">
+        <span style="font-weight:normal;color:blue;"><dtml-var "getFormattedComments(Description(view=1, clean=1))"></span>
+      </td>
+
+      <td class="statistics" nowrap>
+        <dtml-let userids="listInvolvedUsers()"
+                  involved_users="portal_membership.listSortedUserNames(userids)">
+          <dtml-in involved_users mapping>
+        <b><dtml-var "member_name(this(), member=user_id, brief=1)"></b><a class="navigate" href="&dtml-portal_url;/followup_member_in?member_id=<dtml-var user_id>" alt="<dtml-var "msg('User tasks list')">">&gt;&gt;</a>
+        <br>
+          </dtml-in>
+        </dtml-let>
+      </td>
+
+      <td class="statistics">
+        <dtml-var created fmt="%Y-%m-%d %H:%M">
+      </td>
+      <td class="statistics">
+        <dtml-var expires fmt="%Y-%m-%d %H:%M">
+      </td>
+
+      <td class="statistics">
+        <dtml-in listResponseTypes mapping>
+          <dtml-if sequence-start>
+        <table cellpadding="0" cellspacing="0" width="100%">
+          </dtml-if>
+        <tr>
+          <td class="statistics"><strong><dtml-var "msg(progresslist_title, add=0)"></strong></td>
+        </tr>
+        <tr>
+          <td>
+          <dtml-in "searchResponses(status=id)" mapping>
+            <dtml-var "member_name(this(), member=member, brief=1)">
+            <dtml-if isclosed> - <dtml-var "msg('report closed')"></dtml-if>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            [<dtml-var "rDate(this(), time=date).strip()">] <dtml-var text newline_to_br>
+          <dtml-else>
+            <dtml-var "msg('No reports')">
+          </dtml-in>
+          </td>
+        </tr>
+          <dtml-if sequence-end>
+        </table>
+          <dtml-else>
+        <tr><td>&nbsp;</td></tr>
+          </dtml-if>
+        </dtml-in>
+      </td>
+      <td class="statistics">
+        <dtml-if "_.hasattr(this(), 'registry_data') and registry_data">
+          <a class="info" href="javascript:open_list_wnd( '<dtml-var absolute_url>' )" style="font-size:115%;">
+          <dtml-in "registry_data.keys()" size="2" prefix="r"><dtml-var r_item><dtml-var "not r_end and ';' or ''"> <dtml-if "r_end and r_index+1<_.len(registry_data.keys())">,...</dtml-if></dtml-in>
+          </a>
+        </dtml-if>
+      </td>
+      </dtml-with>
+      <dtml-except>
+      <td class="statistics" colspan="8"><dtml-if IsAdmin><a href="&dtml-getURL;/view"><font color="red">error:&nbsp;&dtml-id;</font></a></dtml-if></td>
+      </dtml-try>
+    </tr>
+    </dtml-if>
+
+    <dtml-if sequence-end>
+    <tr class="row_even">
+      <td colspan="2">&nbsp;</td>
+      <td class="x_cell" nowrap><font color="purple"><dtml-var "msg('Total')">:</font></td>
+      <td class="x_cell" colspan="2" nowrap><span><font color="purple"><b><dtml-var "_.len(visible_results)">&nbsp;<dtml-var "msg('entries of')">&nbsp;<dtml-var total_objects></b></font></span></td>
+      <td colspan="5">&nbsp;</td>
+    </tr>
+    </table><br>
+    <table cellspacing="1" cellpadding="3" border="0">
+    <tr>
+      <td><input type="button" name="showSelected" value="<dtml-var "msg('Show selected')">" onClick="javascript:SubmitForm(this);"></td>
+      <td><input type="button" name="showAll" value="<dtml-var "msg('Show all')">" onClick="javascript:SubmitForm(this);"></td>
+      <td><input type="button" name="selectAll" value="<dtml-var "msg('Select All')">" onClick="toggleSelect()"></td>
+      <td><input type="submit" name="export_to_excel:method" value="<dtml-var "msg('Export')">"></td>
+    </tr>
+    </table>
+    </dtml-if>
+  </dtml-in>
+  </form>
+</dtml-if>
+
+</dtml-let>
+  </td>
+</tr>
+
+<form method="POST">
+<input type="hidden" name="apply" value="">
+<tr>
+  <td style="padding: 0 0 0 0">
+    <table cellspacing="0" cellpadding="3" border="0">
+    <tr>
+      <td class="smallHeader" colspan="6" nowrap>
+        <dtml-var "msg('List tasks effective')">:
+      </td>
+    </tr>
+    <tr>
+      <td><dtml-var "msg('since')">:</td>
+      <td>
+        <dtml-var "datetime_form( this(), REQUEST, prefix='created', date=created, date_only=1 )">
+      </td>
+      <td><dtml-var "msg('till')">:</td>
+      <td>
+        <dtml-var "datetime_form( this(), REQUEST, prefix='expires', date=expires, date_only=1 )">
+      </td>
+      <td style="padding-left:20px;" nowrap>
+        <input type="submit" name="apply_filter" value="<dtml-var "msg('Apply')">" onClick="javascript:SubmitForm(this);">
+      </td>
+      <td style="width:90%;padding-left:20px;" nowrap>
+        <input type="button" name="back" value="<<" title="<dtml-var "msg('Back in one week')">" onClick="javascript:SubmitForm(this);">&nbsp;
+        <input type="button" name="forward" value=">>" title="<dtml-var "msg('Forward in one week')">" onClick="javascript:SubmitForm(this);">
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+</table>
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

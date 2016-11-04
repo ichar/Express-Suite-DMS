@@ -1,0 +1,8 @@
+
+<dtml-var simple_html_header>
+<form name="category_metadata_form">
+
+<dtml-var "default_category_metadata( this(),category_id=category_id )">
+
+</form>
+<dtml-var simple_html_footer>

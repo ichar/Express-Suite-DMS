@@ -1,0 +1,80 @@
+<!-- showThreadsAsList -->
+
+<dtml-unless sort><dtml-call expr="REQUEST.set('sort', 'date')"></dtml-unless>
+
+<dtml-if "REQUEST.has_key('show')==0">
+  <dtml-if "REQUEST.has_key('ShowTopics')">
+    <dtml-call expr="REQUEST.set('show', ShowTopics)">
+  <dtml-else>
+    <dtml-call expr="REQUEST.set('show', 'all')"> 
+  </dtml-if> 
+</dtml-if>
+
+<dtml-let listThr="[]">
+
+<table cellspacing="0" cellpadding="0" width="100%" border="0">
+<dtml-in expr="listThreads(REQUEST.get('show',''),REQUEST.get('discussions_filter',''),REQUEST.get('discussions_filter_ver',''))" sort="modification_date" prefix="thr">
+   <dtml-call expr="listThr.append(thr_item)">
+</dtml-in>
+
+<dtml-in listThr prefix="thr">
+<tr class="row_odd">
+  <td valign="top"><a href="&dtml-absolute_url;"><dtml-var discussionitem_icon.gif></a></td>
+  <td valign="top" style="padding: 2px 5px 0 2px;" nowrap>
+    <small><a name="section<dtml-var thr_index>"><dtml-var thr_number></a>.</small>
+  </td>
+  <td>
+    <small>
+    <dtml-var "msg('From user')">:&nbsp;<dtml-var "member_name(this(), member=_['Creator'])">,&nbsp;
+    <a href="&dtml-absolute_url;">&dtml-Description;</a>,&nbsp;
+
+    <dtml-if "listThr.count(inReplyTo())">
+      <dtml-var "msg('in reply to')">:&nbsp;
+      <a href="#section<dtml-var expr="listThr.index(inReplyTo())">"><dtml-var expr="listThr.index(inReplyTo())+1" html_quote></a>,&nbsp;
+    </dtml-if>
+
+    <dtml-if comment_type>
+      <dtml-if "_.len(parentsInThread())==1">
+        <b>¹ <dtml-var number></b>
+      </dtml-if>
+    </dtml-if>
+
+    <dtml-var CreationDate>
+
+    <dtml-if doc_ver>
+      (<dtml-var "msg('for document version')">&nbsp;<dtml-var doc_ver html_quote>)
+    </dtml-if>
+    </small>
+  </td>
+</tr>
+
+<dtml-let notified_users=getNotifiedUsers>
+  <dtml-if notified_users>
+<tr class="row_odd">
+  <td colspan="2">&nbsp;</td>
+  <td>
+    <small>
+    <dtml-var "msg('Sent to users')">:&nbsp;
+    <dtml-in "portal_membership.listSortedUserNames(notified_users)" prefix="u" mapping>
+      <dtml-var user_name><dtml-var "not u_end and ',' or ''">
+    </dtml-in>
+    </small>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+<tr class="row_even">
+  <td style="padding: 10 5 10 5;" colspan="3">
+    <dtml-comment>
+    <h1>&dtml-Title;</h1>
+    <dtml-var CookedBody newline_to_br>
+    </dtml-comment>
+    <em style="color:blue;font-size:12px;"><dtml-var text newline_to_br></em>
+  </td>
+</tr>
+
+</dtml-in>
+</table>
+
+</dtml-let>

@@ -1,0 +1,48 @@
+<dtml-let mode="_.has_key('mode') and 'view' or 'edit'"
+          value="value and value.split(':::') or None"
+          mask="'%d.%m.%Y'"
+>
+
+<dtml-if "mode=='view'">
+  <dtml-if "value[0] and value[1]">
+    <dtml-msg "from">&nbsp;<dtml-var "value[0]">&nbsp;<dtml-msg "to">&nbsp;<dtml-var "value[1]">
+  <dtml-else>
+    <dtml-var "value[0] and _.DateTime(value[0]).strftime(mask) or (value[1] and _.DateTime(value[1]).strftime(mask) or 'n\a')">
+  </dtml-if>
+<dtml-else>
+
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr>
+    <td style="padding: 0 0 5px 0;">
+      <input type="hidden" name="attr_type" id="attr_type" value="<dtml-var "attr.Type()">" />
+      <h4><dtml-msg expr="attr.Title()"></h4>
+      <input type="checkbox" id="from" value="1" <dtml-var "not value or value[0]" fmt="checked">>
+      <dtml-msg "from">
+      <br />
+      <dtml-var "datetime_form( this()
+                        , prefix='min_date'
+                        , date=value and value[0] and _.DateTime(value[0]) or (ZopeTime() - 1.0)
+                        , fast_input=1
+                        , date_only=1
+                        )"
+      >
+      <br />
+      <input type="checkbox" id="to" value="1" <dtml-var "not value or value[1]" fmt="checked">>
+      <dtml-msg "to">
+      <br />
+      <dtml-var "datetime_form( this()
+                        , prefix='max_date'
+                        , date=value and value[1] and _.DateTime(value[1]) or (ZopeTime() + 1.0)
+                        , fast_input=1
+                        , date_only=1
+                        )"
+      >
+      <br />
+    </td>
+  </tr>
+  </table>
+
+</dtml-if>
+
+</dtml-let>
+

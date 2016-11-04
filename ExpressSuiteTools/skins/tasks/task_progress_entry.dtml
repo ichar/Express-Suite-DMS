@@ -1,0 +1,89 @@
+<dtml-let bgcolor="status in ['commit','review','satisfy','sign','informed'] and ['#96EDA9','#008800'] or 
+                   status in ['failure','reject','revise'] and ['#FF88BB','#C80000'] or 
+                  ['#0090C8','#0000AA']"
+          can_remark="_.has_key('can_remark') and 1 or 0"
+>
+
+<table cellspacing="0" cellpadding="1" bgcolor="#0000AA" width="100%" border="0">
+<tr>
+  <td>
+    <table cellspacing="0" cellpadding="0" width="100%" bgcolor="#FFFFFF" border="0">
+    <tr>
+  <dtml-if can_send_notifications>
+      <td class="small" style="padding: 7px 10px 0 7px;">
+    <dtml-if "isInTurn or brains_type=='directive'">
+        <input type="checkbox" name="selected_responses:list" value="&dtml-task_id;|&dtml-response_id;" <dtml-if "member==user">disabled</dtml-if> onclick="javascript:changeSelectedResponse();">
+    <dtml-else>
+        <input type="checkbox" name="selected_users:list" value="&dtml-member;" <dtml-if "member==user">disabled</dtml-if> onclick="javascript:changeSelectedUser();">
+    </dtml-if>
+  <dtml-elif can_remark>
+      <td class="small" style="padding: 7px 10px 0 10px">
+        <input type="checkbox" name="remarks:list" value="&dtml-response_id;">
+  <dtml-else>
+      <td class="small" style="padding: 7px 10px 0 7px;">
+  </dtml-if>
+        <dtml-var "member_name(this(), member=member)">
+
+  <dtml-if "_.has_key('response_status')">
+        <font color="<dtml-if "response_status=='rejected'">red<dtml-else>black</dtml-if>">
+        - <dtml-var "msg(response_status, add=0)">
+        </font>
+  <dtml-elif isclosed>
+    <dtml-if "status not in ['revise']">
+        - <dtml-var "msg('report closed')">
+    </dtml-if>
+  </dtml-if>
+
+        [<dtml-var "rDate(this(), time=date).strip()">]
+      </td>
+    </tr>
+    <tr>
+      <td class="resolution" style="padding: 7px 10px 0 10px;">
+        <dtml-var task_progress_entry_text>
+      </td>
+    </tr>
+
+  <dtml-if task_links>
+    <dtml-in "portal_links.getMatchedLinks(task_links, uname=member, status=status, response_id=response_id)">
+      <dtml-if sequence-start>
+    <tr>
+      <td style="padding: 7px 10px 0 10px"><img src='link.gif'>
+      </dtml-if>
+        <dtml-var "link_view_embedded(this(), link_id=id)">
+      <dtml-if sequence-end>
+      </td>
+    </tr>
+      </dtml-if>
+    </dtml-in>
+  </dtml-if>
+
+  <dtml-if attachment>
+    <dtml-let file="_.getitem(attachment)">
+      <dtml-try>
+    <tr>
+      <td style="padding: 7px 10px 0 10px"><img src='link.gif'>
+        <a href="<dtml-var "absolute_url(action=attachment)" html_quote>"><dtml-var "file.TitleOrId()"></a>
+      </td>
+    </tr>
+      <dtml-except></dtml-try>
+    </dtml-let>
+  </dtml-if>
+
+    <tr><td height="7"><dtml-var spacer.gif></td></tr>
+  <dtml-if "_.has_key('uip')">
+    <tr>
+      <td class="small" style="padding: 2px 0 3px 10px;font-size:xx-small; border-top: 1px solid black; color:navy;background-color:#FFF8E8;" valign="middle">IP&nbsp;<dtml-var "uip"></td>
+    </tr>
+  <dtml-else>
+    <tr><td height="2"><dtml-var spacer.gif></td></tr>
+  </dtml-if>
+
+    </table>
+  </td>
+  <td bgcolor="<dtml-var "bgcolor[0]">" style="width: 10px; border: 1pt solid <dtml-var "bgcolor[1]">; border-left: 0pt;">&nbsp;</td>
+</tr>
+</table>
+
+<br>
+
+</dtml-let>

@@ -1,0 +1,121 @@
+<dtml-revision $Revision: 1.6.22.1 $>
+
+<style type="text/css">
+table.report {
+    font-family: Arial, Verdana, sans-serif;
+    border-bottom: 1px solid black;
+    border-left: 1px solid black;
+    font-size: 11px;
+}
+
+td.report {
+    font-family: Verdana, Arial, sans-serif;
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+    font-size: 11px;
+}
+</style>
+
+<table cellspacing="0" cellpadding="3" width="100%" class="report">
+<tr>
+  <td class="report" align="center" bgcolor="#FFFFFF"> <b><dtml-var "msg('Number')"></b> </td>
+  <td class="report" bgcolor="#FFFFFF" align="center"> <b><dtml-var "msg('Author')"></b> </td>
+  <td class="report" bgcolor="#FFFFFF" align="center" style="width:90%"> <b><dtml-var "msg('Progress tasks report')"></b> </td>
+  <td class="report" bgcolor="#FFFFFF" align="center"> <b><dtml-var "msg('Date')"></b> </td>
+</tr>
+
+<dtml-in selected_tasks>
+  <dtml-let task_id=sequence-item
+            task="followup.getTask(task_id)"
+            task_index="_['sequence-index'] + 1"
+            task_title="task.Title()"
+            task_creator="portal_membership.getMemberBriefName(task.Creator())"
+            task_date="task.effective_date"
+            response_request_code="'%s_responses' % task_id"
+            selected_responses="REQUEST.has_key(response_request_code) and _[response_request_code] or []"
+            pending_code="'%s_pending' % task_id"
+            selected_pending="REQUEST.has_key(pending_code) and _[pending_code] or []"
+            sorted_responses="[]"
+  >
+  <dtml-if "selected_responses or selected_pending">
+    <tr>
+      <td class="report" align="center" bgcolor="#FFFFFF"> <b>&dtml-task_index;.</b> </td>
+      <td class="report" bgcolor="#FFFFFF" nowrap> <b>&dtml-task_creator;</b> </td>
+      <td class="report" bgcolor="#FFFFFF"> <b>&dtml-task_title;</b></td> <dtml-comment><dtml-var "msg('Assigned task')">:&nbsp;</dtml-comment>
+      <td class="report" bgcolor="#FFFFFF" style="padding-left: 5px;"> <b><dtml-var "task_date" fmt="%d.%m.%Y %H:%M"></b> </td>
+    </tr>
+  
+  <dtml-in selected_responses>
+    <dtml-let code=sequence-item
+              x="code.split('|')"
+              status="x[0]"
+              user="x[1]"
+              member="portal_membership.getMemberById(user)"
+              response_datetime="_.len(x) > 1 and x[2]"
+    >
+      <dtml-if "member is not None">
+        <dtml-let uname="member.getMemberBriefName()">	  
+        <dtml-in "task.searchResponses(member=user, status=status)" mapping>
+          <dtml-if "not response_datetime or _.str(date)==response_datetime">
+            <dtml-let sortkey="status=='review' and '00' or _.str(date)">
+              <dtml-call expr="sorted_responses.append({ 'user':uname, 'text':text, 'date':date, 'status':status, 'layer':layer })">
+            </dtml-let>
+          </dtml-if>
+        </dtml-in>
+        </dtml-let>
+      </dtml-if>
+    </dtml-let>
+  </dtml-in>
+
+  <dtml-in selected_pending>
+    <dtml-let code=sequence-item
+              x="code.split('|')"
+              status="x[0]"
+              user="x[1]"
+              member="portal_membership.getMemberById(user)"
+              date="ZopeTime()"
+    >
+      <dtml-if "member is not None">
+        <dtml-call expr="sorted_responses.append({ 'user':member.getMemberBriefName(), 'text':'NOT PRESENT', 'date':date, 'status':'pending', 'layer':None })">
+      </dtml-if>
+    </dtml-let>
+  </dtml-in>
+
+  <dtml-in sorted_responses mapping sort="date">
+    <tr>
+      <td class="report" align="center" bgcolor="#FFFFFF">&dtml-task_index;.&dtml-sequence-number;</td>
+      <td class="report" bgcolor="#FFFFFF"><dtml-var "user"></td>
+      <td class="report" bgcolor="#FFFFFF" style="padding-right: 5px; width: 100%">
+      <dtml-if "status in ['informed','commit','sign','satisfy']">
+        <font color="green">
+      <dtml-elif "status in ['failure','reject','pending']">
+        <font color="red">
+      <dtml-else>
+        <font color="black">
+      </dtml-if>
+      <dtml-if "status != 'pending'">
+          <dtml-var "msg(status, add=0)">
+      <dtml-else>
+          <dtml-var "msg('NOT PRESENT')">
+      </dtml-if>
+        </font>
+      <dtml-if "text and status != 'pending'">
+        <br>
+        <font style="color:blue;"><dtml-var "msg('Comment')">:&nbsp;<dtml-var task_progress_entry_text></font>
+      </dtml-if>
+      </td>
+
+      <td class="report" bgcolor="#FFFFFF" style="padding-left: 5px;">
+        <dtml-var "date" fmt="%d.%m.%Y %H:%M">
+        <br><br><br>
+        <span>________________&nbsp;</span><br>
+        <dtml-var "msg('signature')"><br>
+      </td>
+    </tr>
+  </dtml-in>
+
+  </dtml-if>
+  </dtml-let>
+</dtml-in>
+
+</table>

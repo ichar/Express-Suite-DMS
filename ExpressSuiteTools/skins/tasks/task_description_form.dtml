@@ -1,0 +1,24 @@
+<dtml-if "Description()">
+<table cellpadding="0" cellspacing="1" border="0">
+<tr><td height="1"><img src="&dtml-portal_url;/spacer.gif"></td></tr>
+<tr>
+  <td width="3" bgColor="#004080"><img src="&dtml-portal_url;/spacer.gif"></td>
+  <td width="1" bgColor="#0080FF"><img src="&dtml-portal_url;/spacer.gif"></td>
+  <td style="padding-left:5px;">
+    <span style="font-family:tahoma;font-weight:normal;font-size:11px;color:#804040;">
+    <dtml-var "getFormattedComments(Description(view=1))">
+    </span>
+  <dtml-if "demand_revision_code and demand_revision_code not in ['success','current revision']">
+    <span style="font-family:arial;font-size:12px;color:#3366CC;">
+    [&nbsp;<strong><dtml-var "msg(demand_revision_code)"></strong>&nbsp;]
+    </span>
+  </dtml-if>
+  </td>
+</tr>
+<tr><td height="1"><img src="&dtml-portal_url;/spacer.gif"></td></tr>
+</table>
+<dtml-else>
+<table cellpadding="0" cellspacing="0" border="0">
+<tr><td height="3"><img src="&dtml-portal_url;/spacer.gif"></td></tr>
+</table>
+</dtml-if>

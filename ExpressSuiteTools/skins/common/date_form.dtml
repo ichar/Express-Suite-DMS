@@ -1,0 +1,34 @@
+<table>
+<tr>
+  <td class="small">
+    <select id="&dtml-prefix;_day" name="&dtml-prefix;_day:int">
+      <dtml-in expr="_.range(1, 32)">
+        <option value="<dtml-var sequence-item>" 
+          <dtml-var "_['sequence-item'] == date.day() and 'selected' or ''"> 
+        /><dtml-var sequence-item></option>
+      </dtml-in>
+    </select>
+  </td>
+  <td class="small">
+    <select id="&dtml-prefix;_month" name="&dtml-prefix;_month:int">
+      <dtml-let months="('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec')">
+        <dtml-in months>
+          <option value="<dtml-var "_['sequence-index'] + 1">" 
+            <dtml-var "_['sequence-index'] + 1 == date.month() and 'selected' or ''">
+          /><dtml-var "msg(_['sequence-item'])"></option>
+        </dtml-in>
+      </dtml-let>
+    </select>
+  </td>
+  <td class="small">
+    <select id="&dtml-prefix;_year" name="&dtml-prefix;_year:int">
+      <dtml-in "_.range(2002, 2008)">
+        <option value="<dtml-var sequence-item>"
+          <dtml-var "_['sequence-item'] == date.year() and 'selected'  or ''"> 
+        /><dtml-var sequence-item></option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+</table>
+ 

@@ -1,0 +1,217 @@
+<dtml-revision $Revision: 1.2.4.1.6.3.4.1 $>
+
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<dtml-let entry_id="getId()" entry="entry_id[6:]">
+  <h1><dtml-var "msg('Registry record')">:&nbsp;<dtml-var entry></h1>
+</dtml-let>
+
+<dtml-let user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          entry_info="listRegisteredDocumentsForEntry(this())"
+          p_archive="entry_info and entry_info[0]==1"
+          documents="entry_info and entry_info[0]==0 and _.len(entry_info) > 1 and entry_info[1] or None"
+          obj="documents and documents[0].getObject()"
+          category2="obj and portal_metadata.getCategoryById(obj.Category())"
+          info="p_archive and entry_info[1]"
+          l_archive="obj and obj.archive()"
+          IsArchive="p_archive or l_archive"
+          parent_url="aq_parent.absolute_url()"
+          IsDebug="0"
+>
+
+<form id="entry_edit" method="post" action="editEntry" enctype="multipart/form-data">
+
+<table width="100%" cellspacing="1" cellpadding="3" border="0">
+<tr class="row_title">
+  <td class="small" colspan="2">
+    <dtml-var "msg('Document entry')">
+  </td>
+</tr>
+
+<dtml-in listColumns>
+<dtml-let field=getId type=Type>
+
+<dtml-if "getId() not in ['SID'] or IsDebug">
+<tr class="row_even">
+  <td class="smallHeader" style="padding-right:20px;"><dtml-var "msg(Title(), add=None).replace('_',' ')"></td>
+  <td style="width:70%">
+
+  <dtml-if "isEditAllowed(field) and not isComputed() and not IsArchive">
+    <dtml-comment> Edit entry field </dtml-comment>
+    <dtml-call "REQUEST.set('show_apply_button', 1)">
+    <dtml-if "field=='Creator' and _.SecurityCheckPermission('Modify portal content', this())">
+      <select name="entry_creator" size="1" >
+        <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+          <option value="<dtml-var user_id>" <dtml-var "get('Creator')==user_id and 'selected' or ''">>
+            <dtml-var user_name>
+          </option>
+        </dtml-in>
+      </select>
+    <dtml-elif "type in ['items']">
+      <dtml-if "category2 is not None">
+        <dtml-var "entry_field_edit(category2, name=field, type=type, value=entry.get(field, []), context=this())">
+      </dtml-if>
+    <dtml-else>
+      <dtml-var "entry_field_edit(this(), name=field, type=type, value=get(field, ''))">
+    </dtml-if>
+
+  <dtml-elif "isGetAllowed(field)">
+    <dtml-comment> View entry field </dtml-comment>
+    <dtml-let value="get(field, None)"
+              field_value="field=='Creator' and portal_membership.getMemberName(value) or value"
+    >
+      <dtml-if "field=='ID'">
+        <dtml-call "REQUEST.set('view_font_style', 'color:blue;font-size:x-small;')">
+      <dtml-elif "field=='Creator'">
+        <dtml-call "REQUEST.set('view_font_style', 'color:purple;font-weight:bold;font-size:x-small;')">
+      <dtml-elif "type in ['date']">
+        <dtml-call "REQUEST.set('view_font_style', 'font-size:x-small;')">
+      <dtml-elif "type in ['items']">
+        <dtml-call "REQUEST.set('view_font_style', 'color:purple;font-weight:bold;font-size:x-small;')">
+      <dtml-else>
+        <dtml-call "REQUEST.set('view_font_style', 'font-size:x-small;')">
+      </dtml-if>
+
+      <dtml-try>
+        <dtml-if "type in ['items']">
+          <dtml-if "category2 is not None">
+            <dtml-var "entry_field_view(category2, name=field, type=type, value=field_value)">
+          </dtml-if>
+        <dtml-else>
+          <dtml-let x_type="type=='date' and field in ['receipt_date','IN_OutDate','OUT_InDate'] and 'date_only' or type">
+            <dtml-var "entry_field_view(this(), name=field, type=x_type, value=field_value)">
+          </dtml-let>
+        </dtml-if>
+      <dtml-except>
+        <dtml-var "msg('Object is inaccessible.')">
+      </dtml-try>
+
+      <dtml-if IsDebug>&nbsp;<dtml-var "field"> : <dtml-var "type"> : <dtml-var "field_value"></dtml-if>
+    </dtml-let>
+  </dtml-if>
+  </td>
+</tr>
+
+<dtml-elif IsAdmin>
+<tr class="row_even">
+  <td class="smallHeader"><dtml-var "msg(Title(), add=None).replace('_',' ')"></td>
+  <td>
+    <dtml-var "entry_field_edit(this(), name=field, type=type, value=get(field, ''))">
+  </td>
+</tr>
+</dtml-if>
+  
+</dtml-let>
+</dtml-in>
+
+<tr class="row_even">
+  <td class="smallHeader">
+    <dtml-var "msg('Document')">
+  </td>
+  <td>
+    <dtml-if p_archive>
+      <dtml-let object_title="info['object_title']"
+                archive_url="info['archive_url']"
+                remote_url="portal_properties.remote_url(archive_url)"
+      >
+        <a target="_blank" href="<dtml-var remote_url>?expand=1"><dtml-var object_title size="120"></a>
+      </dtml-let>
+    <dtml-else>
+      <dtml-in documents>
+        <a target="_blank" href="<dtml-var getURL>?expand=1"><dtml-var Title></a>
+      <dtml-else>
+        <dtml-if source>
+          <a href="&dtml-absolute_url;/assign?registry_id=<dtml-var "get('ID')" html_quote>&came_from=&dtml-came_from;">&lt;&lt;&lt;</a>
+        </dtml-if>
+      </dtml-in>
+    </dtml-if>
+  </td>
+</tr>
+<tr class="row_even">
+  <td class="smallHeader">
+    <dtml-var "msg('Follow-up action')">
+  </td>
+  <td style="padding-bottom:10px;">
+    <dtml-if p_archive>
+      <dtml-let object_state="info['object_state']"
+                archive_date="info['archive_date']"
+      >
+        <font color="purple"><strong><nobr><dtml-var "msg(object_state, add=0)"></nobr></strong></font><br>
+        <strong><nobr><dtml-var "msg('Object exported to archive')"></nobr></strong><br>
+        <nobr><dtml-var archive_date fmt="%Y-%m-%d %H:%M"></nobr>
+      </dtml-let>
+    <dtml-else>
+      <dtml-in documents>
+        <dtml-with getObject>
+          <dtml-if followup>
+            <dtml-in "followup.getBoundTasks()" sort="getId">
+              <b>&dtml-title;</b>:<br>
+              <dtml-if "BrainsType() == 'directive' and not (title.find('на регистрацию') > -1) and description">
+                <font color="blue"><dtml-var description size="240"></font><br>
+              </dtml-if>
+              <dtml-let involved_users=listInvolvedUsers>
+                <dtml-if involved_users>
+                  <dtml-in involved_users sort="id" size="5">
+                    <dtml-var "member_name(this(), member=_['sequence-item'], brief=1)"><dtml-unless sequence-end>,</dtml-unless>
+                  </dtml-in>
+                </dtml-if>
+              </dtml-let>
+              <dtml-unless sequence-end><br></dtml-unless>
+            </dtml-in>
+          </dtml-if>
+        </dtml-with>
+      </dtml-in>
+    </dtml-if>
+  </td>
+</tr>
+
+<dtml-if "IsManager or (REQUEST.get('show_apply_button', 0) and not IsArchive)">
+<tr class="row_title">
+  <td class="small" colspan="2"><dtml-var "msg('Registry comment')"><br> <textarea name="comment:text" rows="5" cols="80" style="width:100%"></textarea></td>
+</tr>
+<tr>
+  <td colspan="2">
+    <input type="hidden" name="record_id" value="&dtml-record_id;"/>
+    <input type="submit" name="save" value="<dtml-var "msg('Save entry')">" />
+    <input type="button" onClick="JavaScript:location.href='&dtml-parent_url;'" value="<dtml-var "msg('Cancel')">"/>
+  </td>
+</tr>
+<dtml-else>
+<tr>
+  <td>
+    <input type="button" onClick="JavaScript:location.href='&dtml-parent_url;'" value="<dtml-var "msg('Back')">" style="width:80px;">
+  </td>
+</tr>
+</dtml-if>
+</table>
+</form>
+
+<dtml-in getHistory mapping reverse>
+  <dtml-if sequence-start>
+<table cellspacing="3" border="0">
+<tr>
+  <td class="smallHeader"><dtml-var "msg('Modifications log')"></td>
+</tr>
+  </dtml-if>
+<tr>
+  <td class="small">
+    <nobr>
+    <dtml-var date fmt="%Y-%m-%d %H:%M">
+    <b><dtml-var "member_name(this(), member=actor)"></b>
+    <em><dtml-var "msg(action, add=0)"></em>
+    </nobr>
+    <dtml-if text><br><em style="color:blue"><dtml-var text></em></dtml-if>
+  </td>
+</tr>
+  <dtml-if sequence-end>
+</table>
+  </dtml-if>
+</dtml-in>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

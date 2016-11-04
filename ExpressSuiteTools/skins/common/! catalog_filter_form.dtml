@@ -1,0 +1,192 @@
+<dtml-let conditions="filter.get('conditions')"
+          columns="filter.get('columns')"
+          query="filter.get('query')"
+          IsSetFilterSession="1 # or conditions and columns and query and 1 or 0"
+          category2="_.has_key('category2') and category2 or this()"
+          uid="_.has_key('uid') and uid or None"
+>
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<script type="text/javascript">
+<!--
+function ClearConditions( frm, columns, conditions ) {
+    if(typeof(conditions) != 'object') return;
+
+    var el_name = '';
+    for (q in conditions) {
+        if (!document.getElementById('checkbox_'+conditions[q]).checked )
+            continue;
+        for (c in columns) {
+            el_name = 'filter_'+conditions[q]+':'+columns[c]['type']
+            if (frm.elements[el_name] != null)
+                frm.elements[el_name].value = '';
+            else
+            if (frm.elements[el_name+':ignore_empty'] != null)
+                frm.elements[el_name+':ignore_empty'].value = '';
+        }
+    }
+}
+
+var IsValidated = false;
+
+function Validate(frm, columns, conditions) {
+    var reg_spec = /[\!\@\#\$\%\^\&\(\)\+\=\?\,\;\/\\]/g;
+    var reg_comma = /[«»\*"']/g;
+    // Validate query
+    for (q in conditions) {
+        for (c in columns)
+            if( columns[c]['id'] == conditions[q] ) 
+                break;
+        // alert(q+' : '+conditions[q]+' : '+c+' : '+columns[c]['type']);
+        if( columns[c]['type'] == 'string' || columns[c]['type'] == 'text' ) {
+            var x = 'filter_'+conditions[q];
+            if( typeof(frm.elements[x]) != 'object' ) {
+               x += ':'+columns[c]['type'];
+               if( typeof(frm.elements[x]) != 'object' ) continue;
+            }
+            var obj = frm.elements[x];
+            if( typeof(obj) == 'object' ) {
+                var str = obj.value;
+                var pos = str.indexOf('\"');
+                for (var count = 0; pos != -1; count++)
+                  pos = str.indexOf('\"', pos + '\"'.length);
+                if((count % 2)==1 || (str.length==count & count>0)) {
+                    alert('<dtml-var "msg('Incorrect query')">');
+                    frm.focus();
+                    return false;
+                }
+                //obj.value = str.replace(reg_spec, ' ').replace(reg_comma, '');
+            }
+        }
+    }
+    IsValidated = validateForm(frm, 1);
+    return IsValidated;
+}
+
+function OnSubmit( frm, columns, conditions ) {
+    if( !IsValidated && typeof(frm) == 'object' ) { 
+        return Validate(frm, columns, conditions);
+    } else {
+        return true;
+    }
+}
+
+function OnClickCheck( obj ) {
+    obj.checked = !obj.checked;
+}
+//-->
+</script>
+
+<dtml-if IsSetFilterSession>
+  <dtml-call "setSession('%s_filter' % filter_id, filter)">
+</dtml-if>
+
+<form class="inline" name="catalog_filter" method="post" action="<dtml-var "absolute_url(action='catalog_filter')" html_quote>"
+  onsubmit="javascript: return OnSubmit(this, <dtml-var columns>, <dtml-var conditions>);"
+>
+<input type="hidden" name="uid" value="&dtml-uid;">
+
+<table border="0">
+<tr class="row_title"><td class="smallHeader" colspan="2"><dtml-var "msg('View filter')"></td></tr>
+
+<dtml-in conditions>
+  <dtml-if sequence-item>
+  <dtml-let id=sequence-item
+            x="query.get(id, [])"
+            IsQuery="_.same_type(x, {}) and 1 or 0"
+            v="IsQuery and x.get('query') or x"
+            operator="IsQuery and x.get('operator')"
+            range="IsQuery and x.get('range')"
+            value="_.same_type(v, '') and v.replace('%','') or v"
+            matched_columns="[x for x in columns if x.get('id')==id]"
+            column="matched_columns and matched_columns[0] or None"
+  >
+  <dtml-if column>
+    <dtml-let column_title="column.get('title')" column_type="column.get('type')">
+<tr class="row_even">
+  <td class="smallHeader">
+    <input type="checkbox" id="checkbox_<dtml-var id>" name="selected_conditions:list" value="<dtml-var id>"> 
+    <span class="mousepointer" onclick="OnClickCheck(checkbox_<dtml-var id>);"><dtml-var "msg(column_title)"></span>
+  </td>
+  <td>
+    <dtml-if "column_type=='date'">
+    <table>
+    <tr>
+      <td><dtml-var "msg('from')">:</td>
+      <td><dtml-var "entry_field_edit(this(), type=column_type, name='filter_min_%s' % id, value=_.len(value) == 2 and value[0])"></td>
+    </tr>
+    <tr>
+      <td><dtml-var "msg('till')">:</td>
+      <td><dtml-var "entry_field_edit(this(), type=column_type, name='filter_max_%s' % id, value=_.len(value) == 2 and value[1])"></td>
+    </tr>
+    </table>
+    <input type="hidden" name="<dtml-var "'%s_range' % id">" value="min:max">
+
+    <dtml-elif "id in ['Creator','Supervisors','InvolvedUsers']">
+      <dtml-var "user_list(this(),
+                           name='filter_%s' % id, 
+                           selected_users=value,
+                           size=10,
+                           IsSimple=1
+                           )">
+
+    <dtml-elif "column_type in ['int', 'float']">
+      <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value)">
+      <dtml-var "msg('usage:')"> 
+    <select name="<dtml-var "'%s_range' % id">">
+      <dtml-in "('max', 'less than'), ('', 'equal'), ('min', 'greater than')">
+      <option value="&dtml-sequence-key;" <dtml-var "_['sequence-key'] == range and 'selected' or ''">> <dtml-var "msg(_['sequence-item'])"></option>
+      </dtml-in>
+    </select>
+
+    <dtml-elif "column_type in ['list']">
+      <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value, options=column.get('options'))">
+
+    <dtml-elif "column_type in ['items']">
+      <dtml-var "entry_field_edit(category2, type=column_type, name='filter_%s' % id, value=value, context=None)">
+
+    <dtml-else>
+      <dtml-var "entry_field_edit(this(), type=column_type, name='filter_%s' % id, value=value or '')">
+
+    </dtml-if>
+  </td>
+</tr>
+    </dtml-let>
+  </dtml-if>
+  </dtml-let>
+
+  <dtml-if sequence-end>
+<tr class="row_title">
+  <td colspan="2">
+    <input type="submit" name="apply_filter" value="<dtml-var "msg('Apply filter')">" onClick="javascript: return Validate(this.form, <dtml-var columns>, <dtml-var conditions>);">
+    <input type="submit" name="remove_condition" value="<dtml-var "msg('Remove condition')">" onClick = "javascript: ClearConditions(this.form, <dtml-var columns>, <dtml-var conditions>);">
+  </td>
+</tr>
+  </dtml-if>
+  </dtml-if>
+</dtml-in>
+
+<tr class="row_title">
+  <td class="smallHeader">
+    <dtml-var "msg('Column:')">
+  </td>
+  <td>
+    <select name="condition">
+      <dtml-in columns mapping>
+        <option value="&dtml-id;"><dtml-var "msg(title, add=None)"></option>
+      </dtml-in>
+    </select>
+    <input type="submit" name="add_condition" value="<dtml-var "msg('Add condition')">">
+  </td>
+</tr>
+<tr>
+  <td colspan="2">
+    <dtml-var "msg('Note: Filter can execute only full matched text search.')">
+  </td>
+</tr>
+</table>
+
+<input type="hidden" name="filter_id" value="<dtml-var "_.has_key('filter_id') and filter_id or getUid()">">
+</form>
+
+</dtml-let>

@@ -1,0 +1,1 @@
+<dtml-var "portal_membership.manage_changeGroup(REQUEST=REQUEST)">

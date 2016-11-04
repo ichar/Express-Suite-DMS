@@ -1,0 +1,89 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'Activity Statistics')">
+
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function DisableForm( frm ) {
+    frm.OK.disabled=true;
+    frm.cancel.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.activityStatisticsForm;
+    if (validateForm(frm)) {
+        DisableForm(frm);
+        frm.submit();
+    }
+}
+
+function validateForm( frm ) {
+    var period=frm['period'].value;
+    if( period.length > 5) { 
+        frm['period'].value='0'; 
+        return false;
+    }
+	return true;
+}
+//-->
+</script>
+
+<h3 style="padding: 10px 0 10px 3px"><dtml-var "msg('User Activity Statistics')">:</h3>
+
+<dtml-let x="portal_membership.TotalCurrentUsers()"
+          total_active_users="x[0]"
+          total_current_users="x[1]"
+          total_users="_.len(portal_membership.listMemberIds())"
+          period="_.has_key('period') and period or 0"
+          instance="portal_properties.instance_name().upper()"
+          spe="portal_membership.SystemPerfomanceEstimate(period)"
+>
+
+<table class="FormLayout" width="480" border="0">
+<form name="activityStatisticsForm" action="&dtml-portal_url;/activity_statistics_form" method="POST">
+
+<tr>
+  <th style="width:50%"><dtml-var "msg('System')"></th>
+  <td class="ViewField" nowrap><b style="color:purple;font-size:11px"><dtml-var instance></b></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Current Time')"></th>
+  <td class="ViewField" nowrap><dtml-var ZopeTime></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Total current users')"></th>
+  <td class="ViewField" nowrap>
+    <font color="red"><span id="counter"><dtml-var "_.str(total_current_users)"></span>&nbsp;/&nbsp;<dtml-var "_.str(total_active_users)">&nbsp;/&nbsp;<dtml-var "_.str(total_users)">&nbsp;</font>
+    <font color="black"><strong style="font-size:x-small">SPE</strong></font>&nbsp;<font color="blue"><dtml-var "_.str(spe[4])">&nbsp;/&nbsp;<dtml-var "_.str(spe[3])"></font>
+  </td>
+</tr>
+<tr>
+  <th style="padding-top:5px"><dtml-var "msg('Update period')"></th>
+  <td>
+    <table border="0">
+    <tr>
+      <td><input type="text" id="period" name="period:int" size="5" value="&dtml-period;" style="text-align:center"></td>
+      <td style="padding:4px 0 0 2px"><dtml-var "msg('minutes')"></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td align="left" colspan="2" style="padding-right:0px;">
+    <iframe style="background:#FFFFFF;" height="403" width="100%" name="activity" src="activity_statistics?period=<dtml-var period>"></iframe>
+  </td>
+</tr>
+<tr>
+  <td style="padding-top:10px" align="left" colspan="2">
+    <input name="OK" type="button" value="<dtml-var "msg('Refresh')">" onclick="javascript:SubmitForm();" style="width:100px;">
+    <input name="cancel" type="button" onclick="javascript:window.close();" value="<dtml-var "msg('Close')">" style="width:100px;">
+  </td>
+</tr>
+
+</form>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,412 @@
+<dtml-comment>
+Template params:
+  'id'          -- category metadata field Id
+  'title'       -- field title
+  'sortkey'     -- field sortkey
+  'width'       -- field width
+  'isMandatory' -- field is mandatory
+  'isReadOnly'  -- field is read only
+  'isHidden'    -- field is hidden always
+  'isDisabled'  -- is local
+  'type'        -- field type
+  'value'       -- default value
+  'options'     -- field options value
+  'context'     -- category
+  'mode'        -- form initializing mode (0-add,1-update)
+  'get_default' -- mode to get default (0,1... for string or [1,2,3...] for lines or 0/1 for another)
+</dtml-comment>
+
+<dtml-comment>&dtml-type;<br>&dtml-value;<br>&dtml-options;<br>&dtml-context;<br><br><br></dtml-comment>
+
+<script type="text/javascript">
+<!--
+function setFieldType( obj ) {
+    if( typeof(obj) != 'object') return;
+    if( obj.checked ) { 
+      document.all.FieldType.value = obj.id;
+      var string_state = ( obj.id == 'string' ? 'block' : 'none' );
+      set_display( document.all.div_options_string, string_state ); 
+      var date_state = ( obj.id == 'date' ? 'block' : 'none' );
+      set_display( document.all.div_options_date, date_state ); 
+      var lines_state = ( obj.id == 'lines' ? 'block' : 'none' );
+      set_display( document.all.div_options_lines, lines_state ); 
+      var userlist_state = ( obj.id == 'userlist' ? 'block' : 'none' );
+      set_display( document.all.div_options_userlist, userlist_state ); 
+      var link_state = ( obj.id == 'link' ? 'block' : 'none' );
+      set_display( document.all.div_options_link, link_state ); 
+    }
+}
+
+function setEnabled( mode ) {
+    if( mode == 'lines') {
+      var s=(document.all.change_data.checked ? 'block' : 'none');
+      set_display( document.all.change_data_control, s );
+    }
+}
+
+function set_display( obj, state ) {
+    if(typeof(obj) == 'object') obj.style.display = state;
+}
+//-->
+</script>
+
+<table width="100%" cellpadding="0" cellspacing="0" bgColor="#E5E5E5" border="0">
+<tr>
+  <td>
+    <table cellspacing="2" cellpadding="2" border="0">
+      <tr>
+        <td colspan="2" nowrap><dtml-var "msg('Field ID')"></td>
+        <td width="100%">
+           <input type="text" name="fName" size="66" <dtml-if "mode==1">value="&dtml-id;"</dtml-if> />&nbsp;
+           <input type="hidden" name="FieldType" value="&dtml-type;" />
+        </td>
+      </tr>
+      <tr>
+        <td colspan="2"><dtml-var "msg('Field title')"></td>
+        <td><input type="text" name="title" size="66" <dtml-if "mode==1">value="&dtml-title;"</dtml-if> /></td>
+      </tr>
+      <tr>
+        <td colspan="2"><dtml-var "msg('Sortkey')"></td>
+        <td><input type="text" name="fSortkey" style="width:76px;" <dtml-if "mode==1">value="&dtml-sortkey;"</dtml-if> /></td>
+      </tr>
+      <tr>
+        <td colspan="2"><dtml-var "msg('Field width')"></td>
+        <td><input type="text" name="fWidth" style="width:76px;" <dtml-if "mode==1">value="&dtml-width;"</dtml-if> /></td>
+      </tr>
+      <tr>
+        <td colspan="2"><dtml-var "msg('Mandatory')"></td>
+        <td><input type="checkbox" name="mandatory" <dtml-if "mode==1">&dtml-isMandatory;</dtml-if> /><b style="color:purple">&nbsp;MD</b></td>
+      </tr>
+      <tr>
+        <td colspan="2"><dtml-var "msg('Read only')"></td>
+        <td><input type="checkbox" name="read_only" <dtml-if "mode==1">&dtml-isReadOnly;</dtml-if> /><b style="color:purple">&nbsp;RO</b></td>
+      </tr>
+      <tr>
+        <td colspan="2"><dtml-var "msg('Editable in template')"></td>
+        <td><input type="checkbox" name="editable_in_template" <dtml-if "mode==1">&dtml-isEditable;<dtml-else>checked</dtml-if> /><b style="color:purple">&nbsp;ED</b></td>
+      </tr>
+      <tr>
+        <td colspan="2"><dtml-var "msg('Hidden')"></td>
+        <td><input type="checkbox" name="hidden" <dtml-if "mode==1">&dtml-isHidden;</dtml-if> /><b style="color:purple">&nbsp;HD</b></td>
+      </tr>
+      <tr>
+        <td colspan="2"><b><dtml-var "msg('Data type')"></b></td>
+        <td><b><dtml-var "msg('Default value')"></b></td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="boolean" value="boolean" <dtml-if "type=='boolean'">checked</dtml-if> /></td>
+        <td><label for="boolean"><dtml-var "msg('boolean')"></label></td>
+        <td>
+            <input type="checkbox" name="value_boolean" onClick="selectType('boolean');"
+            <dtml-var "type=='boolean' and value and 'checked' or ''">
+        </td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="date" value="date" <dtml-if "type=='date'">checked</dtml-if> /></td>
+        <td><label for="date"><dtml-var "msg('date')"></label></td>
+        <td>
+          <dtml-let prefix="'value'"
+                    date="type!='date' and ZopeTime() or value"
+                    date_only="1">
+            <dtml-var datetime_form>
+          </dtml-let><br>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2></td>
+        <td>
+          <dtml-let display="type=='date' and id and 'block' or 'none'">
+          <div id="div_options_date" style="display:&dtml-display;">
+          <table cellspacing="0" cellpadding="0" border="0">
+          <tr><td colspan=2><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input type="checkbox" id="current_date" name="default_date" <dtml-var "type=='date' and get_default" fmt="checked"> />
+              <nobr><label for="current_date"><dtml-var "msg('Current date by default')"></label></nobr>
+            </td>
+          </tr>
+          </table>
+          </div>
+          </dtml-let>
+        </td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="string" value="string" <dtml-if "type=='string'">checked</dtml-if> /></td>
+        <td><label for="string"><dtml-var "msg('string')"></label></td>
+        <td><input type="text" name="value_string" onKeyUp="selectType('string');" size="66" value="<dtml-var "type=='string' and value or ''">" /></td>
+      </tr>
+      <tr>
+        <td colspan=2></td>
+        <td>
+          <dtml-let display="type=='string' and 'block' or 'none'">
+          <div id="div_options_string" style="display:&dtml-display;">
+          <table cellspacing="0" cellpadding="0" border="0">
+          <tr><td colspan=2><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input type="radio" id="string_option_none" name="default_value_string" value="0" <dtml-if "not get_default">checked</dtml-if> />
+              <nobr><label for="string_option_none"><dtml-var "msg('n/a')"></label></nobr>
+            </td>
+          </tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input type="radio" id="string_option_executor_phone" name="default_value_string" value="1" <dtml-if "get_default==1">checked</dtml-if> />
+              <nobr><label for="string_option_executor_phone"><dtml-var "msg('Executor phone attribute')"></label></nobr>
+            </td>
+          </tr>
+          </table>
+          </div>
+          </dtml-let>
+        </td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="int" value="int" <dtml-if "type=='int'">checked</dtml-if> /></td>
+        <td><label for="int"><dtml-var "msg('int')"></label></td>
+        <td><input type="text" name="value_int" onKeyUp="selectType('int');" style="width:76px;" value="<dtml-var "type=='int' and value or ''">" /></td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="float" value="float" <dtml-if "type=='float'">checked</dtml-if> /></td>
+        <td><label for="float"><dtml-var "msg('float')"></label></td>
+        <td><input type="text" name="value_float" onKeyUp="selectType('float');" style="width:76px;" value="<dtml-var "type=='float' and value or ''">" /></td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="text" value="text" <dtml-if "type=='text'">checked</dtml-if> /></td>
+        <td><label for="text"><dtml-var "msg('text')"></label></td>
+        <td><textarea name="value_text" onKeyUp="selectType('text');" rows="5" cols="65"><dtml-var "type=='text' and value or ''"></textarea></td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="lines" value="lines" <dtml-if "type=='lines'">checked</dtml-if> /></td>
+        <td><label for="lines"><dtml-var "msg('lines')"></label></td>
+        <td> 
+          <dtml-let val="type=='lines' and value[1:] or ''" text="'\n'.join(val)">
+            <textarea name="value_lines:lines" onKeyUp="selectType('lines');" rows="10" cols="100"><dtml-var text></textarea>
+          </dtml-let>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2></td>
+        <td>
+          <dtml-let list_options="context.listAttributeOptions('lines')" display="type=='lines' and id and 'block' or 'none'">
+          <div id="div_options_lines" style="display:&dtml-display;">
+          <table cellspacing="0" cellpadding="0" border="0">
+            <dtml-if "id.lower().endswith('department')">
+          <tr><td colspan=2><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input value="1" type="checkbox" id="current_department" name="default_lines:list" <dtml-var "type=='lines' and '1' in get_default" fmt="checked"> />
+              <nobr><label for="current_department"><dtml-var "msg('Current department by default')"></label></nobr><br>
+              <input value="2" type="checkbox" id="use_dictionary" name="default_lines:list" <dtml-var "type=='lines' and '2' in get_default" fmt="checked"> />
+              <nobr><label for="use_dictionary"><dtml-var "msg('Use department dictionary')"></label></nobr><br>
+              <input value="3" type="checkbox" id="check_groups" name="default_lines:list" <dtml-var "type=='lines' and '3' in get_default" fmt="checked"> />
+              <nobr><label for="check_groups"><dtml-var "msg('Check if user is a group member')"></label></nobr>
+            </td>
+          </tr>
+            </dtml-if>
+
+            <dtml-if list_options>
+              <dtml-in list_options>
+                <dtml-if sequence-start>
+          <tr><td colspan=2 style="padding-top:3px"><b><dtml-var "msg('Metadata field options')">:</b></td></tr>
+                </dtml-if>
+          <tr>
+            <td valign="middle" nowrap>
+                <dtml-let option="_['sequence-item']"
+                          caption="('%s option name' % option).capitalize()"
+                          value="option in options and 1 or 0"
+                          name="'%s_%s' % (option, type)">
+              <input value="&dtml-option;" type="checkbox" id="&dtml-name;" name="options_lines:list" <dtml-if value>checked</dtml-if> />
+              <nobr><label for="&dtml-name;"><dtml-var "msg(caption)"></label></nobr>
+                </dtml-let>
+              </dtml-in>
+            </td>
+          </tr>
+            </dtml-if>
+          </table>
+          </div>
+          </dtml-let>
+        </td>
+      </tr>
+
+      <tr>
+        <td valign="top" style="padding-top:60px"><input type="radio" onclick="setFieldType(this)" name="fType" id="items" value="items" <dtml-if "type=='items'">checked</dtml-if> /></td>
+        <td valign="top" style="padding-top:60px"><label for="items"><dtml-var "msg('items')"></label></td>
+        <td>
+          <dtml-let val="type=='items' and value[1:] or ''" text="'\n'.join(val)">
+          <textarea name="value_items:lines" onKeyUp="selectType('items');" rows="10" cols="100"><dtml-var text></textarea>
+          </dtml-let>
+        </td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="link" value="link" <dtml-if "type=='link'">checked</dtml-if> /></td>
+        <td><label for="link"><dtml-var "msg('link')"></label></td>
+        <td class="small">
+          <dtml-if "type=='link'">
+            <dtml-var "entry_field_edit(this(), name='value_link', type='link', context=context, value=value, get_default=get_default)">
+          <dtml-else>
+            <dtml-var "entry_field_edit(this(), name='value_link', type='link', context=context)">
+          </dtml-if>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=2></td>
+        <td>
+          <dtml-let display="type=='link' and id and 'block' or 'none'"
+                    link_type="get_default and _.same_type(get_default, []) and get_default[0] or 0"
+                    default_category="link_type==2 and get_default[1] or ''"
+                    categories="portal_metadata.getCategories()"
+          >
+          <div id="div_options_link" style="display:&dtml-display;">
+          <table cellspacing="0" cellpadding="0" border="0">
+          <tr><td colspan=2><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input value="0" type="radio" id="linked_default" name="default_link" <dtml-var "type=='link' and not link_type" fmt="checked"> onclick="javascript:linked_category.style.display=(this.checked ? 'none' : 'block');" />
+              <nobr><label for="linked_default"><dtml-var "msg('By default')"></label></nobr>
+            </td>
+          </tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input value="1" type="radio" id="linked_folder_objects" name="default_link" <dtml-var "type=='link' and link_type==1" fmt="checked"> onclick="javascript:linked_category.style.display=(this.checked ? 'none' : 'block');" />
+              <nobr><label for="linked_folder_objects"><dtml-var "msg('Linked folder objects by default')"></label></nobr>
+            </td>
+          </tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input value="2" type="radio" id="linked_category_objects" name="default_link" <dtml-var "type=='link' and link_type==2" fmt="checked"> onclick="javascript:linked_category.style.display=(this.checked ? 'block' : 'none');" />
+              <nobr><label for="linked_category_objects"><dtml-var "msg('Linked category objects')"></label></nobr>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding-top:3px;">
+              <div id="linked_category" style="display:<dtml-var "default_category and 'block' or 'none'">;">
+              <table cellspacing="3" cellpadding="0" border="0">
+              <tr>
+                <td nowrap><b><dtml-var "msg('Category')">:</b></td>
+              </tr>
+              <tr>
+                <td>
+                  <select name="link_default_category">
+                  <option value="" <dtml-var "not default_category and 'selected' or ''">><dtml-msg "n/a"></option>
+                <dtml-in categories>
+                  <option value="&dtml-getId;" <dtml-var "getId()==default_category and 'selected' or ''">><dtml-var "msg(Title(), add=None)"></option>
+                </dtml-in>
+                  </select>
+                </td>
+              </tr>
+              </table>
+              </div>
+            </td>
+          </tr>
+          </table>
+          </div>
+          </dtml-let>
+        </td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="userlist" value="userlist" <dtml-if "type=='userlist'">checked</dtml-if> /></td>
+        <td><label for="userlist"><dtml-var "msg('userlist')"></label></td>
+        <td>
+          <dtml-let display="type=='userlist' and id and 'block' or 'none'">
+          <div id="div_options_userlist" style="display:&dtml-display;">
+          <table cellspacing="0" cellpadding="0" border="0">
+          <tr><td colspan=2><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td valign="middle" nowrap>
+              <input type="checkbox" id="current_userlist" name="default_userlist" <dtml-var "type == 'userlist' and get_default" fmt="checked">>
+              <nobr><label for="current_userlist"><dtml-var "msg('Current user by default')"></label></nobr>
+            </td>
+          </tr>
+          </table>
+          </div>
+          </dtml-let>
+        </td>
+      </tr>
+
+      <tr>
+        <td><input type="radio" onclick="setFieldType(this)" name="fType" id="table" value="table" <dtml-if "type=='table'">checked</dtml-if> /></td>
+        <td><label for="table"><dtml-var "msg('table')"></label></td>
+        <td>
+          <dtml-var "entry_field_edit(this(), name='value_table', type='table', context=context, value=value)">
+        </td>
+      </tr>
+
+    <dtml-if "mode==1">
+      <tr>
+        <td colspan="3" style="padding-top:5px"><b><dtml-var "msg('Attribute definition scripts')"></b></td>
+      </tr>
+      <tr>
+        <td colspan="2">&nbsp;</td>
+        <td>
+        <dtml-let attributes=listAttributeDefinitions
+                  x="getAttributeLinkedMethod(id)"
+                  linked_method="x and x[0] or None"
+                  linked_attribute="x and x[1] or None"
+        >
+          <dtml-var "msg('Linked method is implemented in order to calculate the attribute value depending of another metadata state.')">
+          <br><br>
+          <b><dtml-var "msg('Linked method')">:</b><br>
+          <input type="radio" id="lm_none" name="linked_method" <dtml-var "linked_method is None" fmt="checked"> value="" />
+          <nobr><label for="lm_none"><dtml-var "msg('n/a')"></label></nobr>
+          <br>
+          <input type="radio" id="lm_send_to_users" name="linked_method" <dtml-var "linked_method=='SendToUsers'" fmt="checked"> value="SendToUsers" />
+          <nobr><label for="lm_send_to_users"><dtml-var "msg('Send To Users list definition')"></label></nobr>
+          <br>
+          <input type="radio" id="lm_move_to_folder" name="linked_method" <dtml-var "linked_method=='MoveToFolder'" fmt="checked"> value="MoveToFolder" />
+          <nobr><label for="lm_move_to_folder"><dtml-var "msg('Move To Department Subfolder')"></label></nobr>
+          <br>
+          <input type="radio" id="lm_cooked_body" name="linked_method" <dtml-var "linked_method=='CookedBodyTag'" fmt="checked"> value="CookedBodyTag" />
+          <nobr><label for="lm_cooked_body"><dtml-var "msg('Cooked body tag')"></label></nobr>
+          <br>
+          <dtml-in attributes sort="title">
+            <dtml-if sequence-start>
+              <br>
+              <nobr>
+              <dtml-var "msg('Linked attribute name')">&nbsp;
+              <select name="linked_attribute">
+              <option value="" <dtml-var "linked_attribute is None" fmt="selected">><dtml-var "msg('n/a')"></option>
+            </dtml-if>
+            <dtml-let attr_id="getId()" attr_title="Title()">
+              <option value="&dtml-attr_id;" <dtml-var "linked_attribute == attr_id" fmt="selected">>&dtml-attr_title;</option>
+            </dtml-let>
+            <dtml-if sequence-end>
+              </select>
+              </nobr>
+            </dtml-if>
+          </dtml-in>
+        </dtml-let>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan="3" style="padding-top:5px"><b><dtml-var "msg('Data customizing options')"></b></td>
+      </tr>
+      <tr>
+        <td colspan="2">&nbsp;</td>
+        <td>
+          <input type="checkbox" id="change_data" name="change_data" onclick="setEnabled('lines');" />
+          <nobr><label for="change_data"><dtml-var "msg('Change attribute value')"></label></nobr><br>
+
+          <div id="change_data_control" style="display:none">
+          <input type="text" id="change_data_from" name="change_data_from" size="121"><br>
+          <input type="text" id="change_data_to" name="change_data_to" size="121"><br>
+          <input type="checkbox" id="change_reindex" name="change_reindex:boolean" value="1" checked />
+          <nobr><label for="change_reindex"><dtml-var "msg('Reindex every changed object')"></label></nobr>
+          <input type="hidden" value="" name="change_reindex:boolean">
+          </div>
+        </td>
+      </tr>
+    </dtml-if>
+    </table>
+  </td>
+</tr>
+<tr><td width="5px">&nbsp;</td></tr>
+</table>

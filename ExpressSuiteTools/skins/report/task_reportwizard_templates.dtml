@@ -1,0 +1,5 @@
+<select name="template">
+  <option value="task_reportgenerator_signature"><dtml-var "msg('Signature list')"></option>
+  <option value="task_reportgenerator_workaround"><dtml-var "msg('Workaround list')"></option>
+  <option value="task_reportgenerator_tabular"><dtml-var "msg('Tabular report')"></option>
+</select>

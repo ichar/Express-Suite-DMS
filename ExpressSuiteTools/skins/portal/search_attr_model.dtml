@@ -1,0 +1,84 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+
+<dtml-var simple_html_header>
+
+<dtml-let query_id="_.has_key('query_id') and query_id or None"
+          profile_id="_.has_key('profile_id') and profile_id or None"
+          query="profile_id and portal_catalog.getQuery(profile=profile_id, REQUEST=REQUEST)"
+          category="portal_metadata.getCategoryById(cat_id)"
+          attrs="category is not None and category.listAttributeDefinitionsBySortkey()"
+          action="_.has_key('action') and action or None"
+>
+<dtml-var search_scripts>
+
+<h3><dtml-msg "Search in attributes of the category">:&nbsp;<dtml-msg expr="category.Title()"></h3>
+
+<dtml-if attrs>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+<form id="search_attrs_form" name="search_attrs_form"
+  <dtml-unless "REQUEST.get('callback_form')">target="workspace"</dtml-unless>
+>
+<tr><td><strong><dtml-msg "Category attributes">:</strong><br /></td></tr>
+
+<tr>
+  <td width="100%">
+    <dtml-in attrs prefix="attr">
+      <DIV id="&dtml-cat_id;_<dtml-var "attr_item.getId()">_div" style="display: none"></DIV>
+    </dtml-in>
+    <br>
+  </td>
+</tr>
+
+<tr><td><strong><dtml-msg "Add new search attribute condition">:</strong><br /></td></tr>
+
+<tr>
+  <td>
+    <table cellpadding="5" cellspacing="0" width="100%" border="0">
+    <tr>
+      <td style="padding-bottom: 10px">
+        <select name="attrs_&dtml-cat_id;" id="attrs_&dtml-cat_id;" style="width: 85%;" size="10"
+                onChange="loadIFrame( '&dtml-cat_id;' )">
+          <option value="">(<dtml-msg "nonselected">)</option>
+        <dtml-in attrs>
+          <dtml-let attr_id="getId()">
+            <dtml-if "Type() not in ('link','table',) and not isHidden() # and attr_id[0:1] != '$'">
+          <option value="&dtml-attr_id;"><dtml-msg expr="Title()"></option>
+            </dtml-if>
+          </dtml-let>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="button" name="add_attribute" value="<dtml-msg "Add">" onClick="callbackFunction_attr('&dtml-cat_id;')"/>
+    <input type="button" name="delete_attribute" value="<dtml-msg "Delete">" onClick="deleteCondition(this.form, 'conditions_&dtml-cat_id;:list')"/>
+    <input type="button" name="save_attrs" value="<dtml-msg "Save query">" onClick="loadSearchParams(this.form, '&dtml-cat_id;')" style="width:170px" />
+    <input type="button" name="close" value="<dtml-var "msg('Close')">" onClick="javascript:window.close()">
+    <br />
+    <iframe style="margin-top: 5px" height="320" width="450" scrolling="no" frameborder="0" name="attribute_data" src=""></iframe>
+  </td>
+</tr>
+
+</form>
+</table>
+
+<script type="text/javascript">
+<!--
+setupAttributes( '&dtml-cat_id;' );
+//-->
+</script>
+
+<dtml-else>
+
+  <h4><dtml-msg "There are no attributes"></h4>
+
+</dtml-if>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

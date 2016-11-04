@@ -1,0 +1,11 @@
+<dtml-let category_id=getId>
+    <select onChange="location.href='<dtml-var from_page>?&task_definition_type='+this[this.selectedIndex].value">
+      <dtml-in "this().taskDefinitionFactory.getTaskDefinitionTypeList( category_id )">
+        <dtml-let selected="_['sequence-item']['id']==task_definition_type and ' selected' or ''">
+        <option value="<dtml-var "_['sequence-item']['id']">"&dtml-selected;>
+          <dtml-var "task_definition_get_type_title( this(), task_definition_type_title=_['sequence-item']['title'] )">
+        </option>
+        </dtml-let>
+      </dtml-in>
+    </select>
+</dtml-let>

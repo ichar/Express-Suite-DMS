@@ -1,0 +1,69 @@
+<script type="text/javascript">
+//context: <dtml-var context>
+</script>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+
+<dtml-let comments="portal_comments.listComments(context, sort=1)"
+          editor="REQUEST.get('comment_type','')=='div' and '_editor' or ''"
+          comment_title="REQUEST.get('comment_title','') or 'Resolution templates list'"
+          notes="_.has_key('notes') and notes or ''"
+          padding="_.has_key('padding') and padding or '3px 0 0 0'"
+>
+  <dtml-if comments>
+  
+<script type="text/javascript">
+<!--
+commentTexts['&dtml-field;_list'] = ['',
+<dtml-in comments>
+'<dtml-var Description fmt="jscript">'<dtml-unless sequence-end>,</dtml-unless>
+</dtml-in>
+];
+//-->
+</script>
+
+<tr>
+  <td valign="top" align="right">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td style="padding:&dtml-padding;" nowrap><strong><dtml-msg expr=comment_title>:&nbsp;&nbsp;<strong></td>
+      <td>
+        <select name="&dtml-field;_list" onChange="javascript:onChangeResolutionItem(this.event, '&dtml-editor;', '&dtml-notes;');">
+        <option id="none"><dtml-msg "n/a"></option>
+        <dtml-in comments>
+        <option id="&dtml-getId;"><dtml-var Title html_quote></option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-if editor>
+    <dtml-let _height="_.int(REQUEST.get('comment_rows',10))*28">
+<tr>
+  <td valign="top" align="left" width="100%" height="100%" style="padding-top:5px;">
+    <input name="&dtml-field;" type="hidden" value="">
+    <div class=comment_editor id="&dtml-field;_editor" contenteditable style="
+       background-color:#FFFFFF;
+       border:1pt solid black;
+       width:100%;
+       height:&dtml-_height;px;
+       padding:10px;
+       overflow:no;
+    " on><p><dtml-if value><dtml-var value newline_to_br></dtml-if></p></div>
+  </td>
+</tr>
+    </dtml-let>
+  <dtml-else>
+<tr>
+  <td valign="top" align="left" width="100%" height="100%">
+    <textarea name="&dtml-field;" cols="60" rows="<dtml-var "REQUEST.has_key('comment_rows') and REQUEST.get('comment_rows') or 20">" wrap="soft" style="width:100%;"><dtml-if value>&dtml-value;</dtml-if></textarea>
+  </td>
+</tr>
+  </dtml-if>
+</dtml-let>
+
+</table>

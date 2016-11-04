@@ -1,0 +1,19 @@
+<dtml-var simple_html_header>
+
+<dtml-let adv_search="_.has_key('advanced') and 1 or 0">
+
+<div class="Desktop">
+
+<dtml-if adv_search>
+  <h1><dtml-var "msg('Advanced search')"></h1>
+  <dtml-var "search_advanced( this(), REQUEST, location=REQUEST.get('search_path','') )">
+<dtml-else>
+  <h1><dtml-var "msg('Search')"></h1>
+  <dtml-var "search_simple( this(), REQUEST, location=REQUEST.get('search_path','') )">
+</dtml-if>
+
+</div>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

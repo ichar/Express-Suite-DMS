@@ -1,0 +1,457 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title><dtml-var "msg(REQUEST.get('PageTitle','Docflow In Progress'))" html_quote></title>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+
+<style type="text/css">
+tr.row_expired {
+    background-color: #FFA8A8;
+}
+td.small {
+    font-size: 10px;
+}
+td.smallHeader {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+    border: 1px solid black;
+}
+td.smallFooter {
+    font-family: arial;
+    font-size: 12px;
+    font-weight: normal;
+    border: 1px solid black;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+.header {
+    font-family: tahoma;
+    font-size: 20px;
+    /*font-weight: bold;*/
+    cursor: default;
+    color: black;
+}
+.comment {
+    font-family: verdana;
+    font-size: 10px;
+    cursor: default;
+    color: black;
+    padding-left: 1px;
+}
+.information {
+    font-family: verdana;
+    font-size: 13px;
+    cursor: default;
+    color: black;
+}
+td.queryHeader {
+    font-size: x-small;
+    font-weight: bold;
+    padding: 0 5px 0 35px;
+}
+td.inline {
+    padding: 0 5px 0 5px;
+}
+td.workarea {
+    font-size: 10px;
+    padding: 5px 5px 5px 5px;
+}
+td.expiration {
+    background-color: #FFCECE;
+    font-size: 11px;
+    padding: 5px 5px 5px 5px;
+    color: #CC0000;
+}
+td.description {
+    font-size: 10px;
+    padding: 5px 7px 5px 7px;
+}
+td.statistics {
+    font-family: verdana;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: center;
+    padding: 5px 5px 5px 5px;
+}
+td.p_info {
+    font-family: arial;
+    font-size: 12px;
+    border: 1px solid gray;
+}
+td.p_view {
+    font-family: arial;
+    font-size: 12px;
+    border: 1px solid gray;
+}
+span.p_member {
+    font-family: arial;
+    font-size: 11px;
+    font-weight: normal;
+}
+</style>
+</head>
+
+<script type="text/javascript">
+<!-- 
+function change_option( obj, option ) {
+    if (typeof(obj) != 'object')
+        return;
+    var value = (option == 'period' || option == 'ctype' ? obj.value : (obj.checked ? '1' : '0'));
+    document.all[option].value = value;
+}
+
+function setCookie( name, value ) {
+    var expires = new Date(2030,1,20);
+    var path = '/';
+    var newCookie = name + '=' + escape(value) + ';expires=' + expires.toGMTString() + ';path=' + path;
+    document.cookie = newCookie;
+}
+
+function save_report_settings() {
+    save_option('period', document.all.period, 'value', 0);
+    save_option('not_finalized_only', document.all.not_finalized_only, 'value', 0);
+    save_option('not_answered_only', document.all.not_answered_only, 'value', 0);
+    save_option('ctype', document.all.ctype, 'value', 1);
+    save_option('company', document.all.company, 'select', 1);
+    save_option('category', document.all.category, 'select', 1);
+    save_option('owner', document.all.owner_selected_users, 'multi-select', 1);
+    save_option('brains_type', document.all.brains_type, 'select', 1);
+    save_option('state', document.all.state, 'select', 1);
+    save_option('responsible', document.all.responsible_selected_users, 'multi-select', 1);
+    alert('<dtml-var "msg('Has been saved')">');
+}
+
+function save_option( name, obj, type, check ) {
+    if( typeof(obj) != 'object' ) return;
+    if( type == 'select' ) {
+      var value = '';
+      var n = 0;
+      for (var i = 0; i < obj.length; i++) {
+        if( obj.options[i].selected ) { 
+          if( i==0 ) break;
+          if( value ) value += ' ';
+          value += obj.options[i].value;
+          n += 1;
+        }
+      }
+	} else if( type == 'multi-select' ) {
+      var value = '';
+      for (var i = 0; i < obj.length; i++) {
+        if( value ) value += ' ';
+        value += obj.options[i].value;
+      }
+	} else value = obj.value;
+    //if( ( check && !value ) ) return;
+    setCookie('docflow_in_progress_'+name, value);
+}
+
+function DoImgClick( id ) {
+    var query = document.all[id];
+    var s=(query.style.display == 'none' ? 'block' : 'none');
+    query.style.display = s;
+}
+
+function PrintPreview() {
+    var frm = document.reportForm;
+    frm.print_preview.value = 1;
+    frm.target = '_blank';
+    onSubmitForm( frm );
+}
+
+function Refresh( p ) {
+    var frm = document.reportForm;
+    var period = parseInt(frm.period.value);
+    var days = (period == 7 ? 360 : (period == 6 ? 180 : (period == 5 ? 90 : (period == 4 ? 30 : (period == 3 ? 14 : (period == 2 ? 7 : 1))))));
+    if( p != 0 && period > 0 ) { 
+      frm.p.value = days * p; 
+    } else {
+      frm.p.value = days; 
+      frm.now.value = ''; 
+    }
+    frm.print_preview.value = '';
+    frm.target = '_self';
+    DisableForm( frm );
+    onSubmitForm( frm );
+}
+
+function MainMenu() {
+    var url = 'cio';
+    var params = '';
+    window.open( url, '_top', params );
+}
+
+function SearchMenu() {
+    var url = 'docflow_search';
+    var params = '';
+    window.open( url, '_top', params );
+}
+
+function DisableForm( frm ) {
+    frm.refresh.disabled=true;
+    frm.save.disabled=true;
+    frm.preview.disabled=true;
+    try {
+      frm.menu.disabled=true;
+      frm.back.disabled=true;
+      frm.forward.disabled=true;
+    }
+    catch (error) {}
+}
+
+function onSubmitForm( frm ) {
+    frm.submit();
+}
+
+var shown = 'block';
+
+function displayDataOfCategory( id, display ) {
+   var obj = document.getElementById(id);
+   var icon = document.getElementById(id+'_icon');
+   if( typeof(obj) != 'object' ) return;
+   if( !display ) display = ( obj.style.display == 'block' ? 'none' : 'block' );
+   obj.style.display = display;
+   if( typeof(icon) != 'object' ) return;
+   icon.src = ( display == 'block' ? 'row_e.gif' : 'row_c.gif' );
+}
+
+function showCategories() {
+   var rows = document.getElementsByTagName('div');
+   if( !rows ) return;
+   if( shown == 'block' ) shown='none'; else shown='block';
+   for (var i = 0; i < rows.length; i++) {
+     if( rows[i].name == 'row_of_category' ) displayDataOfCategory( rows[i].id, shown );
+   }
+}
+//-->
+</script>
+
+<dtml-let container="this()"
+          archive_search="_.int(REQUEST.get('archive_search') or 0)"
+          instances="[ x for x in getPortalConfiguration().getAttribute('URLs', context=container)
+              if archive_search or not x['id'].startswith('arc') ]"
+          company_logo="getPortalConfiguration().getAttribute('company_logo', context=container)"
+          companies="getDepartmentDictionary().listCompanies()"
+          categories="getPortalConfiguration().getAttribute('categories', context=container, with_base=1)"
+          states="getPortalConfiguration().getAttribute('task_states', context=container)"
+          common_url="portal_properties.common_url()"
+          member="portal_membership.getAuthenticatedMember()"
+          uname="member.getUserName()"
+
+          search="REQUEST.get('search', '')"
+
+          period="portal_followup.getOptionValue('period', 'int', 'docflow_in_progress', REQUEST, 0)"
+          not_finalized_only="portal_followup.getOptionValue('not_finalized_only', 'int', 'docflow_in_progress', REQUEST, 1)"
+          not_answered_only="portal_followup.getOptionValue('not_answered_only', 'int', 'docflow_in_progress', REQUEST, 1)"
+          ctype="portal_followup.getOptionValue('ctype', 'string', 'docflow_in_progress', REQUEST, 'incoming')"
+          company="portal_followup.getOptionValue('company', 'list', 'docflow_in_progress', REQUEST)"
+          category="portal_followup.getOptionValue('category', 'list', 'docflow_in_progress', REQUEST)"
+          owners="portal_followup.getOptionValue('owner', 'list', 'docflow_in_progress', REQUEST)"
+          brains_type="portal_followup.getOptionValue('brains_type', 'list', 'docflow_in_progress', REQUEST)"
+          state="portal_followup.getOptionValue('state', 'list', 'docflow_in_progress', REQUEST)"
+          involved_users="portal_followup.getOptionValue('responsible', 'list', 'docflow_in_progress', REQUEST)"
+
+          search_text="REQUEST.get('search_text', None) or ''"
+          print_preview="REQUEST.get('print_preview') and 'print_' or ''"
+
+          bgcolor="'#E7E7E7'"
+          x_p="period > 20 and period-20 or period > 10 and period-10 or period < 10 and period or 0"
+          p="_.int(REQUEST.get('p') or '0')"
+          rdate="REQUEST.get('%snow' % print_preview)"
+          now="(rdate and _.DateTime(rdate)+p or _.DateTime()-p+1).strftime('%Y/%m/%d')"
+          date_from="_.DateTime(now)"
+          date_till="date_from + _.abs(p)"
+          enabled_only="None"
+          in_time="0"
+          with_delay="0"
+          extView="_.int(REQUEST.get('extView') or '0')"
+          x_wide="_.int(REQUEST.get('x_wide') or '0')"
+          cio="_.int(REQUEST.get('cio') or '0')"
+
+          report_name="msg('Docflow In Progress Report')+'. '+msg('Documents at the accounting period')"
+          pids="' '.join(company)"
+          gids="' '.join(category)"
+          oids="' '.join(owners)"
+          bids="' '.join(brains_type)"
+          sids="' '.join(state)"
+          uids="' '.join(involved_users)"
+
+          item_color="'FFFFFF'"
+          show_color="'FFFACD'"
+>
+
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="&dtml-bgcolor;">
+
+<table width="100%" cellspacing="5" cellpadding="5" border="0">
+<form name="reportForm" method="post">
+<input type="hidden" name="BackgroundColor" value="&dtml-bgcolor;">
+<input type="hidden" id="print_preview" name="print_preview" value="&dtml-print_preview;">
+<input type="hidden" id="print_now" name="print_now" value="<dtml-var "rdate or ''">">
+<input type="hidden" name="search" value="&dtml-search;">
+<input type="hidden" name="search_text" value="&dtml-search_text;">
+<input type="hidden" name="ctype" value="&dtml-ctype;">
+<input type="hidden" name="company" value="&dtml-pids;">
+<input type="hidden" name="category" value="&dtml-gids;">
+<input type="hidden" name="owner" value="&dtml-oids;">
+<input type="hidden" name="brains_type" value="&dtml-bids;">
+<input type="hidden" name="state" value="&dtml-sids;">
+<input type="hidden" name="responsible" value="&dtml-uids;">
+<input type="hidden" name="enabled_only" value="&dtml-enabled_only;">
+<input type="hidden" name="extView" value="&dtml-extView;">
+<input type="hidden" name="x_wide" value="&dtml-x_wide;">
+<input type="hidden" name="now" value="&dtml-now;">
+<input type="hidden" name="p" value="&dtml-p;">
+<input type="hidden" name="cio" value="&dtml-cio;">
+
+<dtml-unless print_preview>
+<tr>
+  <td align="left" valign="top">
+    <img src="&dtml-common_url;&dtml-company_logo;">
+  </td>
+  <td align="left" style="width:100%;padding-top:5px;" valign="top">
+    <dtml-var cio_report_name>
+  </td>
+  <td align="right" valign="top" style="padding-left:1px;">
+    <img src="&dtml-portal_url;/docflow-logo-ex.gif">
+  </td>
+</tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding: 10px 5px 10px 5px;" nowrap>
+    <input type="button" name="refresh" onClick="javascript:Refresh(0);" value="<dtml-var "msg('Refresh')">" style="width:95px;">
+    <input type="button" name="save" onClick="javascript:save_report_settings();" value="<dtml-var "msg('Save settings')">" style="width:165px;">
+    <input type="button" name="preview" onClick="javascript:PrintPreview();" value="<dtml-var "msg('Print preview')">" style="width:125px;">
+    <input type="button" onClick="javascript:showCategories();" value=" ... " title="<dtml-var "msg('Collapse/Expand')">">
+  <dtml-if cio>
+    <input type="button" name="menu" onClick="javascript:MainMenu();" value="<dtml-var "msg('Main menu')">" style="width:120px;">
+  <dtml-elif search>
+    <input type="button" name="menu" onClick="javascript:SearchMenu();" value="<dtml-var "msg('Search menu')">" style="width:120px;">
+    <input type="button" name="back" onClick="javascript:Refresh(-1);" value="<<" <dtml-unless period>disabled</dtml-unless> title="<dtml-var "msg('Back')">" />
+    <input type="button" name="forward" onClick="javascript:Refresh(1);" value=">>" <dtml-unless period>disabled</dtml-unless> title="<dtml-var "msg('Forward')">" />
+  </dtml-if>
+  </td>
+  <td align="right">
+  <dtml-if "_.len(instances) > 1">
+    <table cellspacing="0" cellpadding="1" border="0">
+    <tr>
+    <dtml-in instances mapping>
+      <td id="&dtml-id;_sign" style="display:block;">
+        <table cellspacing="2" cellpadding="1" border="0" style="border:1pt solid #000080;">
+        <tr>
+          <td bgcolor="#8080C0"><img title="&dtml-id;" src="&dtml-portal_url;/spacer.gif" height="10"></td>
+        </tr>  
+        </table>
+      </td>
+    </dtml-in>
+    </tr>
+    </table>
+  </dtml-if>
+  </td>
+</tr>
+</table>
+</dtml-unless>
+
+<div>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<dtml-if print_preview>
+  <dtml-let rtype="'summary'" options="1">
+    <dtml-var cio_preview_options>
+  </dtml-let>
+</dtml-if>
+
+<dtml-unless print_preview>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 5px 1px;">
+    <table width="100%" cellspacing="1" cellpadding="5" border="0">
+    <tr>
+      <td class="small" width="20" align="center" valign="middle">
+        <img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="javascript:DoImgClick('query');" 
+         onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'" title="<dtml-var "msg('Commissions query')">">
+      </td>
+      <td class="small" align="left" style="padding-left:7px">
+        <a target="workfield" onclick="javascript:DoImgClick('query');"><font face="arial" style="font-size:11px;cursor:hand;"><strong><dtml-var "msg('Query options in detail')"></strong></font></a>
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 0 0 5px 2px;">
+  <dtml-let finalized_and_answered_options="1" align="'left'" spec="'cellspacing=3 cellpadding=3'">
+    <div id="query" style="display:none">
+    <dtml-var cio_query>
+    </div>
+  </dtml-let>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+</dtml-unless>
+
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td bgcolor="white" background="&dtml-portal_url;/right_fr.gif">&nbsp;</td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td style="padding: 10px 0 0 0;">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_title">
+      <td class="smallHeader" width="20" align="center" valign="middle"><dtml-var "msg('#')"></td>
+      <td class="smallHeader"><dtml-var "msg('Document Title (Brief Description)')"></td>
+      <td class="smallHeader" width="80" align="center"><dtml-var "msg('Delivery date')"></td>
+      <td class="smallHeader" width="150" align="center"><dtml-var "msg('Executing agency')"></td>
+    <dtml-if extView>
+      <td class="smallHeader" width="140" align="left"><dtml-var "msg('Involved members')"><br><dtml-var "msg('Owner')"><br><dtml-var "msg('Signatory')"></td>
+      <td class="smallHeader" bgcolor="#FFA8A8" width="80" align="center"><dtml-var "msg('Expiration Date')"></td>
+    </dtml-if>
+      <td class="smallHeader" width="80" align="center"><dtml-var "msg('Task State')"><br><dtml-var "msg('Expired (days)')"></td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td width="100%" bgcolor="&dtml-bgcolor;">
+  <dtml-in instances mapping>
+    <div id="&dtml-id;_data"></div>
+    <dtml-if search>
+    <iframe scrolling="no" frameborder="0" height="0" width="100%" style="display:none" 
+            src="&dtml-url;/docflow_instance?period=&dtml-period;&p1=&dtml-not_finalized_only;&p2=&dtml-not_answered_only;&category:tokens=&dtml-gids;&ctype=&dtml-ctype;&state:tokens=&dtml-sids;&brains_type:tokens=&dtml-bids;&company:tokens=&dtml-pids;&involved_users:tokens=&dtml-uids;<dtml-if print_preview>&print_preview=1</dtml-if><dtml-if "enabled_only is not None">&enabled_only=&dtml-enabled_only;</dtml-if><dtml-if extView>&ext=1</dtml-if><dtml-if p>&now=&dtml-now;</dtml-if>&IsSearch=1<dtml-if search_text>&search=&dtml-search_text;</dtml-if>&owners:tokens=&dtml-oids;"></iframe>
+    <dtml-else>
+    <iframe scrolling="no" frameborder="0" height="0" width="100%" style="display:none" 
+            src="&dtml-url;/docflow_instance?period=&dtml-period;&p1=&dtml-not_finalized_only;&p2=&dtml-not_answered_only;<dtml-if cio>&cio=1</dtml-if><dtml-if extView>&ext=1</dtml-if><dtml-if print_preview>&print_preview=1</dtml-if>"></iframe>
+    </dtml-if>
+  </dtml-in>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+<tr>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+  <td width="100%">
+    <table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+    <tr class="row_total">
+      <td class="smallFooter" width="20" align="center" valign="middle">&nbsp;</td>
+      <td class="smallFooter" style="text-align:left; padding-left:5px;" colspan="5" nowrap><b><dtml-msg "Total results">:&nbsp;&nbsp;&nbsp;<span id="counter0">0</span>&nbsp;/&nbsp;<span id="counter1">0</span>&nbsp;&nbsp;&nbsp;(<dtml-msg "total documents">:&nbsp;<span id="counter2">0</span>)</b></td>
+    </tr>
+    </table>
+  </td>
+  <td width="10"><img src="&dtml-portal_url;/spacer.gif" width="10" height="1"></td>
+</tr>
+</form>
+</table>
+<br></div>
+
+</dtml-let>
+
+</body>
+</html>

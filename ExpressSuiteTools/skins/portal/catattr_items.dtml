@@ -1,0 +1,38 @@
+<dtml-let mode="_.has_key('mode') and 'view' or 'edit'"
+          value="value and value.split(':::') or None"
+>
+
+<dtml-if "mode == 'view'">
+
+  <dtml-in "attr.getDefaultValue(id=value)" mapping>
+    &dtml-title;<br />
+  </dtml-in>
+
+<dtml-else>
+
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr>
+    <td style="padding: 0 0 5px 0;">
+
+      <input type="hidden" name="attr_type" id="attr_type" value="<dtml-var "attr.Type()">" />
+      <h4><dtml-msg expr="attr.Title()"></h4>
+      <dtml-let val="attr.getDefaultValue(disable_settings=1)"
+                default_value="val and val[1:] or []"
+                size="_.len(default_value)" size="size >= 10 and 10 or size"
+      >
+      <select name="list_field:list" id="&dtml-name;" size="&dtml-size;" multiple>
+        <dtml-in default_value mapping>
+      <option name="&dtml-id;" value="&dtml-id;" <dtml-var "value and title in value" fmt="selected">>
+        &dtml-title;
+      </option>
+        </dtml-in>
+      </select>
+      </dtml-let>
+
+    </td>
+  </tr>
+  </table>
+
+</dtml-if>
+
+</dtml-let>

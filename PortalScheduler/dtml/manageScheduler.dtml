@@ -1,0 +1,78 @@
+<dtml-unless inline>
+  <dtml-var manage_page_header>
+  <dtml-var manage_tabs>
+</dtml-unless>
+
+<form action="manage_scheduler" method="post">
+<table cellspacing="5" cellpadding="0" width="100%" border="0">
+<tr>
+  <td colspan="3">
+<span class="form-help">
+<dtml-msgtext>Daemon thread is responsible for starting scheduled tasks in time. Every 
+scheduler instance has it's own daemon thread. You can either start or 
+stop the daemon.</dtml-msgtext>
+</span>
+  </td>
+</tr>
+  
+<dtml-let active=checkDaemon autostart=isRegistered>
+
+<tr>
+  <td>
+  <dtml-if active>
+<input type="submit" name="stop" value="<dtml-msg Stop>" style="width:80px">
+<input type="submit" name="restart" value="<dtml-msg Restart>" style="width:80px">
+  <dtml-else>
+<input type="submit" name="start" value="<dtml-msg "Start Daemon">" style="width:166px">
+  </dtml-if>
+  </td>
+  <td style="padding-left:20px;" nowrap>
+<span class="form-label"><dtml-msg "Daemon status">:</span>
+  </td>
+  <td align="left" style="padding-left:10px;width:100%;" nowrap>
+  <dtml-if active>
+<span class="form-text"><font color=blue><dtml-msg started></font></span>
+  <dtml-else>
+<span class="form-text"><font color=red><dtml-msg stopped></font></span>
+  </dtml-if>
+  </td>
+</tr>
+
+<tr><td colspan="3"><hr></td></tr>
+
+<tr>
+  <td colspan="3">
+<span class="form-help"><dtml-msgtext>It is important to ensure whether scheduler instance is 
+registered within the global schedulers list. Schedulers list keeps references 
+to every registered scheduler and automatically starts their daemon threads upon 
+the Zope startup.</dtml-msgtext>
+</span>
+  </td>
+</tr>
+<tr>
+  <td>
+  <dtml-if autostart>
+<input type="submit" name="unregister" value="<dtml-msg "Disable autostart">" style="width:166px">
+  <dtml-else>
+<input type="submit" name="register" value="<dtml-msg "Enable autostart">" style="width:166px">
+  </dtml-if>
+  </td>
+  <td style="padding-left:20px;" nowrap>
+<span class="form-label"><dtml-msg "Daemon autostart">:</span>
+  </td>
+  <td align="left" style="padding-left:10px;width:100%;" nowrap>
+  <dtml-if autostart>
+<span class="form-text"><font color=blue>enabled</font></span>
+  <dtml-else>
+<span class="form-text"><font color=red>disabled</font></span>
+  </dtml-if>
+  </td>
+</tr>
+
+</dtml-let>
+</table>
+</form>
+
+<dtml-unless inline>
+  <dtml-var manage_page_footer>
+</dtml-unless>

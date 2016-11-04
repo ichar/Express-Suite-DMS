@@ -1,0 +1,273 @@
+<dtml-if "portal_membership.protection(context='manage_users', REQUEST=REQUEST)">
+
+<dtml-var simple_html_header>
+
+<style type="text/css">
+span.x1 {
+border:1pt solid black;
+padding:1 3 2 3;
+margin-top:10px;
+margin-bottom:10px;
+cursor:hand;
+FONT-FAMILY: Courier;
+font-size:12pt;
+background-color:white;
+color:navy;
+}
+span.x2 {
+border:1pt solid navy;
+padding:3 3 3 3;
+margin-top:10px;
+margin-bottom:10px;
+cursor:hand;
+FONT-FAMILY: Courier;
+font-size:12pt;
+font-weight:normal;
+background-color:#939CF0;
+color:white;
+}
+span.x {
+cursor:hand;
+FONT-FAMILY: Verdana;
+font-size:10px;
+}
+</style>
+
+<script type="text/javascript">
+<!--
+var isSelected = false;
+
+function toggleSelect() {
+    var form = document.objectItems;
+    isSelected = ! isSelected;
+    for ( var i = 0; i < form.elements.length; i++ ) {
+        var elem = form.elements[ i ];
+        if ( elem.name.substr( 0, 8 ) == 'userids:' && ! elem.disabled )
+	        elem.checked = isSelected;
+    }
+    var objSelectAll = document.all["selectAll"];
+    var txtValue = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All')">';
+    if (objSelectAll.length > 1) {
+        for ( var i = 0; i <= 1; i++ ) {
+            var obj = objSelectAll[i];
+            if (typeof(obj) == 'object') { obj.value = txtValue; }
+        }
+    } else if (typeof(form.selectAll) == 'object') {
+        form.selectAll.value = txtValue;
+    }
+    return isSelected;
+}
+
+function refresh(a) {
+    var form = document.forms['objectItems'];
+    action = '';
+    if( a ) action = '?abc='+a;
+    window.location.replace('&dtml-absolute_url;/manage_users_form'+action);
+}
+
+function changeCompany() {
+    var form = document.forms['objectItems'];
+    form.dep.options[0].selected = true;
+    form.submit();
+}
+//-->
+</script>
+
+<div class="Desktop">
+
+<h1><dtml-var "msg('Portal users')"></h1>
+
+<dtml-let a="REQUEST.get('abc', None)"
+          company="REQUEST.get('com', None)"
+          department="REQUEST.get('dep', None)"
+          x="portal_membership.listMembers(a, company, department)"
+          total_members="x and x[0] or 0"
+          abc="x and x[1] or None"
+          members="x and x[2] or None"
+          x="portal_membership.TotalCurrentUsers()"
+          total_current_users="x[1]"
+          user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin() and portal_membership.checkPermission('Manage portal', this())"
+          IsQuery="(a or company or department) and 1 or 0"
+          p_attr="IsQuery and (a and '&abc='+a or '')+(company and '&com='+company or '')+(department and '&dep='+department or '') or ''"
+>
+<dtml-if total_current_users>
+  <h3 style="padding-top:0px;"><dtml-msg "Total current users">:&nbsp;<dtml-var "_.str(total_current_users)"></h3>
+</dtml-if>
+
+<form name="objectItems" method="post">
+
+<dtml-if IsAdmin>
+  <dtml-if members>
+  <input type="submit" name="confirm_send_users_password:method"  value="<dtml-var "msg('Send password')">" style="width:130px">
+  </dtml-if>
+  <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/join_form'" value="<dtml-var "msg('Add user')">" style="width:150px">
+  <dtml-if members>
+  <input type="submit" name="confirm_delete_users:method" value="<dtml-var "msg('Remove')">">
+  </dtml-if>
+  <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/manage_groups_form'" value="<dtml-var "msg('Manage groups')">" style="width:160px">
+  <dtml-if members>
+  <input type="button" name="selectAll" value="<dtml-var "msg('Select All users')">" onClick="toggleSelect()" style="width:120px;">
+  </dtml-if>
+  <br><br>
+<dtml-elif IsManager>
+  <dtml-if members>
+  <input type="submit" name="confirm_send_users_password:method"  value="<dtml-var "msg('Send password')">" style="width:130px">
+  </dtml-if>
+  <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/manage_groups_form'" value="<dtml-var "msg('Manage groups')">" style="width:160px">
+  <dtml-if members>
+  <input type="button" name="selectAll" value="<dtml-var "msg('Select All users')">" onClick="toggleSelect()" style="width:120px;">
+  </dtml-if>
+  <br><br>
+</dtml-if>
+
+<dtml-if abc>
+  <dtml-in abc>
+<span class="<dtml-if "a==_['sequence-item']">x2<dtml-else>x1</dtml-if>" onclick="javascript:refresh(this.innerHTML);"><dtml-var sequence-item></span>
+  </dtml-in>
+&nbsp;<span class="x" onclick="javascript:refresh(null);">&gt;&gt;&gt;</span><br><br>
+</dtml-if>
+
+<table cellpadding="0" cellspacing="3" border="0">
+<tr>
+  <td><strong><dtml-var "msg('Company')">:</strong></td>
+  <td>
+  <dtml-let values="getDepartmentDictionary().listCompanies()">
+    <table class="FormLayout" border="0">
+    <tr>
+      <td>
+        <select name="com" onchange="javascript:changeCompany();">
+          <option value="" <dtml-var "not company and 'selected' or ''">><dtml-var "msg('nonselected')"></option>
+        <dtml-in values sort="title" mapping>
+          <option value="&dtml-id;" <dtml-var "company==id" fmt="selected">>&dtml-title;</option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    </table>
+  </dtml-let>
+  <td>
+</tr><tr>
+  <td><strong><dtml-var "msg('Department')">:</strong></td>
+  <td>
+  <dtml-let values="getDepartmentDictionary().listDepartments(company, no_break=1)">
+    <table class="FormLayout" border="0">
+    <tr>
+      <td>
+        <select name="dep" onchange="this.form.submit();">
+          <option value="" <dtml-var "not department and 'selected' or ''">><dtml-var "msg('nonselected')"></option>
+        <dtml-in values sort="title" mapping>
+          <option value="&dtml-id;" <dtml-var "department==id" fmt="selected">>&dtml-title;</option>
+        </dtml-in>
+        </select>
+      </td>
+    </tr>
+    </table>
+  </dtml-let>
+  </td>
+</tr>
+</table>
+
+<table class="List" cellpadding="1" cellspacing="1" width="100%" border="0">
+<dtml-in members mapping>
+  <dtml-if sequence-start>
+<tr><td colspan="8" align=right nowrap>
+  <dtml-var "msg('Total users:')">&nbsp;<dtml-var "_['sequence-length']">
+  <dtml-if IsQuery> / <dtml-var total_members></dtml-if>
+</td></tr>
+<tr class="row_title">
+  <td>&nbsp;</td>
+  <td align=center width="8px">M</td>
+  <td align=center>
+    <dtml-var "msg('User')">
+  </td>
+  <td align=center width="8px">F</td>
+  <td align=center>
+    <dtml-var "msg('E-mail address')">
+  </td>
+  <td align=center>
+    <dtml-var "msg('Company')">
+  </td>
+  <td align=center>
+    <dtml-var "msg('Phone')">
+  </td>
+  <td align=center>
+    <dtml-var "msg('Last login time')">
+  </td>
+</tr>
+  </dtml-if>
+
+  <dtml-with "portal_membership.getMemberById(user_id)">
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td width="10">
+    <input type="checkbox" name="userids:list" value="&dtml-user_id;"
+    <dtml-if "portal_membership.getAuthenticatedMember().getUserName()==user_id">disabled</dtml-if> />
+  </td>
+  <td align="center" valign="middle">
+    <dtml-var "has_role('Manager') and '+' or ''">
+  </td>
+  <td valign="middle">
+    <a href="personalize_form?userid=&dtml-user_id;&dtml-p_attr;"><dtml-var user_name></a>
+  </td>
+  <td align="center" valign="middle">
+    <dtml-var "getProperty( 'facsimile', None ) and '+' or ''">
+  </td>
+  <td valign="middle">
+    <dtml-if email>
+      <a href="mailto:&dtml-email;">&dtml-email;</a>
+    </dtml-if>
+  </td>
+  <td valign="middle">
+    <dtml-var "getDepartmentDictionary().getCompanyTitle(id=company, name=1)">
+  </td>
+  <td valign="middle">
+    &dtml-phone;
+  </td>
+  <td valign="middle">
+    <dtml-let x="portal_membership.getMemberActivity(user_id)"
+              login_time="x and _.str(x)[0:16] or ''">
+      <dtml-var login_time>
+    </dtml-let>
+  </td>
+</tr>
+  </dtml-with>
+
+  <dtml-if sequence-end>
+</table>
+<br>
+  </dtml-if>
+<dtml-else>
+  <p><br><font color="purple"><b><dtml-var "msg('There are no registered users')"></b></font></p>
+</dtml-in>
+
+<dtml-if IsAdmin>
+  <dtml-if members>
+  <input type="submit" name="confirm_send_users_password:method"  value="<dtml-var "msg('Send password')">" style="width:130px">
+  </dtml-if>
+  <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/join_form'" value="<dtml-var "msg('Add user')">" style="width:150px">
+  <dtml-if members>
+  <input type="submit" name="confirm_delete_users:method" value="<dtml-var "msg('Remove')">">
+  </dtml-if>
+  <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/manage_groups_form'" value="<dtml-var "msg('Manage groups')">" style="width:160px">
+  <dtml-if members>
+  <input type="button" name="selectAll" value="<dtml-var "msg('Select All users')">" onClick="toggleSelect()" style="width:120px;">
+  </dtml-if>
+<dtml-elif IsManager>
+  <dtml-if members>
+  <input type="submit" name="confirm_send_users_password:method"  value="<dtml-var "msg('Send password')">" style="width:130px">
+  </dtml-if>
+  <input type="button" onClick="JavaScript:location.href='&dtml-absolute_url;/manage_groups_form'" value="<dtml-var "msg('Manage groups')">" style="width:160px">
+  <dtml-if members>
+  <input type="button" name="selectAll" value="<dtml-var "msg('Select All users')">" onClick="toggleSelect()" style="width:120px;">
+  </dtml-if>
+</dtml-if>
+
+</form>
+</dtml-let>
+
+</div>
+
+<dtml-var simple_html_footer>
+
+</dtml-if>

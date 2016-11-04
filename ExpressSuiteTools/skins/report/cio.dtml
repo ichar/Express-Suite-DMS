@@ -1,0 +1,342 @@
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1251">
+<title><dtml-var "msg(REQUEST.get('PageTitle','CIO Main Menu'))" html_quote></title>
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+<dtml-var dynamic_stylesheet>
+
+<dtml-call "portal_membership.protection(REQUEST=REQUEST)">
+<dtml-call "REQUEST.set('OpenInFrame', None)">
+
+<style type="text/css">
+td.small {
+    font-family: verdana;
+    font-size: 16px;
+    font-weight: bold;
+}
+.header {
+    font-family: tahoma;
+    font-size: 20px;
+    /*font-weight: bold;*/
+    cursor: default;
+    color: black;
+}
+.information {
+    font-family: verdana;
+    font-size: 13px;
+    cursor: default;
+    color: black;
+}
+td.p_info {
+    font-family: arial;
+    font-size: 13px;
+    border: 1px solid gray;
+}
+td.p_cell {
+    font-family: verdana;
+    font-size: 13px;
+    font-weight: normal;
+    border: 1px solid gray;
+    text-align: left;
+    padding: 7px 20px 7px 20px;
+    width: 410px;
+}
+td.p_x1 {
+    background-color: #8488AF;
+    font-family: arial;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid black;
+    padding: 0 0 0 0;
+}
+td.p_x2 {
+    background-color: #FFA8A8;
+    font-family: arial;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid gray;
+    padding: 0 4px 0 4px;
+}
+table.background {
+    background-repeat: no-repeat;
+    background-position: top;
+}
+</style>
+</head>
+
+<dtml-let container="this()"
+          company_logo="getPortalConfiguration().getAttribute('company_logo', context=container)"
+          common_url="portal_properties.common_url()"
+          member="portal_membership.getAuthenticatedMember()"
+          uname="member.getUserName()"
+          now="_.DateTime()"
+
+          bgcolor="'#E7E7E7'"
+          show_color="'FFFACD' #'C9D3DC'"
+          over_color="'FF8448' #'8488AF''64809B'"
+>
+<script type="text/javascript">
+<!-- 
+var TID;
+var s_day, s_month, s_year, s_time;
+
+function _r( x ) {
+    var s = '00' + x.toString();
+    var l = s.length;
+    return s.substring( l-2, l );
+}
+
+function interrupt( mode ) {
+    var d = new Date();
+    var day = _r(d.getDate());
+    var month = _r(d.getMonth() + 1);
+    var year = d.getYear();
+    var time = _r(d.getHours()) + ':' + _r(d.getMinutes()) + ':' + _r(d.getSeconds());
+
+    if( typeof(s_day)=='object' ) s_day.innerHTML = day;
+    if( typeof(s_month)=='object' ) s_month.innerHTML = month;
+    if( typeof(s_year)=='object' ) s_year.innerHTML = year;
+    if( typeof(s_time)=='object' ) s_time.innerHTML = time;
+    if( mode==1 ) TID = window.setTimeout("interrupt(1)", 1000);
+}
+
+var show_disabled = 0;
+
+function getCookie( prefix, name, header ) {
+    var prefix = prefix + '_in_progress_' + name + '=';
+    var s = document.cookie;
+    var start = s.indexOf(prefix);
+    if (start == -1) return '';
+    var end = s.indexOf(';', start + prefix.length);
+    if (end==-1) end = s.length;
+    var value = s.substring(start + prefix.length, end);
+    return header + value; //unescape(value);
+}
+
+function load_report_settings( prefix ) {
+    var options = '';
+    options += getCookie( prefix, 'category', '&category:tokens=' );
+    return options;
+}
+
+function show( ob, mode ) {
+    if( show_disabled ) return;
+    var frm = document.main_menu;
+    switch (mode) {
+    //case 1: var url = 'cio_I?cio=1'; break;
+    //case 2: var url = 'cio_abcd_summary?cio=1'; break;
+    //case 3: var url = 'cio_III?cio=1'; break;
+    //case 4: var url = 'cio_disabled?cio=1'; break;
+    //case 5: var url = 'commissions_in_progress?cio=1&rtype=statistics&ctype=outgoing&p1=0&p2=0'; break;
+    //case 6: var url = 'docflow_in_progress?cio=1&p1=1&p2=0'; break;
+    //case 7: var url = 'cio_search'; break;
+    //default: return;
+    case 1:
+      var url = 'cio_I';
+      //frm.ctype.value = 'supervising';
+      //frm.ctype.disabled = false;
+      frm.archive_search.value = 0;
+      break;
+    case 2:
+      var url = 'cio_abcd_summary';
+      break;
+    case 3:
+      var url = 'cio_III';
+      //frm.ctype.value = 'supervising';
+      //frm.ctype.disabled = false;
+      frm.archive_search.value = 0;
+      break;
+    case 4:
+      var url = 'cio_disabled';
+      frm.archive_search.value = 0;
+      break;
+    case 5: 
+      var url = 'commissions_in_progress';
+      frm.rtype.disabled = false;
+      frm.ctype.disabled = false;
+      frm.p1.disabled = false;
+      frm.p2.disabled = false;
+      break;
+    case 6: 
+      var url = 'docflow_in_progress';
+      frm.extView.disabled = false;
+      //frm.p1.disabled = false;
+      //frm.p2.disabled = false;
+      break;
+    case 7: 
+      var url = 'docflow_search'; //'cio_search';
+      break;
+    case 8:
+      var url = 'docflow_statistics';
+      frm.p1.disabled = false;
+      frm.p2.disabled = false;
+      break;
+    case 9:
+      var url = 'docflow_members_activity';
+      frm.p1.disabled = false;
+      frm.p2.disabled = false;
+      break;
+    default: return;
+    }
+
+    params = ''; //'menubar=yes,toolbar=yes,location=no,scrollbars=yes,status=yes,top=40,left=10,resizable=yes';
+    var menu = document.getElementsByTagName('td');
+    for (var i = 0; i < menu.length; i++) {
+        menu[i].style.cursor = 'wait';
+        menu[i].onmouseover = '';
+        menu[i].onmouseout = '';
+    }
+    ob.onmouseout = '';
+    pointer( ob,'over' );
+    show_disabled = 1;
+    interrupt(0);
+    //window.open( url, '_top', params );
+    frm.action += '/' + url;
+    frm.submit();
+}
+
+function pointer( ob, mouse ) {
+    if( mouse == 'over' ) {
+        bg_color = '&dtml-over_color;';
+        color = 'white';
+    } else {
+        bg_color = '&dtml-show_color;';
+        color = 'black';
+    }
+    ob.bgColor = bg_color;
+    ob.style.color = color;
+}
+//-->
+</script>
+
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="&dtml-bgcolor;">
+
+<form name="main_menu" action="&dtml-portal_url;" method="post">
+<input type="hidden" name="cio" value="1">
+<input type="hidden" name="rtype" value="statistics" disabled>
+<input type="hidden" name="ctype" value="supervising" disabled>
+<input type="hidden" id="p1" name="not_finalized_only" value="0" disabled>
+<input type="hidden" id="p2" name="not_answered_only" value="0" disabled>
+<input type="hidden" name="extView" value="1" disabled>
+<input type="hidden" name="archive_search" value="1">
+</form>
+
+<table class="background" background="&dtml-portal_url;/backgroup_docflow_symbol_3.gif" width="100%" height="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td><img src="&dtml-portal_url;/spacer.gif" width="10"></td>
+  <td align="center" valign="top" colspan="3">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td class="header" align="center" style="padding: 20px 0 10px 0;" valign="top">
+<nobr><dtml-msg "COMMISSIONS CIO MANAGEMENT"></nobr><br>
+<nobr><font size=1><dtml-msg "in the system of"></font></nobr><br>
+<nobr><dtml-msg "office's administrative documents of the company"></nobr>
+      </td>
+    </tr>
+    <tr>
+      <td class="information" align="center">
+        <font color="purple"><strong><dtml-var "member.getMemberNotes()"><br><dtml-var "member.getMemberBriefName()"></strong></font>
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td><img src="&dtml-portal_url;/spacer.gif" width="10"></td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td style="padding: 70px 0 0 30px;" width="30%" align="right" nowrap>
+    <table cellspacing="1" cellpadding="5" border="0">
+    <tr>
+      <td class="p_info" nowrap><strong><dtml-var "msg('Report date')"></strong></td>
+      <td class="p_info" align="center" nowrap><font color="blue"><strong><span id="day">00</span></strong></font></td>
+      <td class="p_info" align="center" nowrap><font color="blue"><strong><span id="month">00</span></strong></font></td>
+      <td class="p_info" align="center" nowrap><font color="blue"><strong><span id="year">0000</span></strong></font></td>
+      <td class="p_info" align="center" nowrap><font color="blue"><strong><span id="time">00:00:00</span></strong></font></td>
+    </tr>
+    </table>
+  </td>
+  <td><img src="&dtml-portal_url;/spacer.gif" width="280" height="1"></td>
+  <td width="30%">&nbsp;</td>
+  <td>&nbsp;</td>
+</tr>
+<tr>
+  <td></td>
+  <td id="main" height="100%" align="middle" valign="top" style="padding-top:30px;" colspan="3">
+    <table cellspacing="5" cellpadding="0" border="0">
+    <tr>
+      <td class="p_x1" bgcolor="&dtml-show_color;" rowspan="9"><img src="&dtml-portal_url;/spacer.gif" width="3"></td>
+      <td class="p_x2" bgcolor="&dtml-show_color;" rowspan="9"><img src="&dtml-portal_url;/spacer.gif" width="3"></td>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,1);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Current documents')">
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,2);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('CIO Under Control Tasks Report')">
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,3);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Documents awating to be finalized')">...
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,4);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Disabled commissions')">
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,5);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Commissions In Progress Statistics by persons')">
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,6);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Docflow followup summary report')">
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,7);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Commissions search')">
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,8);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Docflow statistics')">
+      </td>
+    </tr>
+    <tr>
+      <td class="p_cell" bgcolor="&dtml-show_color;" style="cursor:hand;" onclick="javascript:show(this,9);" onmouseover="javascript:pointer(this,'over');" onmouseout="javascript:pointer(this,'out');" align="left">
+        <dtml-var "msg('Docflow members activity')">
+      </td>
+    </tr>
+    </table>
+  </td>
+  <td></td>
+</tr>
+</table>
+
+</dtml-let>
+
+<script type="text/javascript">
+<!--
+window.onload = function () {
+    var clock = document.getElementsByTagName('span');
+    if( !clock ) return;
+    for (var i = 0; i < clock.length; i++) {
+        if( !clock[i].id ) continue;
+        switch (clock[i].id) {
+          case 'day': s_day = clock[i];  break;
+          case 'month': s_month = clock[i];  break;
+          case 'year': s_year = clock[i];  break;
+          case 'time': s_time = clock[i];  break;
+        }
+    }
+    if( !(s_day && s_month && s_year && s_time) ) return;
+    TID = window.setTimeout("interrupt(1)", 1000);
+}
+//-->
+</script>
+
+</body>
+</html>

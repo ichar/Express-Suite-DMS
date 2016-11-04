@@ -1,0 +1,1 @@
+<dtml-var "task_edit_form(this(), REQUEST, action='add')">

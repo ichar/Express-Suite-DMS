@@ -1,0 +1,27 @@
+<dtml-let tabs="[]" sel_tab="[]">
+  <dtml-let
+    url="REQUEST['URL']"
+    defaultMode="{ 'incoming': 'showCurrent', 'outgoing': 'showCurrentAndWithClosedReport' }"
+    showTaskMode="REQUEST.get('showTaskMode') or defaultMode[type]"
+    tabsArray="[
+      { 'showTaskMode': 'showNew', 'title': 'tasks.tabs.new', 'whenShow': ['incoming'] },
+      { 'showTaskMode': 'showCurrent', 'title': 'tasks.tabs.current', 'whenShow': ['incoming'] },
+      { 'showTaskMode': 'showCurrentAndWithClosedReport', 'title': 'tasks.tabs.current_and_closed', 'whenShow': ['outgoing'] },
+      { 'showTaskMode': 'showWithClosedReport', 'title': 'tasks.tabs.closed', 'whenShow': ['incoming'] },
+      { 'showTaskMode': 'showFinalized', 'title': 'tasks.tabs.finalized', 'whenShow': ['incoming', 'outgoing'] }]"
+  >
+    <dtml-in tabsArray>
+      <dtml-if "type in _['sequence-item']['whenShow']">
+        <dtml-if "_['sequence-item']['showTaskMode']==showTaskMode">
+          <dtml-call "sel_tab.append({'number' : _.len(tabs), 'color' : '#ffffff'})">
+        </dtml-if>
+        <dtml-call "tabs.append( { 'url' : url+'?showTaskMode='+_['sequence-item']['showTaskMode'], 'title' : '<nobr>'+msg(_['sequence-item']['title'], add=0)+'</nobr>' } )">
+      </dtml-if>
+    </dtml-in>
+  </dtml-let>
+  <dtml-if sel_tab>
+    <dtml-var "tabs_head(tabs=tabs, sel_tab=sel_tab[0], highlight_colors=('#DDDEEE','#E7E8F8'))">
+  <dtml-else>
+    <dtml-var "tabs_head(tabs)">
+  </dtml-if>
+</dtml-let>

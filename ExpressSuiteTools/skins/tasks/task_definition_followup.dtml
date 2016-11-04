@@ -1,0 +1,306 @@
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+    
+<dtml-let container="this()"
+          brains_type="taskDefinitionArray['type']"
+          full_userlist="taskDefinitionArray['_full_userlist']"
+          resolution_or_commission="taskDefinitionArray['_resolution_or_commission']"
+          delegation_of_authority="taskDefinitionArray['_delegation_of_authority']"
+          confirmation_type="taskDefinitionArray['_confirmation_type']"
+          confirmations="portal_metadata.listConfirmationTypes()"
+>
+
+<tr class="row_title">
+  <td class="smallHeader" colspan="2"><strong><dtml-var "msg('Task info')"></strong></td>
+</tr>
+<tr class="row_even">
+  <td class="smallHeader" style="padding-left:4px;"><dtml-var "msg('Task title')"></td>
+  <td><input name="title" size="90" value="<dtml-var "taskDefinitionArray['title']" html_quote>"></td>
+</tr>
+<tr class="row_even">
+  <td colspan="2">
+  <dtml-let checked="'title' in taskDefinitionArray['_allow_edit'] and 'checked' or ''">
+    <input type="checkbox" name="_allow_edit:list" value="title" &dtml-checked;> <dtml-var "msg('editable during state change')">
+  </dtml-let>
+  </td>
+</tr>
+<tr class="row_even">
+  <td colspan="2">
+    <table cellspacing="3" cellpadding="0" border="0">
+    <tr>
+      <td class="small">
+  <dtml-let role="msg('Role')+': '"
+      allowed_users="[
+        '__role_VersionOwner',
+        '__role_Owner',
+        '__role_Reader',
+        '__role_Writer',
+        '__role_Editor',
+        '__role_WorkflowChief',
+        '__role_WorkflowChief_Department',
+        '__role_Group_Department',
+        '__role_Chief_Department',
+        '__edit_role_Chief_Department',
+      ] + portal_membership.listMemberIds()"
+      selected_users="taskDefinitionArray['involved_users']"
+  >
+      <dtml-var "user_list( container, 
+          name='involved_users',
+          allowed_users=allowed_users,
+          selected_users=selected_users,
+          title_selected='Responsible members', 
+          size=16, 
+          style='width:512px;',
+          with_groups=1,
+          with_order=brains_type in ['followup_request'] and 1 or 0,
+          no_sort=1,
+          sys=1,
+          IsAdvanced=1
+      )">
+  </dtml-let>
+      </td> 
+    </tr>
+    <tr>
+      <td>
+        <input type="checkbox" id="full_userlist" name="_full_userlist" value="1"  <dtml-var full_userlist fmt="checked"> />
+	    <label for="full_userlist"><dtml-var "msg('Display full user list during state change')"></label>
+        <br>
+        <input type="checkbox" id="involved_allow_edit" name="_allow_edit:list" value="involved_users"
+        <dtml-var "'involved_users' in taskDefinitionArray['_allow_edit']" fmt="checked"> />
+        <label for="involved_allow_edit"><dtml-var "msg('editable during state change')"></label>
+        <br>
+        <input type="checkbox" id="delegation_of_authority" name="_delegation_of_authority" value="1" <dtml-var delegation_of_authority fmt="checked"> />
+        <label for="delegation_of_authority"><dtml-var "msg('Delegate members authority')"></label>
+      <dtml-if "brains_type in ['followup_directive','followup_information']">
+        <br>
+        <input type="checkbox" id="resolution_or_commission" name="_resolution_or_commission" value="1" <dtml-var resolution_or_commission fmt="checked"> />
+        <label for="resolution_or_commission"><dtml-var "msg('Allow resolution or commission input')"></label>
+      </dtml-if>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <table cellspacing="3" cellpadding="0" border="0">
+      <dtml-if "brains_type in ['followup_request','followup_signature_request']">
+        <tr>
+          <td><strong><dtml-var "msg('Confirmation type')">:</strong></td>
+          <td>
+            <select name="_confirmation_type">
+            <option value="any" <dtml-var "not confirmation_type or confirmation_type=='any'" fmt="selected">><dtml-var "msg('any')" ></option>
+          <dtml-in confirmations mapping>
+            <option value="<dtml-var key>" <dtml-var "confirmation_type==key" fmt="selected">><dtml-var "msg(name)" ></option>
+          </dtml-in>
+            </select>
+          </td>
+        </tr>
+      </dtml-if>
+        <tr>
+          <td><strong><dtml-var "msg('To')">:</strong></td>
+          <td>
+      <dtml-let category="getId()"
+                category_object="portal_metadata.getCategoryById(category)"
+                selected="taskDefinitionArray['to_whom']">
+            <select name="to_whom">
+            <option value=""><dtml-var "msg('n/a')"></option>
+        <dtml-in "category_object.listAttributeDefinitionsBySortkey()" >
+          <dtml-if "Type()=='userlist'">
+            <option value="<dtml-var "getId()">" <dtml-var "selected==getId() and 'selected' or ''"> ><dtml-var "msg(Title(), add=None)"></option>
+          </dtml-if>
+        </dtml-in>
+            </select>
+      </dtml-let>
+          </td>
+        </tr>
+      <dtml-let dest_uid="taskDefinitionArray.get('dest_folder_uid') or ''"
+                dest_object="dest_uid and object_by_uid(dest_uid)"
+                dest_title="dest_object and dest_object.Title() or ''"
+                dest_URL="dest_object and dest_object.absolute_url()">
+        <tr>
+          <td><strong><dtml-var "msg('Data storage segment')">:</strong></td>
+          <td><dtml-var link_emb></td>
+        </tr>
+        <dtml-if dest_uid>
+        <tr>
+          <td class="dump" valign="top" colspan="2">
+            <nobr><strong>Destination URL:</strong></nobr>&nbsp;<span id="url">&dtml-dest_URL;</span><br>
+            <nobr><strong>UID:</strong>&nbsp;<span id="uid">&dtml-dest_uid;</span></nobr>
+          </td>
+        </tr>
+        </dtml-if>
+      </dtml-let>
+        <tr>
+          <td><strong><dtml-msg "Department attribute">:</strong></td>
+          <td>
+      <dtml-let selected="taskDefinitionArray.get('use_department', '')">
+            <select name="use_department">
+            <option value="" ><dtml-var "msg('The department user belongs to')"></option>
+        <dtml-in "listAttributeDefinitions()" prefix="r">
+          <dtml-if "Type() == 'lines' and getId().lower().endswith('department')">
+            <option value="<dtml-var "getId()">" <dtml-var "getId()==selected and 'selected' or ''"> ><dtml-var "msg(Title(), add=None)"></option>
+          </dtml-if>
+        </dtml-in>		
+            </select>
+      </dtml-let>
+          </td>
+        </tr>
+        <tr>
+          <td valign="middle" nowrap><strong><dtml-var "msg('Hand roles to users')">:</strong>&nbsp;</td>
+          <td>
+      <dtml-let roles="portal_metadata.getManagedRoles_()"
+            selected="taskDefinitionArray.get('hand_roles', ['Reader'])">
+            <select name="hand_roles:list" multiple size="9">
+        <dtml-in roles prefix="r">
+            <option value="<dtml-var "r_item">" <dtml-var "r_item in selected and 'selected' or ''"> ><dtml-var "msg(r_item, add=None)"></option>
+        </dtml-in>
+            </select>
+      </dtml-let>
+          </td>
+        </tr>
+        </table>
+      </td> 
+    </tr>
+    </table>
+
+  <dtml-if "brains_type in ['followup_directive','followup_registration']">
+  </td>
+</tr>
+<tr class="row_title">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Supervisor')"></td>
+</tr>
+<tr class="row_even">
+  <td colspan="2"> 
+    <table cellspacing="3" cellpadding="0" border="0">
+    <tr>
+      <td class="small">
+    <dtml-let role="msg('Role')+': '"
+      allowed_users="[
+        '__role_VersionOwner',
+        '__role_Owner',
+      ] + portal_membership.listMemberIds()"
+      selected_users="taskDefinitionArray['supervisors']"
+    >
+      <dtml-var "user_list( container, 
+          name='supervisors',
+          allowed_users=allowed_users,
+          allowed_groups=portal_membership.getListGroups(),
+          selected_users=selected_users,
+          title_selected='',
+          size=8,
+          selected_size=5,
+          style='width:512px;',
+          with_groups=1,
+          with_order=0,
+          no_sort=1,
+          IsAdvanced=1
+      )">
+    </dtml-let>
+      </td> 
+    </tr>
+    <tr>
+      <td>
+    <strong><dtml-var "msg('Default supervisor mode')">:</strong>
+      </td> 
+    </tr>
+    <tr>
+      <td>
+    <dtml-let modes="portal_metadata.listSupervisorModes()"
+              supervisor_mode="taskDefinitionArray.get('_supervisor_mode', 'default')">
+        <select name="_supervisor_mode">
+      <dtml-in modes mapping>
+        <option value="&dtml-id;" <dtml-var "id==supervisor_mode and 'selected' or ''">><dtml-var "msg(title)"></option>
+      </dtml-in>
+        </select>
+    </dtml-let>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <input type="checkbox" id="supervisor_allow_edit" name="_allow_edit:list" value="supervisors"
+        <dtml-var "'supervisors' in taskDefinitionArray['_allow_edit']" fmt=checked> />
+        <label for="supervisor_allow_edit"><dtml-var "msg('editable during state change')"></label>
+      </td>
+    </tr>
+    </table>
+  </td>
+</tr>
+<tr>
+  </td>
+    <br>
+  </dtml-if>
+
+  </td>
+</tr>
+<tr class="row_title">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Relative expiration date')"></td>
+</tr>
+<tr class="row_even">
+  <td colspan="2" style="padding-left:5px;">
+  <dtml-let checked="'interval' in taskDefinitionArray['_allow_edit'] and 'checked' or ''"
+            format="taskDefinitionArray['_date_format'] or 'interval'">
+    <nobr>
+    <dtml-var "dateperiod_form( container
+             , prefix='duration_time'
+             , period=taskDefinitionArray['interval']
+             )">,
+    <dtml-var "msg('expiration date format')">:
+    <select name="_date_format" size="1">
+    <option value="interval" <dtml-var "format=='inteval' and 'selected' or ''"> ><dtml-var "msg('interval')"></option>
+    <option value="date" <dtml-var "format=='date' and 'selected' or ''"> ><dtml-var "msg('date')"></option>
+    </select>
+    </nobr>
+    <br>
+    <input type="checkbox" id="interval_allow_edit" name="_allow_edit:list" value="interval" &dtml-checked; /> 
+    <label for="interval_allow_edit"><dtml-var "msg('editable during state change')"></label>
+  </dtml-let>    
+  </td>
+</tr>
+
+  <dtml-if "brains_type in ['followup_directive','followup_information','followup_request','followup_inspection']">
+<tr class="row_title">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Additional options')"></td>
+</tr>
+<tr class="row_even">
+  <td colspan="2" style="padding-left:5px;">
+    <dtml-let checked="taskDefinitionArray['_auto_finalize'] and 'checked' or ''">
+    <input type="checkbox" id="auto_finalize" name="_auto_finalize" value="1" &dtml-checked; /> 
+    <label for="auto_finalize"><dtml-var "msg('auto finalize if response will be missed')"></label>
+    </dtml-let>    
+    <br>
+    <dtml-let checked="taskDefinitionArray['_expiration_alarm'] and 'checked' or ''">
+    <input type="checkbox" id="expiration_alarm" name="_expiration_alarm" value="1" &dtml-checked; /> 
+    <label for="expiration_alarm"><dtml-var "msg('notify when expired')"></label>
+    </dtml-let>    
+    <br>
+    <dtml-let checked="taskDefinitionArray['_auto_sending_by_default'] and 'checked' or ''">
+    <input type="checkbox" id="auto_sending_by_default" name="_auto_sending_by_default" value="1" &dtml-checked; />
+    <label for="auto_sending_by_default"><dtml-var "msg('auto sending if involved users is not defined')"></label>
+    </dtml-let>    
+  </td>
+</tr>
+  </dtml-if>
+
+<tr class="row_title">
+  <td class="smallHeader" colspan="2"><dtml-var "msg('Task description')"></td>
+</tr>
+<tr class="row_even">
+  <td valign=top align=left colspan="2" style="padding: 0 5px 0 5px;">
+  <dtml-let description="taskDefinitionArray['description']"
+            brains_type="brains_type[9:]"
+            comment_title="'%s instruction' % brains_type"
+            context="'task.%s' % brains_type"
+            field="'description'"
+            notes="''"
+  >
+    <dtml-call "REQUEST.set('comment_title', comment_title)">
+    <dtml-call "REQUEST.set('comment_type', 'div')">
+    <dtml-call "REQUEST.set('comment_rows', 5)">
+    <dtml-var "comment_template( container, form='taskDefinitionForm', field=field, context=context, value=description, notes=notes )">
+  </dtml-let>
+   <br>
+  <dtml-let checked="'description' in taskDefinitionArray['_allow_edit'] and 'checked' or ''">
+    <input type="checkbox" id="description_allow_edit" name="_allow_edit:list" style="padding-top:0px;" value="description" &dtml-checked;> 
+    <label for="description_allow_edit"><dtml-var "msg('editable during state change')"></label>
+  </dtml-let>
+  </td>
+</tr>
+
+</dtml-let>

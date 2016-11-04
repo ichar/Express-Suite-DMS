@@ -1,0 +1,49 @@
+<dtml-revision $Revision: 1.1.4.2 $>
+
+<dtml-var document_html_header>
+
+<form name="document_conflict_form" action="document_conflict" method="post" target="workspace">
+<table cellpadding="2" cellspacing="2">
+<tr>
+  <td>
+    <input type="hidden" name="id" value="&dtml-id;">
+    <input type="hidden" name="title" value="&dtml-title;">
+    <input type="hidden" name="description" value="&dtml-description;">
+    <h3><dtml-var "msg('User conflict')"></h3>
+  </td>
+</tr>
+<tr>
+  <td>
+    <h5><dtml-var "msg('During editing, the document was changed by other user.')"></h5><br>
+  </td>
+</tr>
+<tr>
+  <td>
+  <dtml-if "REQUEST.has_key('show_diff')">
+    <b><dtml-var "msg('The difference between saved version and your version')">:</b>
+    <div>
+    <dtml-var "REQUEST.get('diff')">
+    </div>
+  <dtml-else>
+    <b><dtml-var "msg('Show the difference between saved version and your version')"></b>&nbsp;&nbsp;
+    <input type="submit" name="show" value=" <dtml-var "msg('Show')"> ">
+  </dtml-if>
+  </td>
+</tr>
+<tr>
+  <td>
+    <input type="submit" name="create_version" value=" <dtml-var "msg('Create new version')"> ">
+    <input type="submit" name="save" value=" <dtml-var "msg('Save your')"> ">
+    <input type="submit" name="cancel" value=" <dtml-var "msg('Cancel')"> ">
+  </td>
+</tr>
+<tr>
+  <td>
+    <textarea name='text' style="display: none"><dtml-var "REQUEST.get('text')"></textarea>
+  </td>
+</tr>
+</table>
+</form>
+
+<dtml-var document_html_footer>
+

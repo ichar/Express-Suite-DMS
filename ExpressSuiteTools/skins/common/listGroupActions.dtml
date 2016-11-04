@@ -1,0 +1,173 @@
+<script type="text/javascript">
+<!--
+var commonImages = [
+   'bull.gif', 
+   'addUser.gif','addUser_up.gif','changePassword.gif','changePassword_up.gif','interfacePreferences.gif','interfacePreferences_up.gif','logout.gif','logout_up.gif','manageGroups.gif','manageGroups_up.gif','manageUsers.gif','manageUsers_up.gif','preferences.gif','preferences_up.gif',
+   'configBackupFSRoot.gif','configBackupFSRoot_up.gif','configPortal.gif','configPortal_up.gif','manage.gif','manage_up.gif','manage_archive.gif','manage_archive_up.gif','manageCategories.gif','manageCategories_up.gif','manageSubjects.gif','manageSubjects_up.gif','sync_tools.gif','sync_tools_up.gif','undo.gif','undo_up.gif'
+];
+//-->
+</script>
+
+<dtml-call "REQUEST.set('OpenInFrame', 'menuActions')">
+<dtml-var simple_html_header>
+
+<dtml-comment>Actions menu in left frame</dtml-comment>
+
+<table width="100%" cellspacing="3" cellpadding="0" border="0">
+
+<dtml-let isAnon="portal_membership.isAnonymousUser()"
+          AuthClass="isAnon and 'GuestActions' or 'MemberActions'"
+          uname="isAnon and 'Guest' or portal_membership.getAuthenticatedMember().getUserName()"
+          obj="this()"
+          actions="portal_actions.listFilteredActionsFor(obj)"
+          actions_list="actions[type]"
+
+          bgcolor="'#B4C8D8'" overcolor="'#ffffff'" bordercolor="'#a0a0a0'"
+>
+<dtml-in actions_list sort="sort_order" mapping>
+  <dtml-if "type in ['user','global']">
+<tr> 
+  <td width="38" bgcolor="&dtml-overcolor;" id="img_&dtml-id;"><img src="&dtml-id;.gif" width="38" height="38" name="&dtml-id;"></td>
+  <td name="td_&dtml-id;"
+      style="padding: 0 10px 0 10px;border: 1pt solid &dtml-bordercolor;width:100%;" 
+      bgcolor="&dtml-overcolor;" 
+      onmouseover="pointer(this,'over','&dtml-bgcolor;','&dtml-overcolor;'); MM_swapImage('&dtml-id;','','&dtml-id;_up.gif',1);" 
+      onmouseout="pointer(this,'out','&dtml-bgcolor;','&dtml-overcolor;'); MM_swapImgRestore();"> 
+     <a class="menuitem" style="cursor:hand;" href="&dtml-portal_url;/inFrame?link=<dtml-var "url.strip()">" target="workspace"><dtml-var "msg(name, add=0)"></a>
+  </td>
+</tr>
+<tr>
+  <td colspan="2" bgcolor="#808080"><img src="&dtml-portal_url;/spacer.gif" height="1" width="1"></td>
+</tr>
+  <dtml-elif "name not in ['Pending messages']">
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td><a class="nav" href="&dtml-portal_url;/inFrame?link=<dtml-var "url.strip()">" target="workspace"><dtml-var "msg(name, add=0)"></a></td>
+</tr>
+<tr>
+  <td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="3"></td>
+</tr>
+  </dtml-if>
+</dtml-in>
+
+<dtml-if "type=='help'">
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="10"></td></tr>
+<tr><td colspan="2"><h3><dtml-var "msg('GUIDE BOOK')"></h3></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_login" target="workspace">
+      <dtml-var "msg('Book Login info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan=3><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_templates" target="workspace">
+      <dtml-var "msg('Book Templates info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan=3><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_incoming" target="workspace">
+      <dtml-var "msg('Book Get Incoming info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan=3><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_workflow" target="workspace">
+      <dtml-var "msg('Book Get Workflow info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_outgoing" target="workspace">
+      <dtml-var "msg('Book Outgoing info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/manual/book_outgoing#2" target="workspace">
+      <dtml-var "msg('Book Metadata Edit info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_faxsimile" target="workspace">
+      <dtml-var "msg('Book Faxsimile info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_response" target="workspace">
+      <dtml-var "msg('Book response info')">
+    </a>
+  </td>
+</tr>
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-portal_url;/manual/book_approval" target="workspace">
+      <dtml-var "msg('Book approval info')">
+    </a>
+  </td>
+</tr>
+
+<dtml-let res="portal_catalog.searchResults(meta_type='HTMLDocument', category='Base_NewsDocflow', sort_on='Title', sort_order='')">
+
+<dtml-in res>
+  <dtml-if sequence-start>
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="10"></td></tr>
+<tr><td colspan="2"><h3><dtml-var "msg('News Docflow')"></h3></td></tr>
+  </dtml-if>
+  <dtml-let obj="getObject()">
+    <dtml-if "obj is not None">
+      <dtml-let obj_url="obj.absolute_url()"
+                obj_title="obj.Title()"
+                state="portal_workflow.getInfoFor(obj, 'state', '')"
+                IsView="obj_url.find('/system/') == -1 and state not in ['evolutive'] and 1 or 0"
+      >
+        <dtml-if IsView>
+<tr>
+  <td style="padding-top:1px;" valign="top"><img src="&dtml-portal_url;/bull.gif" border="0"></td>
+  <td>
+    <a class="nav" href="&dtml-portal_url;/inFrame?link=&dtml-obj_url;/body_view" target="workspace"><dtml-var obj_title></a>
+  </td>
+</tr>
+<tr><td colspan="2"><img src="&dtml-portal_url;/spacer.gif" height="3"></td></tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+  </dtml-let>
+</dtml-in>
+
+</dtml-let>
+
+</dtml-if>
+
+</dtml-let>
+
+</table>
+
+<dtml-var simple_html_footer>

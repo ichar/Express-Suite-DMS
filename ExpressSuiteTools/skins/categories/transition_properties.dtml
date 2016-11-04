@@ -1,0 +1,167 @@
+<dtml-var simple_html_header>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: &dtml-Title;</a></strong></p>
+
+<p>
+<strong><a href="&dtml-absolute_url;/workflow_transitions">&lt;&lt; <dtml-var "msg('Document category transitions')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/workflow_states"><dtml-var "msg('Document category states')"></a>,&nbsp;</strong>
+<strong><a href="&dtml-absolute_url;/task_template_list"><dtml-var "msg('Actions templates')">,&nbsp;</a></strong>
+<strong><a href="&dtml-absolute_url;/task_template_summary"><dtml-var "msg('Routing')"></a></strong>
+</p>
+
+<dtml-let wf=Workflow
+          managed_roles="portal_metadata.getManagedRoles_()"
+          state_list="portal_workflow[wf].getSortedStateList(wf)"
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+          IsDebug="0"
+>
+
+<dtml-with "portal_workflow[wf].transitions[transition]">
+<form action="workflows" method="POST" onSubmit="selectAll(allowed_users);">
+
+<table border="0">
+<COLGROUP>
+<COL style="WIDTH:25%">
+<COL style="WIDTH:25%">
+<COL style="WIDTH:1%">
+<COL style="WIDTH:50%">
+
+<tr>
+  <td align="left"><strong><dtml-var "msg('Id')"></strong></td>
+  <td>&dtml-id;</td>
+</tr>
+<tr>
+  <td align="left"><strong><dtml-var "msg('Title')"></strong></td>
+  <td colspan="3"><input type="text" name="title" value="&dtml-title;" size="80"></td>
+</tr>
+<tr>
+  <td align="left"><strong><dtml-var "msg('Display in actions box')"></strong></td>
+  <td colspan="3"><input type="text" name="actbox_name" value="&dtml-actbox_name;" size="80"></td>
+</tr>
+
+<tr>
+  <td align="left"><strong><dtml-var "msg('Destination state')"></strong></td>
+  <td>
+    <select name="new_state_id" size="1">
+      <dtml-let selected="not new_state_id and 'selected' or ' '">
+        <option value="" &dtml-selected;>(<dtml-var "msg('Remain in state')">)</option>
+      </dtml-let>
+      <dtml-in "state_list # getAvailableStateIds">
+        <dtml-let selected="new_state_id == _['sequence-item'] and 'selected' or ' '">
+          <option value="&dtml-sequence-item;" &dtml-selected;><dtml-var "msg(portal_workflow.getStateTitle(wf, _['sequence-item']), add=None)"></option>
+        </dtml-let>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td align="left"><font color="purple"><strong><dtml-var "msg('Allowed roles')"></strong></font></td>
+  <td>
+    <select name="guard_roles:list" size="9" multiple>
+      <dtml-in managed_roles>
+        <option value="&dtml-sequence-item;" <dtml-var "_['sequence-item'] in getTransitionGuardRoles(wf, id) and 'selected' or ''"> /><dtml-var "msg(_['sequence-item'])"></option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td align="left"><dtml-var "msg('Allowed permissions')"></td>
+  <td>
+    <select name="guard_permissions:list" size="12" multiple>
+      <dtml-let guard_permissions="portal_metadata.getGuardPermissions( getGuard() )">
+        <dtml-in "portal_metadata.getManagedPermissions_()" sort>
+          <dtml-let selected="_['sequence-item'] in guard_permissions and ' selected' or ''">
+            <option value="&dtml-sequence-item;"&dtml-selected;><dtml-var "msg(_['sequence-item'])"></option>
+          </dtml-let>
+        </dtml-in>
+      </dtml-let>
+    </select>
+  </td>
+</tr>
+
+<tr><td colspan="4" style="padding-top:10px"><h3><dtml-var "msg('Personal transition settings')">:</h3></td></tr>
+
+<tr>
+  <td>&nbsp;</td>
+  <td class="smallHeader" nowrap><dtml-msg "All users"></td>
+  <td>&nbsp;</td>
+  <td class="smallHeader" nowrap><dtml-msg "Allowed members"></td>
+</tr>
+<tr>
+  <td align="left" valign="top"><font color="purple"><strong><dtml-var "msg('Allowed members to execute transition')"></strong></font></td>
+  <td align=left valign="top">
+    <div class="form-element">
+      <select name="all_users" size="6" multiple onDblClick="javascript:addSelectionToList(all_users, allowed_users);">
+        <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+          <option value="&dtml-user_id;">&dtml-user_name;</option>
+        </dtml-in>
+      </select>
+    </div>
+  </td>
+  <td align=center style="padding: 0 10px 0 10px; width: 40px;">
+    <input type=button onClick="javascript:addSelectionToList(all_users, allowed_users);" value=" >> "> <br>
+    <input type=button onClick="javascript:deleteSelectionFromList(allowed_users);" value=" << ">
+  </td>
+  <td align=left valign="top" style="width:99%;">
+    <div class="form-element">
+      <select id="allowed_users" size="6" multiple name="allowed_users:list" onDblClick="javascript:deleteSelectionFromList(allowed_users);">
+        <dtml-let allowed_users="portal_metadata.getGuardAllowedUsers( getGuard() )">
+          <dtml-in allowed_users mapping>
+            <option value="&dtml-user_id;">&dtml-user_name;</option>
+          </dtml-in>
+        </dtml-let>
+      </select>
+    </div>
+  </td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td><dtml-msg "Fast search">: <input type="text" value="" onKeyUp="SearchStrInSelect(value, all_users);"></td>
+</tr>
+
+<tr><td colspan="4">&nbsp;</td></tr>
+
+<tr>
+  <td valign="top" style="padding-top:2px"><strong><dtml-var "msg('Workflow trigger settings')"></strong></td>
+  <td align="left" colspan="3">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+      <td><input type="radio" id="trigger_automatic" name="trigger_type" value="0" <dtml-var "trigger_type==0 and 'checked' or ''"> /></td>
+      <td nowrap><label for="trigger_automatic"><dtml-var "msg('Run automatic when state was invoked')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" id="trigger_user_action" name="trigger_type" value="1" <dtml-var "trigger_type==1 and 'checked' or ''"> /></td>
+      <td nowrap><label for="trigger_user_action"><dtml-var "msg('Trigger user action (default)')"></label></td>
+    </tr>
+    <tr>
+      <td><input type="radio" id="trigger_workflow_method" name="trigger_type" value="2" <dtml-var "trigger_type==2 and 'checked' or ''"> /></td>
+      <td nowrap><label for="trigger_workflow_method"><dtml-var "msg('Trigger workflow method')"></label></td>
+    </tr>
+    </table> 
+  </td>
+</tr>
+
+<tr>
+  <td align="left" style="padding-left:3px" colspan="4">
+  <dtml-if IsAdmin>
+    <input type="submit" name="save_transition" value="<dtml-var "msg('Apply')">" />
+  </dtml-if>
+    <input type="hidden" name="transition" value="&dtml-transition;">
+  </td>
+</tr>
+</table>
+
+</form>
+
+<div style="display:none">
+  <dtml-var "getTransitionGuardRules(wf, id)"><br>
+  <dtml-var "portal_metadata.getGuardAllowedUsers( getGuard() )">
+</div>
+
+</dtml-with>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

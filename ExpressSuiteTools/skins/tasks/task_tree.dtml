@@ -1,0 +1,104 @@
+<dtml-let brains_type=BrainsType
+          userids="listInvolvedUsers()"
+          involved_users="portal_membership.listSortedUserNames(userids)"
+          demand_revision_code="getDemandRevisionCode() or ''"
+          ext_params="_.has_key('ext_params') and '?%s' % ext_params or ''"
+>
+
+<table border="0">
+<tr valign="top">
+  <td align="center" width="22px">
+    <a href="&dtml-absolute_url;&dtml-ext_params;"><img border=0 src="&dtml-portal_url;/&dtml-get_icon;"></a>
+  </td>
+  <dtml-if "demand_revision_code.startswith('current')">
+  <td class="smallHeader" style="padding: 3px 10px 5px 10px; border: 1px solid purple;" bgcolor="#FFFFFF">
+  <dtml-else>
+  <td class="smallHeader" style="padding-top:3px; width:100%;">
+  </dtml-if>
+    <a href="&dtml-absolute_url;&dtml-ext_params;">&dtml-Title;</a><br>
+    <dtml-var task_description_form>
+    <span style="font-weight:normal;font-size:75%;padding-left:1px;">
+    <nobr><dtml-var "msg('Assigned by')">:&nbsp;<em style="color:blue;font-size:11px;"><dtml-var "member_name(this(), member=_['Creator'])"></em></nobr><br>
+  <dtml-if "involved_users and userids != [_['Creator']]">
+    <dtml-var "msg('Involved members')">:&nbsp;
+    <dtml-in involved_users size=10 mapping>
+    <nobr><em style="color:blue;font-size:11px;"><dtml-var "member_name(this(), member=user_id, mode='LFM', brief=0)"><dtml-if sequence-end><dtml-if "_.len(involved_users) > 10">, ...</dtml-if><dtml-else>, </dtml-if></em></nobr>
+    </dtml-in>
+    <br>
+  </dtml-if>
+    <dtml-if expiration_date><dtml-var "msg('expires')">:&nbsp;<dtml-var "expiration_date and expiration_date.ISO()"><br></dtml-if>
+    <dtml-var "msg('Task type')">:&nbsp;<dtml-var "msg(brains_type, add=0)">
+    </span>
+    <br>
+
+  <dtml-if "isFinalized()">
+    <dtml-let result="getResultById(ResultCode())" 
+              result_title="result and result.get('title') or ''"
+    >
+    <b><dtml-var "msg('Finalized')"></b>:&nbsp;
+    <span style="font-size:85%;font-weight:normal;">
+      <dtml-if "not result_title">
+    <font color="black"><dtml-var "msg('Task result')"> - <dtml-var "msg('cancelled')"></font>
+
+      <dtml-elif "brains_type in ['directive']">
+        <dtml-if "result_title=='success'">
+    <font color="green"><dtml-var "msg('Task was realised')"></font>
+        <dtml-elif "result_title=='failed'">
+    <font color="red"><dtml-var "msg('Task was failed')"></font>
+        <dtml-else>			
+    <font color="black"><dtml-var "msg('Task result')"> - <dtml-var "msg(result_title, add=0)"></font>
+        </dtml-if>
+
+      <dtml-elif "brains_type in ['request']">
+        <dtml-if "result_title=='success'">
+    <font color="green"><dtml-var "msg('Request was approved')"></font>
+        <dtml-elif "result_title=='failed'">
+    <font color="red"><dtml-var "msg('Request was failed')"></font>
+        <dtml-else>			
+    <font color="black"><dtml-var "msg('Task result')"> - <dtml-var "msg(result_title, add=0)"></font>
+        </dtml-if>
+
+      <dtml-elif "brains_type in ['signature_request']">
+        <dtml-if "result_title=='document signed'">
+    <font color="green"><dtml-var "msg(result_title, add=0)"></font>
+        <dtml-elif "result_title=='document was not signed'">
+    <font color="red"><dtml-var "msg(result_title, add=0)"></font>
+        <dtml-else>			
+    <font color="black"><dtml-var "msg('Task result')"> - <dtml-var "msg(result_title, add=0)"></font>
+        </dtml-if>
+
+      <dtml-elif "brains_type=='registration'">
+        <dtml-if "result_title=='success'">
+    <font color="green"><dtml-var "msg('Document was registered')"></font>
+        <dtml-else>
+    <font color="black"><dtml-var "msg(result_title, add=0)"></font>
+        </dtml-if>
+
+      <dtml-else>
+        <dtml-if "result_title=='success'">
+    <font color="green"><dtml-var "msg('Informing was done')"></font>
+        <dtml-else>
+    <font color="black"><dtml-var "msg(result_title, add=0)"></font>
+        </dtml-if>
+	  </dtml-if>
+    </span>
+    </dtml-let>
+
+  <dtml-elif "not isEnabled()">
+    <span style="font-size:85%;color:red;font-weight:normal;"><dtml-var "msg('Not effective')"></span>
+  <dtml-elif "_.DateTime() > expiration_date">
+    <span style="color:red;"><strong><dtml-var "msg('Expired')"></strong></span>
+  </dtml-if>
+  </td>
+</tr>
+  <dtml-if review>
+<tr>
+  <td></td>
+  <td class="small">
+    <i><dtml-var "review.Text()" newline_to_br size="200"></i>
+  </td>
+</tr>
+  </dtml-if>
+</table>
+
+</dtml-let>

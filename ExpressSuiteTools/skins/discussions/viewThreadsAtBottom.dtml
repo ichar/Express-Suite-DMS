@@ -1,0 +1,77 @@
+<dtml-comment>
+ viewThreadsAtBottom.dtml
+ Display the message threads with a simple header.  The header text
+ really should be defined by an acquired property or some such...
+</dtml-comment>
+
+<!-- viewThreadsAtBottom -->
+
+<dtml-let has_talkback="_.hasattr(this(), 'talkback') and talkback is not None">
+
+<dtml-if has_talkback>
+  <dtml-let hasReplies="talkback.hasReplies(this())">
+    <dtml-if hasReplies>
+      <dtml-let view_as_list="REQUEST.get('view_as_list', '')"
+                isRootComment="_.hasattr(this(),'parentsInThread')==0"
+                discussions_filter="REQUEST.has_key('discussions_filter') and REQUEST.get('discussions_filter','') or ZopeTime()"
+      >
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td valign=top><dtml-var actn030.gif>&nbsp;</td>
+  <td align=left style="width:100%;padding-top:3px"><h5><dtml-if isRootComment><dtml-var "msg('Comments')"><dtml-else><dtml-var "msg('Replies')"></dtml-if>:</h5></td>
+</tr>
+</table>
+        <dtml-if view_as_list>
+          <dtml-var showThreadsAsList>
+        <dtml-else>
+          <dtml-var showThreads>
+        </dtml-if>
+<form action="&dtml-absolute_url;/filter" method="POST">
+<input type="hidden" name="obj_id" value="<dtml-var id>">
+<input type="hidden" name="filter_ver" value="">
+
+<p><dtml-var "msg('List messages since')"><dtml-var "datetime_form(this(), prefix='filter_date', date=discussions_filter, fast_input=1, date_only=1)">
+<input type="submit" value="<dtml-var "msg('Apply')">"/></p>
+</form>
+        <dtml-if isRootComment>
+<form action="&dtml-absolute_url;/filter" method="POST">
+<input type="hidden" name="obj_id" value="<dtml-var id>">
+<p><dtml-var "msg('List messages with version')">
+<select name="filter_ver">
+          <dtml-let filter_ver="REQUEST.get('discussions_filter_ver','')">
+<option value="all" <dtml-var expr="'all'==filter_ver and 'selected'">><dtml-var "msg('All')"></option>
+            <dtml-in listVersions>
+              <dtml-let ver="_['sequence-item']['Number']" >
+<option value="&dtml-ver;" <dtml-var expr="ver==filter_ver and 'selected'">>&dtml-ver;</option>
+              </dtml-let>
+            </dtml-in>
+          </dtml-let>
+</select>
+<input type="submit" value="<dtml-var "msg('Apply')">">
+</p>
+</form>
+        </dtml-if>
+
+<form action="&dtml-absolute_url;/toggle_view" method="POST">
+<input type="hidden" name="view_as_list" value="<dtml-var view_as_list>">
+<input type="submit" value="<dtml-var expr="view_as_list and msg('View as tree') or msg('View as list')">">
+</form>
+        <dtml-if "REQUEST.has_key('show_add_reply') and REQUEST.get('show_add_reply', 0) and _.SecurityCheckPermission('Reply to item', this())">
+          <dtml-var discussionReply>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+  </dtml-let>
+</dtml-if>
+
+<dtml-let show_and_perm="REQUEST.has_key('show_add_reply') and REQUEST.get('show_add_reply', 0) and _.SecurityCheckPermission('Reply to item', this())">
+  <dtml-if has_talkback>
+    <dtml-if expr="not talkback.hasReplies(this()) and show_and_perm">
+      <dtml-var discussionReply>
+    </dtml-if>
+  <dtml-elif show_and_perm>
+    <dtml-var discussionReply>
+  </dtml-if>
+</dtml-let>
+
+</dtml-let>

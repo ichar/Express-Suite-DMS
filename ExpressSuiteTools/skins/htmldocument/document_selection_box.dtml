@@ -1,0 +1,42 @@
+<dtml-comment>
+Enables user to select the Express Suite DMS object from the popup document search window
+
+'name' -- field id
+'document_uid' -- hidden field receives the uid of the selected object
+'document_version' -- hidden field receives the version id of the selected object
+'document_title' -- text field receives the title of the selected object
+
+</dtml-comment>
+
+<dtml-let name="_.has_key('name') and name or 'document'"
+          extra="_.has_key('extra') and extra or {}"
+          no_search="_.has_key('no_search') and 1 or 0"
+          results="not no_search and portal_links.searchLinks(source_uid=getUid(), **extra) or None"
+          link="results and results[0].getObject()"
+          destination="link is not None and link.getDestinationObject() or None"
+          version_id="link is not None and link.Extra('destination_ver_id')"
+          box_title="destination is not None and destination.Title() + (version_id and ' / %s' % version_id or '') or msg('No object selected')"
+>
+<table>
+<tr>
+  <td><strong><dtml-var "msg('Document')"></strong>:</td>
+</tr>
+<tr>
+  <td>
+    <input type="hidden" id="&dtml-name;_uid" name="&dtml-name;.uid:record:string" value="<dtml-var "destination is not None and destination.getUid() or ''">" />
+    <input type="hidden" id="&dtml-name;_version" name="&dtml-name;.version:record:string" value="">
+    <input type="text" id="&dtml-name;_title" name="&dtml-name;.title:record:string" size="75" value="<dtml-var box_title>" disabled>
+    <input type="button" value="<dtml-var "msg('Browse...')">" onClick="return OpenDocumentSelectionWnd(this.form.id, 'selectDocument')">
+<script>
+<!--
+function selectDocument( formId, uid, title, version_id ){
+    document.forms[formId]['&dtml-name;_uid'].value = uid;
+    document.forms[formId]['&dtml-name;_version'].value = version_id;
+    document.forms[formId]['&dtml-name;_title'].value = title + (version_id ? ' / ' + version_id : '');
+}
+//-->
+</script>
+  </td>
+</tr>
+</table>
+</dtml-let>

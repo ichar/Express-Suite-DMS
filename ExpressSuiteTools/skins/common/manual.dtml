@@ -1,0 +1,24 @@
+<dtml-var simple_html_header>
+
+<div class="Desktop">
+
+<dtml-comment>
+<h1> <dtml-var "msg('User manual')"></h1>
+</dtml-comment>
+
+<dtml-if error>
+<div class="error">
+<dtml-var error>
+</div>
+</dtml-if>
+
+<table cellpadding=5 width="100%">
+<tr>
+  <td align=center>
+    <br><a href="&dtml-portal_url;/manual/manual.doc" target="_blank"><dtml-var "msg('Open user manual')"></a>
+  </td>
+</tr>
+</table>
+</div>
+
+<dtml-var simple_html_footer>

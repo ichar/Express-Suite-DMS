@@ -1,0 +1,103 @@
+<script type="text/javascript">
+<!--
+    var commonImages = ['discussionitem_icon.gif','actn030.gif'];
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<script language="Javascript">
+<!--
+function OpenMenuWnd(user) {
+	wnd_popup = window.open("user_info_form?userid=" + user, "wnd_popup_menu", "toolbar=no,scrollbars=no,width=450,height=550,resizable=yes");
+}
+-->
+</script>
+
+<dtml-comment> Comments tree </dtml-comment>
+
+<div class="Discussion">
+  <dtml-call "REQUEST.set('show_add_reply', 1)">
+  <dtml-var viewThreadsAtBottom>
+</div>
+
+<dtml-comment> Review history </dtml-comment>
+
+<dtml-let container="this()"
+          user="portal_membership.getAuthenticatedMember()"
+          uname="user.getUserName()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          review_history="portal_workflow.getInfoFor(this(), 'review_history')"
+          category_id="_['category'] or container.Category()"
+          c_object="portal_metadata.getCategoryById( category_id )"
+          wf="c_object is not None and c_object.Workflow()"
+          obj_state="portal_workflow.getInfoFor(container, 'state', '')"
+          object_was_archived="IsAdmin and obj_state in ['OnArchive','OnStorage']"
+          entry="object_was_archived and container.getInfoForLink(-1)"
+          IsDebug="0"
+>
+<dtml-if IsDebug>
+  <dtml-var review_history>
+</dtml-if>
+
+<dtml-if review_history>
+  <dtml-in review_history mapping reverse>
+    <dtml-if sequence-start>
+<table cellspacing="3" border="0">
+<tr>
+  <td class="smallHeader"><dtml-var "msg('State history')"></td>
+</tr>
+    </dtml-if>
+<tr>
+  <td class="small" style="font-size:70%;">
+    <dtml-var time fmt="%Y-%m-%d %H:%M"> <dtml-var "portal_workflow.getStateTitle(wf, _['state'])">.
+    <dtml-var "msg('By:')">&nbsp;
+    <b><a style="text-decoration:underline;cursor:hand;" onclick="return OpenMenuWnd('&dtml-actor;')"><dtml-var "portal_membership.getMemberName(actor)"></a></b>
+    <br>
+    <dtml-if "_['sequence-item']['comments']">
+      <em style="color:blue;"><dtml-var "_['sequence-item']['comments']"></em>
+    </dtml-if>
+  </td>
+</tr>
+    <dtml-if sequence-end>
+</table>
+    </dtml-if>
+  </dtml-in>
+</dtml-if>
+
+<dtml-if "review_history and object_was_archived"><br></dtml-if>
+
+<dtml-if object_was_archived>
+  <dtml-in "['archive_url','storage_url','attr_links','remote_links','registry_data','registry_date']">
+    <dtml-if sequence-start>
+<table cellspacing="3" border="0">
+<tr>
+  <td class="smallHeader"><dtml-var "msg('Archive State Information')"></td>
+</tr>
+    </dtml-if>
+    <dtml-if "_.hasattr(container, _['sequence-item'])">
+<tr>
+  <td class="small" style="font-size:70%;">
+    <font color="black"><strong><dtml-var "_['sequence-item']">:</strong></font>&nbsp;<dtml-var "_.getattr(container, _['sequence-item'])">
+  </td>
+</tr>
+    </dtml-if>
+    <dtml-if sequence-end>
+      <dtml-if "entry is not None and _.hasattr(entry, 'archive_state_information')">
+<tr>
+  <td class="small" style="font-size:70%;">
+    <font color="black"><strong>entry:</strong></font>&nbsp;<dtml-var "_.getattr(entry, 'archive_state_information', '')">
+  </td>
+</tr>
+      </dtml-if>
+</table>
+    </dtml-if>
+  </dtml-in>
+</dtml-if>
+
+</dtml-let>
+
+<br>
+
+<dtml-var simple_html_footer>

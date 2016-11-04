@@ -1,0 +1,143 @@
+<dtml-var simple_html_header>
+
+<dtml-let member="portal_membership.getAuthenticatedMember()"
+          container="this()"
+>
+
+<h1> <dtml-var title_or_id> </h1>
+
+<form name='followup' method="post" action="&dtml-absolute_url;/report_options" onSubmit="javascript: selectAll(allowed_members);">
+  <table>
+  <tr class="row_title">
+    <td class="smallHeader" colspan="2">
+       <dtml-var "msg('Report options')">
+    </td>
+  </tr>
+  <tr class="row_even">
+    <td class="small">
+       <dtml-var "msg('Report title')">
+    </td>
+    <td>
+       <input name="title" size="50"
+        value="&dtml-title;"
+       />
+    </td>
+  </tr>
+  <tr class="row_even">
+    <td class="small">
+       <dtml-var "msg('Report description')">
+    </td>
+    <td>
+       <textarea name="description" rows="10" cols="50">&dtml-description;</textarea>
+    </td>
+  </tr>
+  <tr class="row_even">
+    <td class="small">
+       <dtml-var "msg('Responsible members')">
+    </td>
+    <td>
+      <table>
+       <tr>
+         <td class="small" width="40%"><dtml-var "msg('All users')">
+         </td>
+         <td >&nbsp;</td>
+         <td class="small" width="40%" nowrap><dtml-var "msg('Responsible members')">
+         </td>
+       </tr>
+       <tr>
+         <td>
+         <select name="all_users" size="8" multiple onDblClick="javascript:addSelectionToList(all_users, allowed_members);">
+            <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+              <option value="<dtml-var user_id>">
+                <dtml-var user_name>
+              </option>
+            </dtml-in>
+         </select>
+         </td>
+         <td><input type=button onClick="javascript:addSelectionToList(all_users, allowed_members);" value=" >> "> <br><br>
+   		<input type=button onClick="javascript:deleteSelectionFromList(allowed_members);" value=" << ">
+         </td>
+         <td>
+         <select id="allowed_members"  name="allowed_members:list" size="8" multiple onDblClick="javascript:deleteSelectionFromList(allowed_members);">
+            <dtml-in "portal_membership.listSortedUserNames(allowed_members)" mapping>
+              <option value="<dtml-var user_id>">
+                <dtml-var user_name>
+              </option>
+            </dtml-in>
+         </select>
+         </td>
+       </tr>
+       <tr>
+         <td nowrap><dtml-var "msg('Fast search')">: <input type="text" value="" onKeyUp="SearchStrInSelect(value, all_users);"></td>
+         <td class="small">&nbsp;</td>
+         <td class="small">&nbsp;</td>
+       </tr>
+      </table>
+    </td>
+  </tr>
+  <tr class="row_even">
+    <td class="small">
+       <dtml-var "msg('Responsible groups')">
+    </td>
+    <td>
+          <select name="allowed_groups:list" size="8" multiple>
+          <dtml-in "portal_membership.listGroups()" sort>
+            <option value="&dtml-getId;" <dtml-var "isGroupAllowed(getId())" fmt="selected">>
+              <dtml-var "msg(Title(),add=0)">
+            </option>
+          </dtml-in>
+          </select>
+    </td>
+  </tr>
+  <tr class="row_title">
+    <td colspan="2" class="smallHeader">
+        <dtml-var "msg('Report fields')">
+    </td>
+  </tr>
+
+<dtml-comment>
+   Fields list with 'Delete' button
+</dtml-comment>
+
+  <tr class="row_even">
+    <td colspan="2" class="small">
+       <dtml-in listColumns>
+         <input type="checkbox" name="selected_fields:list" value="&dtml-getId;">
+         <dtml-var "msg(Title(), add=None)"> (<dtml-var "msg(Type(), add=0)">) <br>
+
+         <dtml-if sequence-end>
+            <input type=submit name="del_fields" value="<dtml-var "msg('Delete')">">
+         </dtml-if>
+       </dtml-in>
+    </td>
+  </tr>
+
+<dtml-comment>
+   Add field form
+</dtml-comment>
+  <tr class="row_even">
+    <td colspan="2" class="small"> <br>
+      <dtml-var "msg('Id')">: <input name="fname" type="text" size="10">
+      <dtml-var "msg('Title')">: <input name="ftitle" type="text" size="30">
+      <dtml-var "msg('Type')">: <select name="ftype">
+        <option value="boolean"><dtml-var "msg('boolean')"></option>
+        <option value="date"><dtml-var "msg('date')"></option>
+        <option value="float"><dtml-var "msg('float')"></option>
+        <option value="int"><dtml-var "msg('int')"></option>
+        <option value="string" selected><dtml-var "msg('string')"></option>
+        <option value="text"><dtml-var "msg('text')"></option>
+      </select>
+
+      <input type=submit name="add_field" value="<dtml-var "msg('Add field')">">
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2"> <br>
+	<input type=submit name="apply" value="<dtml-var "msg('Save')">">
+    </td>
+  </tr>
+  </table>
+</form>
+</dtml-let>
+
+<dtml-var simple_html_footer>

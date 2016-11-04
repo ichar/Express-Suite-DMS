@@ -1,0 +1,23 @@
+<script language="Javascript">
+
+function OpenMenuWnd( user )
+{
+	wnd_popup = window.open("user_info_form?userid=" + user, "wnd_popup_menu", "toolbar=no,scrollbars=no,width=450,height=550,resizable=yes");
+}
+
+</script>
+
+<table cellspacing="1" cellpadding="0" border="0">
+ <tr>
+   <td class="smallHeader" align="right"><dtml-var "msg('Created')">:
+   <td style="padding-left:5px;"><dtml-var CreationDate>&nbsp;</td>
+ </tr>
+<dtml-if ModificationDate>
+ <tr>
+   <td class="smallHeader" align="right">
+    <dtml-var "msg('Last modified')">:
+   </td>
+   <td style="padding-left:5px;"><dtml-var ModificationDate>&nbsp;</td>
+ </tr>
+</dtml-if>
+</table>

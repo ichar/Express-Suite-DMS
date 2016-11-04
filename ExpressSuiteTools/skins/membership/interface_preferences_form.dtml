@@ -1,0 +1,193 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+function ChangeStorage() {
+    window.open('<dtml-var "portal_properties.remote_url()">', "_top");
+}
+//-->
+</script>
+
+<dtml-let member="(_.hasattr(REQUEST, 'userid') and portal_membership.getMemberById(userid)) or portal_membership.getAuthenticatedMember()"
+          IsManager="member.IsManager()"
+          IsAdmin="member.IsAdmin()"
+          member_id="member.id"
+          page_range="IsAdmin and [100,1000] or [100]"
+>
+  <dtml-unless "_.SecurityCheckPermission( 'Set own properties', this() )">
+    <dtml-raise Unauthorized>
+      You must be logged in to view this resource.
+    </dtml-raise>
+  </dtml-unless>
+
+<div class="Desktop">
+
+<h1><dtml-var "msg('Interface preferences')"></h1>
+<h3><font color="#800080"><nobr><dtml-var "msg('User')">: <dtml-var "member_name(this(), member=member_id)"></nobr></font><h3>
+
+<form action="interface_preferences" method="POST" target="workspace" onsubmit="top.menu.location='&dtml-portal_url;/menu';">
+  <dtml-if userid>
+<input type="hidden" name="userid" value="&dtml-userid;">
+  </dtml-if>
+  
+  <dtml-let prefs="portal_membership.getInterfacePreferences()">
+<table class="FormLayout" width="100%" border="0">
+<colgroup>
+<col style="width:40%">
+<col style="width:5px">
+<col style="width:60%">
+<tbody>
+
+    <dtml-let user_storage_type="portal_properties.storage_type()"
+              IsArchive="user_storage_type == 'archive' and 1 or 0"
+              change_storage_title="IsArchive and 'Use main storage' or 'Use archive storage'"
+              remote_url="portal_properties.remote_url()">
+      <dtml-if remote_url>
+<tr>
+  <td valign="top" nowrap>
+    <dtml-var storage_type_label>
+  </td>
+  <td>&nbsp;</td>
+  <td style="padding-top:3px;">
+      <dtml-if IsArchive>
+    <dtml-var "msg('This time personal archive is open. You can change it to work with main storage')">
+      <dtml-else>
+    <dtml-var "msg('This time main personal storage is open. You can change it to work with archive')">
+      </dtml-if>
+    <br><br>
+    <input type="button" id="change_storage" onclick="javascript:ChangeStorage();" value=" <dtml-var "msg(change_storage_title, add=0)"> " style="width:240;">
+  </td>
+</tr>
+<tr><td colspan="3"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+      </dtml-if>
+    </dtml-let>
+
+<tr>
+  <th valign="top"><dtml-var "msg('Choice of a language')"></th>
+  <td>&nbsp;</td>
+  <td align="left" valign="top">
+    <select name="lang">
+    <dtml-in "msg.get_languages_map()" mapping>
+      <option value="<dtml-var id>"<dtml-if selected> selected</dtml-if>><dtml-var title></option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr>
+  <th valign="top"><dtml-var "msg('Number of viewing documents on page')"></th>
+  <td>&nbsp;</td>
+  <td align="left" valign="top">
+    <select name="viewing_document_number">
+    <dtml-in "(_.range(5, 51, 5))+page_range" prefix="i">
+      <option value="&dtml-i_item;" <dtml-var "_.int(prefs['viewing_document_number'])==_.int(i_item) and 'selected' or ''"> >
+        &dtml-i_item;
+      </option>
+    </dtml-in>
+    </select>
+  </td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Cleanup HTML-code of documents')"></th>
+  <td>&nbsp;</td>
+  <td><input type="checkbox" name="cleanup" value="1"<dtml-var "prefs['cleanup'] and ' checked' or ''">></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Show external editor buttons in folder view')"></th>
+  <td>&nbsp;</td>
+  <td>
+      <input type="checkbox" name="external_editor_buttons" value="1"<dtml-var "prefs['external_editor_buttons'] and ' checked' or ''">><br>
+      <dtml-var "msg('Use of this option slows down folder contents displaying')">
+  </td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Show contents size in folder view')"></th>
+  <td>&nbsp;</td>
+  <td>
+      <input type="checkbox" name="contents_size" value="1"<dtml-var "prefs['contents_size'] and ' checked' or ''">><br>
+      <dtml-var "msg('Use of this option slows down folder contents displaying')">
+  </td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Show link to tabs')"></th>
+  <td>&nbsp;</td>
+  <td><input type="checkbox" name="show_link_to_tabs" value="1"<dtml-var "prefs['show_link_to_tabs'] and ' checked' or ''">><br></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Show description')"></th>
+  <td>&nbsp;</td>
+  <td>
+      <input type="checkbox" name="show_description" value="1"<dtml-var "prefs['show_description'] and ' checked' or ''">><br>
+      <dtml-var "msg('Use of this option slows down folder contents displaying')">
+  </td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Save registry filter')"></th>
+  <td>&nbsp;</td>
+  <td><input type="checkbox" name="save_registry_filter" value="1"<dtml-var "prefs['save_registry_filter'] and ' checked' or ''">><br></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Save frameset width')"></th>
+  <td>&nbsp;</td>
+  <td><input type="checkbox" name="save_frameset_width" value="1"<dtml-var "prefs['save_frameset_width'] and ' checked' or ''">><br></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Allow copy of clipboard')"></th>
+  <td>&nbsp;</td>
+  <td><input type="checkbox" name="copy_clipboard" value="1"<dtml-var "prefs['copy_clipboard'] and ' checked' or ''">><br></td>
+</tr>
+<tr>
+  <th><dtml-var "msg('Show members navigator')"></th>
+  <td>&nbsp;</td>
+  <td><input type="checkbox" name="show_nav_members" value="1"<dtml-var "prefs['show_nav_members'] and ' checked' or ''">><br></td>
+</tr>
+
+    <dtml-let settings="portal_properties.task_finalize_settings()"
+              x="prefs.has_key('finalize_settings') and prefs['finalize_settings'] or 'all'">
+<tr>
+  <th valign="top"><dtml-var "msg('Finalize tasks in case if will respond')"></th>
+  <td>&nbsp;</td>
+  <td align="left" valign="top">
+    <select name="finalize_settings">
+      <dtml-in settings mapping>
+    <option value="&dtml-id;" <dtml-if "id==x">selected</dtml-if>><dtml-var "msg(title, add=0)"></option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+    </dtml-let>
+
+<tr><td colspan="3"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+
+    <dtml-let groups="portal_membership.getListGroups(sys=1)"
+              x="portal_membership.getMemberProperties(name='commissions')">
+<tr>
+  <td class="smallHeader" align="center" valign="top" colspan="3"><span style="color:purple"><dtml-var "msg('Commissions membership')"></span></td>
+</tr>
+<tr>
+  <td align="center" valign="top" colspan="3">
+    <select name="commissions">
+    <option value="" <dtml-var "not x and 'selected' or ''">><dtml-var "msg('None')"></option>
+      <dtml-in groups sort="group_title" mapping>
+    <option value="&dtml-group_id;" <dtml-if "group_id==x">selected</dtml-if>><dtml-var "msg(group_title, add=0)"></option>
+      </dtml-in>
+    </select>
+  </td>
+</tr>
+    </dtml-let>
+	
+<tr><td>&nbsp;</td></tr>
+
+<tr>
+  <td colspan="3" align="center"><input type="submit" value=" <dtml-var "msg('Save')"> "></td>
+</tr>
+</tbody>
+</table>
+
+  </dtml-let>
+</form>
+
+</dtml-let>
+
+</div>
+
+<dtml-var simple_html_footer>

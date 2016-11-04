@@ -1,0 +1,188 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:x="urn:schemas-microsoft-com:office:excel"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=windows-1251">
+<meta name=ProgId content=Excel.Sheet>
+<meta name=Generator content="Express Suite DMS &dtml-productVersion;">
+
+<dtml-let creator_info="portal_membership.getUserInfo(Creator())"
+          user_name="portal_membership.getAuthenticatedMember().getUserName()"
+          user_info="portal_membership.getUserInfo(user_name)"
+          c_name="creator_info and creator_info['lname']+' '+creator_info['fname']+' '+creator_info['mname'] or Creator()"
+          u_name="user_info and (user_info['lname']+' '+user_info['fname']+' '+user_info['mname']) or user_name"
+>
+
+<!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author><dtml-var c_name></o:Author>
+  <o:LastAuthor><dtml-var u_name></o:LastAuthor>
+  <o:Created><dtml-var "ZopeTime().ISO()"></o:Created>
+  <o:LastSaved><dtml-var "ZopeTime().ISO()"></o:LastSaved>
+ </o:DocumentProperties>
+</xml><![endif]-->
+</dtml-let>
+
+<style>
+@page
+    {margin:.98in .79in .98in .79in;
+    mso-header-margin:.51in;
+    mso-footer-margin:.51in;
+    <dtml-if "excel_landscape_view">
+      mso-page-orientation:landscape;
+    </dtml-if>
+    }
+.xl24
+    {mso-style-parent:style0;
+    mso-number-format:General;
+    white-space:normal;
+    text-align:center;
+    }
+.xl25
+    {mso-style-parent:style0;
+    mso-number-format:"General Date";
+    white-space:normal;
+    text-align:center;
+    }
+.xl26
+    {mso-style-parent:style0;
+    mso-number-format:"Yes\/No";
+    white-space:normal;
+    text-align:center;
+    }
+.xl27
+    {mso-style-parent:style0;
+    mso-number-format:Standard;
+    white-space:normal;
+    text-align:left;
+    }
+</style>
+
+<!--[if gte mso 9]><xml>
+ <x:ExcelWorkbook>
+  <x:ExcelWorksheets>
+   <x:ExcelWorksheet>
+    <x:Name><dtml-msg "Sheet">1</x:Name>
+    <x:WorksheetOptions>
+     <x:Print>
+      <x:ValidPrinterInfo/>
+     </x:Print>
+     <x:Selected/>
+     <x:ProtectContents>True</x:ProtectContents>
+     <x:ProtectObjects>False</x:ProtectObjects>
+     <x:ProtectScenarios>False</x:ProtectScenarios>
+    </x:WorksheetOptions>
+   </x:ExcelWorksheet>
+  </x:ExcelWorksheets>
+  <x:ProtectStructure>True</x:ProtectStructure>
+  <x:ProtectWindows>False</x:ProtectWindows>
+ </x:ExcelWorkbook>
+</xml><![endif]-->
+
+</head>
+<body>
+
+<dtml-let uid=getUid
+          container="this()"
+          table_columns="[{ 'id' : x.getId(), 'title' : x.Title(), 'type' : x.Type() } for x in listVisibleColumns()]"
+          sort_order="REQUEST.get('sort_order')"
+          pre_sort_on="REQUEST.get('sort_on')"
+          sort_on="getColumnById(pre_sort_on) is not None and pre_sort_on or table_columns[0]['id']"
+          sort_type="getColumnById(sort_on).Type() in ['string', 'text'] and 'cmp' or 'cmp'"
+          default_filter="{ 'conditions': [], 'query': {}, 'columns': table_columns }"
+          filter_id="absolute_url()"
+          filter="getSession.get('%s_filter' % filter_id, {}) or default_filter"
+          query="filter.get('query')"
+          results="searchEntries(sort_on=None, **query)"
+          entries="[x.getObject() for x in results]"
+>
+
+<table style="font-size:<dtml-var excel_font_size>pt;" border="1">
+<tr>
+<dtml-in columns_ids prefix="clmn">
+  <th width="<dtml-var "widths[clmn_index]">" ><dtml-var "msg(getColumnById(clmn_item).Title(), add=None)"></th>
+</dtml-in>
+  <th><dtml-var "msg('Document')"></th>
+<dtml-if include_log>
+  <th><dtml-var "msg('Changes log')"></th>
+</dtml-if>
+</tr>
+
+<dtml-in "entries" reverse_expr="sort_order" prefix="ent" >
+<tr align="right" valign="top">
+
+  <dtml-in columns_ids prefix="clmn">
+    <dtml-let data_type="getColumnById(clmn_item).Type()"
+              value="ent_item.get(clmn_item)">
+  <td
+      <dtml-if "data_type=='int'">class="xl24" x:num
+      <dtml-elif "data_type=='float'">class="xl27" x:num="<dtml-var "value">"
+      <dtml-elif "data_type=='date'">class="xl25" x:str
+      <dtml-elif "data_type=='boolean'">class="xl26" x:num="<dtml-var "value">"
+      <dtml-elif "data_type=='string'">class="xl24" x:str
+      <dtml-else>class="xl24"
+      </dtml-if>
+  >
+      <dtml-if "clmn_item=='Creator'">
+        <dtml-var "portal_membership.getMemberBriefName( value )">
+      <dtml-else>
+        <dtml-if "value or value==0">
+          <dtml-if "data_type=='date'"><dtml-var value fmt="%Y-%m-%d %H:%M">
+          <dtml-elif "data_type=='boolean'"><dtml-var "value and msg('Yes') or msg('No')">
+          <dtml-else><dtml-var value null=''>
+          </dtml-if>
+        </dtml-if>
+      </dtml-if>
+  </td>
+    </dtml-let>
+  </dtml-in>
+
+  <td>
+
+  <dtml-let entry=this
+            entry_info="container.listRegisteredDocumentsForEntry(ent_item)"
+            p_archive="entry_info and entry_info[0]==1"
+            documents="entry_info and entry_info[0]==0 and _.len(entry_info) > 1 and entry_info[1] or None"
+  >
+    <dtml-if documents>
+      <dtml-in documents>
+        <a target="_blank" href="<dtml-var getURL>"><dtml-var Title></a><br>
+      </dtml-in>
+    <dtml-elif p_archive>
+      <dtml-let info="entry_info[1]"
+                object_state="info['object_state']"
+                object_title="info['object_title']"
+                archive_url="info['archive_url']"
+                archive_date="info['archive_date']"
+                remote_url="portal_properties.remote_url(archive_url)"
+      >
+        <a target="_blank" href="<dtml-var remote_url>?expand=1"><dtml-var object_title size="120"></a><br>
+        <font color="purple"><nobr><dtml-var "msg(object_state, add=0)"></nobr></font><br>
+        <strong><nobr><dtml-var "msg('Object exported to archive')"></nobr></strong><br>
+        <font color="blue"><nobr><dtml-var archive_date fmt="%Y-%m-%d %H:%M"></nobr></font>
+      </dtml-let>
+    </dtml-if>
+  </dtml-let>
+  </td>
+
+  <dtml-if include_log>
+  <td>
+    <dtml-in "ent_item.getHistory()" mapping reverse>
+      <dtml-var date fmt="%Y-%m-%d %H:%M">
+      <b><dtml-var "portal_membership.getMemberBriefName(actor)"></b>
+      <em><dtml-var "msg(action, add=0)"></em> : 
+      <em><dtml-var text></em>
+      <br>
+    </dtml-in>
+  </td>
+  </dtml-if>
+</tr>
+</dtml-in>
+</table>
+
+</dtml-let>
+
+</body>
+</html>

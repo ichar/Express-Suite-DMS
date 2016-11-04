@@ -1,0 +1,9 @@
+<dtml-if "meta_type in ['HTMLDocument','Content Version']">
+  <dtml-call "REQUEST.set('print_only', 1)">
+  <dtml-var "FormattedBody(canonical=0, REQUEST=REQUEST)">
+  <dtml-call "REQUEST.set('print_only', None)">
+<dtml-elif "meta_type=='DTMLDocument'">
+  <dtml-var __str__>
+<dtml-elif "meta_type=='Registry'">
+  <dtml-var registry_print_preview>
+</dtml-if>

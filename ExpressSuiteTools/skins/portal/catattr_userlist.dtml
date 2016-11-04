@@ -1,0 +1,31 @@
+<dtml-let mode="_.has_key('mode') and 'view' or 'edit'"
+          value="value and value.split(':::') or None"
+>
+
+<dtml-if "mode == 'view'">
+
+  <dtml-in "portal_membership.listSortedUserNames(portal_membership.listMemberIds())" mapping>
+    <dtml-if "user_id in value">
+      <dtml-var user_name><br />
+    </dtml-if>
+  </dtml-in>
+
+<dtml-else>
+
+  <table width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr>
+    <td style="padding: 0 0 5px 0;">
+      <input type="hidden" name="attr_type" id="attr_type" value="<dtml-var "attr.Type()">" />
+      <h4><dtml-msg expr="attr.Title()"></h4>
+      <dtml-let IsSimple="1"
+	            style="'width:280px;'"
+                size="15">
+        <dtml-var user_list>
+      </dtml-let>
+    </td>
+  </tr>
+  </table>
+
+</dtml-if>
+
+</dtml-let>

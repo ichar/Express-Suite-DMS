@@ -1,0 +1,277 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript" src="&dtml-portal_url;/edit.js"></script>
+
+<script type="text/javascript">
+<!--
+function selectType(id) {
+    document.getElementById(id).checked=true;
+}
+/*
+function callbackFunctionTemplate( formId, uid, title, version_id, uid_field, title_field ) {
+    try {
+    document.forms[formId][uid_field].value = uid;
+    document.forms[formId][title_field].value = title;
+    }
+    catch (error) { alert("callbackFunction error (category_metadata_form): " + formId + "-" + uid_field + "-" + title_field); }
+}
+*/
+//-->
+</script>
+
+<p><strong><a href="&dtml-absolute_url;">&lt;&lt; <dtml-var "msg('Category')">: <dtml-msg expr=Title></a></strong></p>
+
+<h2><dtml-var "msg('Document category attributes')"></h2>
+
+<dtml-let category=this
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+          categories="portal_metadata.getCategories()"
+>
+
+<form id="category_metadata_form" name="category_metadata_form" action="category_metadata" method="post" onSubmit="return validateForm(this,true);">
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <dtml-in listAttributeDefinitionsBySortkey>
+    <dtml-if sequence-start>
+<tr>
+  <td><h3><dtml-var "msg('Category attributes')"></h3></td>
+</tr>
+<tr>
+  <td>
+    <table border="0" cellpadding="2" width="100%">
+      <tr class="row_title">
+        <td width="20">&nbsp;</td>
+        <td><dtml-var "msg('Id')"></td>
+        <td><dtml-var "msg('Type')"></td>
+        <td width="90%"><dtml-var "msg('Title')"></td>
+        <td><dtml-var "msg('Default value')"></td>
+        <td><dtml-var "msg('Sortkey')"></td>
+        <td><dtml-var "msg('Width')"></td>
+        <td align="center" style="color:purple">MD</td>
+        <td align="center" style="color:purple">RO</td>
+        <td align="center" style="color:purple">ED</td>
+        <td align="center" style="color:purple">HD</td>
+      </tr>
+    </dtml-if>
+    <dtml-let local_attr="isInCategory(category)"
+              type="Type()"
+              id="getId()"
+              value="getDefaultValue(translit=1)"
+              get_default="getComputedDefault()"
+              options="getOptions()"
+    >
+      <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+        <td valign="top">
+          <input type="checkbox" name="fields:list" value="&dtml-id;" <dtml-var "not local_attr and 'disabled' or ''"> />
+        </td>
+        <td valign="top">
+      <dtml-if local_attr>
+          <a href="<dtml-var "category.absolute_url()">/category_attributes_properties?attr=&dtml-id;">
+            &dtml-id;
+          </a>
+      <dtml-else>
+            &dtml-id;
+      </dtml-if>
+        </td>
+        <td valign="top" style="padding: 6px 2px 2px 2px;"><dtml-var "msg(type, add=None)"></td>
+        <td valign="top">
+      <dtml-if local_attr>
+          <input type="text" size="35" style="width:100%;" name="<dtml-var "'title_%s' % id">" value="<dtml-msg expr=Title>">
+      <dtml-else>
+          <dtml-msg expr=Title>
+	  </dtml-if>
+        </td>
+
+        <td>
+      <dtml-if local_attr>
+          <table cellspacing="0" cellpadding="0" border="0">
+        <dtml-let w="getWidth()"
+                  isHidden="isHidden()"
+                  field_style="(w and 'width:'+ w +';' or '') + (isHidden and 'background-color:#E5E5E5;' or '')"
+                  str_data="isHidden and 'disabled'">
+          <tr>
+            <td>
+              <dtml-var "entry_field_edit(this(), name='default_%s' % id, type=type, value=value, get_default=get_default, context=category, str_data=str_data, field_style=field_style)">
+            </td>
+          </tr>
+        </dtml-let>
+
+        <dtml-let list_options="category.listAttributeOptions(type)">
+          <dtml-if "type=='lines' and id.lower().endswith('department')">
+          <tr><td style="padding-top:3px"><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td>
+              <nobr>
+              <input value="1" type="checkbox" id="current_department_&dtml-id;" name="current_&dtml-id;:list" <dtml-var "'1' in get_default" fmt="checked"> />
+              <label for="current_department_&dtml-id;"><dtml-var "msg('Current department by default')"></label>
+              </nobr><br>
+              <nobr>
+              <input value="2" type="checkbox" id="use_dictionary_&dtml-id;" name="current_&dtml-id;:list" <dtml-var "'2' in get_default" fmt="checked"> />
+              <label for="use_dictionary_&dtml-id;"><dtml-var "msg('Use department dictionary')"></label>
+              </nobr><br>
+              <nobr>
+              <input value="3" type="checkbox" id="check_groups_&dtml-id;" name="current_&dtml-id;:list" <dtml-var "'3' in get_default" fmt="checked"> />
+              <label for="check_groups_&dtml-id;"><dtml-var "msg('Check if user is a group member')"></label>
+              </nobr>
+            </td>
+          </tr>
+          <dtml-elif "type=='date'">
+          <tr><td style="padding-top:3px"><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td>
+              <nobr>
+              <input type="checkbox" id="current_&dtml-id;" name="current_&dtml-id;" <dtml-var get_default fmt="checked"> />
+              <label for="current_&dtml-id;"><dtml-var "msg('Current date by default')"></label>
+              </nobr>
+            </td>
+          </tr>
+          <dtml-elif "type=='link'">
+          <tr><td style="padding-top:3px"><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+            <dtml-let link_type="get_default and _.same_type(get_default, []) and get_default[0] or 0"
+                      default_category="link_type==2 and get_default[1] or ''">
+          <tr>
+            <td>
+              <nobr>
+              <input value="0" type="radio" id="linked_default_&dtml-id;" name="current_&dtml-id;" <dtml-var "not link_type" fmt="checked"> onclick="javascript:&dtml-id;_category.style.display=(this.checked ? 'none' : 'block');" />
+              <label for="linked_default_&dtml-id;"><dtml-var "msg('By default')"></label>
+              </nobr><br>
+              <nobr>
+              <input value="1" type="radio" id="linked_folder_objects_&dtml-id;" name="current_&dtml-id;" <dtml-var "link_type==1" fmt="checked"> onclick="javascript:&dtml-id;_category.style.display=(this.checked ? 'none' : 'block');" />
+              <label for="linked_folder_objects_&dtml-id;"><dtml-var "msg('Linked folder objects by default')"></label>
+              </nobr><br>
+              <nobr>
+              <input value="2" type="radio" id="linked_category_objects_&dtml-id;" name="current_&dtml-id;" <dtml-var "link_type==2" fmt="checked"> onclick="javascript:&dtml-id;_category.style.display=(this.checked ? 'block' : 'none');" />
+              <label for="linked_category_objects_&dtml-id;"><dtml-var "msg('Linked category objects')"></label>
+              </nobr>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding-top:3px;">
+              <div id="&dtml-id;_category" style="display:<dtml-var "default_category and 'block' or 'none'">;">
+              <table cellspacing="3" cellpadding="0" border="0">
+              <tr>
+                <td nowrap><b><dtml-var "msg('Category')">:</b></td>
+              </tr>
+              <tr>
+                <td>
+                  <select name="&dtml-id;_default_category">
+                  <option value="" <dtml-var "not default_category and 'selected' or ''">><dtml-msg "n/a"></option>
+                <dtml-in categories>
+                  <option value="&dtml-getId;" <dtml-var "getId()==default_category and 'selected' or ''">><dtml-var "msg(Title(), add=None)"></option>
+                </dtml-in>
+                  </select>
+                </td>
+              </tr>
+              </table>
+              </div>
+            </td>
+          </tr>
+            </dtml-let>
+          <dtml-elif "type=='userlist'">
+          <tr><td style="padding-top:3px"><b><dtml-var "msg('Metadata field default value')">:</b></td></tr>
+          <tr>
+            <td>
+              <nobr>
+              <input type="checkbox" id="current_&dtml-id;" name="current_&dtml-id;" <dtml-var get_default fmt="checked"> />
+              <label for="current_&dtml-id;"><dtml-var "msg('Current user by default')"></label>
+              </nobr>
+            </td>
+          </tr>
+          </dtml-if>
+
+          <dtml-in list_options>
+            <dtml-if sequence-start>
+          <tr><td style="padding-top:3px"><b><dtml-var "msg('Metadata field options')">:</b></td></tr>
+            </dtml-if>
+            <dtml-let option="_['sequence-item']"
+                      caption="('%s option name' % option).capitalize()"
+                      value="option in options and 1 or 0"
+                      name="'%s_%s' % (option, id)">
+          <tr>
+            <td>
+              <nobr>
+              <input value="&dtml-option;" type="checkbox" id="&dtml-name;" name="options_&dtml-id;:list" <dtml-if value>checked</dtml-if> />
+              <label for="&dtml-name;"><dtml-var "msg(caption)"></label>
+              </nobr>
+            </td>
+          </tr>
+            </dtml-let>
+          </dtml-in>
+          </table>
+        </dtml-let>
+      <dtml-else>
+        <dtml-var "entry_field_view( this(), name='default_%s' % id, type=type, value=value, category=this())">
+      </dtml-if>
+        </td>
+
+        <td valign="top">
+      <dtml-if local_attr>
+          <input type="text" size="5" name="<dtml-var "'sortkey_%s' % id">" value="<dtml-var getSortkey>" style="text-align:center;">
+      <dtml-else>
+          <dtml-msg expr=getSortkey>
+      </dtml-if>
+        </td>
+        <td valign="top">
+      <dtml-if local_attr>
+          <input type="text" size="5" name="<dtml-var "'width_%s' % id">" value="<dtml-var getWidth>" style="text-align:center;">
+      <dtml-else>
+          <dtml-msg expr=getWidth>
+      </dtml-if>
+        </td>
+        <td valign="top" align="center">
+          <input name="<dtml-var "'mandatory_%s' % id">" <dtml-var "isMandatory() and 'checked' or ''"> <dtml-var "not local_attr and 'disabled' or ''"> type="checkbox" />
+        </td>
+        <td valign="top" align="center">
+          <input name="<dtml-var "'readonly_%s' % id">" <dtml-var "isReadOnly() and 'checked' or ''"> <dtml-var "not local_attr and 'disabled' or ''"> type="checkbox" />
+        </td>
+        <td valign="top" align="center">
+          <input name="<dtml-var "'editable_in_template_%s' % id">" <dtml-var "isEditable() and 'checked' or ''"> <dtml-var "not local_attr and 'disabled' or ''"> type="checkbox" />
+        </td>
+        <td valign="top" align="center">
+          <input name="<dtml-var "'hidden_%s' % id">" <dtml-var "isHidden() and 'checked' or ''"> <dtml-var "not local_attr and 'disabled' or ''"> type="checkbox" />
+        </td>
+      </tr>
+    </dtml-let>
+
+    <dtml-if sequence-end>
+      <dtml-if IsAdmin>
+      <tr>
+        <td>&nbsp;</td>
+        <td colspan=3 style="padding-top:0px;">
+          <input type="submit" name="deleteField" value="<dtml-var "msg('Remove')">" style="width:80px;">
+        </td>
+        <td style="padding-top:0px;">
+          <input type="submit" name="saveValues" value="<dtml-var "msg('Save changes')">">
+        </td>
+      </tr>
+      </dtml-if>
+    </table>
+  </td>
+</tr>
+    </dtml-if>
+  </dtml-in>
+</table>
+
+<dtml-if IsAdmin>
+
+<br><h3><dtml-var "msg('Add new attribute')"></h3>
+
+<dtml-var "category_field_edit( this(),
+           id='',
+           type='boolean',
+           value='',
+           context=category,
+           mode=0,
+           options=[],
+           get_default=None 
+           )"
+>
+
+<input type="submit" name="addField" value="<dtml-var "msg('Add field')">" onClick="javascript:return validateIdentifier(category_metadata_form.fName, '<dtml-var "msg('Field is invalid')">')" style="width:150px;">
+</dtml-if>
+
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

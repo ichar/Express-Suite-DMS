@@ -1,0 +1,73 @@
+<dtml-let id_prefix="_.has_key('id_prefix') and id_prefix or ''" 
+          category="_.has_key('category') and category or Category()"
+          c_object="portal_metadata.getCategoryById(category)"
+          wf="c_object is not None and c_object.Workflow()"
+>
+  <dtml-in listVersions sort=CreationDate reverse prefix="v" mapping>
+    <dtml-if sequence-start>
+<table cellpadding="2" cellspacing="0" width="100%" border="0">
+<tr class="row_title">
+  <td width="0">&nbsp;</td>
+  <td><dtml-msg "Version"></td>
+  <td><dtml-msg "Title"></td>
+  <td><dtml-msg "Status"></td>
+  <td><dtml-msg "VersionOwner"></td>
+  <td><dtml-msg "Creation date"></td>
+  <td><dtml-msg "Modification date"></td>
+      <dtml-unless selection_mode>
+  <td width="0" nowrap><dtml-msg "Compare"></td>
+      </dtml-unless>
+</tr>
+    </dtml-if>
+
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td>
+    <input type="radio" <dtml-if id_prefix>id="&dtml-id_prefix;_&dtml-id;"</dtml-if> name="ver_id" value="&dtml-id;" <dtml-var Current fmt=checked> />
+  </td>
+  <td>
+    <a href="&dtml-URL;" target="workspace"><dtml-msg "Version">&nbsp;&dtml-Number;</a>
+    <dtml-if Principal>
+      <br /><strong class="marked"><dtml-msg "Principal"></strong>
+    </dtml-if>
+    <dtml-if Current>
+      <br /><strong><dtml-msg "Current"></strong>
+    </dtml-if>
+  </td>
+  <td>&dtml-Title;&nbsp;</td>
+  <td stype="padding-right:5px;">
+    <dtml-try>
+      <dtml-var "portal_workflow.getStateTitle(wf, State)">
+    <dtml-except>
+      <nobr><dtml-var "msg(State, add=0)"></nobr>
+    </dtml-try>
+  </td>
+  <td><dtml-var "member_name(this(), member=this().Creator())"></td>
+  <td><dtml-var "rDate(this(), time=_.DateTime(CreationDate))"></td>
+  <td><dtml-var "rDate(this(), time=_.DateTime(ModificationDate))"></td>
+    <dtml-unless selection_mode>
+  <td>
+    <input type="radio" name="ver_id_for_compare" value="&dtml-id;" <dtml-var Current fmt=checked> />
+  </td>
+    </dtml-unless>
+</tr>
+
+    <dtml-if Description>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td colspan="2">&nbsp;</td>
+  <td colspan="5" style="background-color: <dtml-if sequence-odd>#eeeeff<dtml-else>#ffffff</dtml-if>">
+    <strong><dtml-msg "Description">:</strong>
+    <dtml-var name="Description" size="250" html_quote>
+  </td>
+      <dtml-unless selection_mode>
+  <td>&nbsp;</td>
+      </dtml-unless>
+</tr>
+    </dtml-if>
+    <dtml-if sequence-end>
+</table>
+    </dtml-if>
+
+  <dtml-else>
+<dtml-msg "There are no available versions.">
+  </dtml-in>
+</dtml-let>

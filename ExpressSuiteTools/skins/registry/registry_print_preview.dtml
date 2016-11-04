@@ -1,0 +1,132 @@
+<html>
+<head>
+<title>&dtml-title_or_id;</title>
+
+<link rel="stylesheet" type="text/css" href="&dtml-portal_url;/styles.css">
+
+</head>
+<body lang="<dtml-var "msg.get_default_language()">">
+
+<center><h2>&dtml-title_or_id;</h2></center>
+
+<p>&dtml-description;</p>
+
+<dtml-let uid=getUid
+          container="this()"
+          table_columns="[{'id':x.getId(), 'title':x.Title(), 'type':x.Type()} for x in listVisibleColumns()]"
+          default_filter="{'conditions':[], 'query':{}, 'columns':table_columns}"
+          filter_id="absolute_url()"
+          sort_order="REQUEST.get('sort_order', 'reverse')"
+          pre_sort_on="REQUEST.get('sort_on', None)"
+          sort_field="getColumnById(pre_sort_on) is not None and pre_sort_on or table_columns[0]['id']"
+          sort_on="sort_field=='ID' and getColumnById('SID') is not None and 'SID' or sort_field"
+          sort_type="getColumnById(sort_on).Type() in ['string', 'text'] and 'cmp' or 'cmp'"
+          batch_size="_.int(REQUEST.get('batch_size', 10))"
+          x="getSession('%s_filter' % filter_id, {})"
+          filter="x.get('columns') and x or default_filter"
+          query="filter.get('query')"
+          results="searchEntries(**query)"
+          sorted_results="_.sequence.sort([x.getObject() for x in results], ((sort_on, sort_type),))"
+          results_count="_.len(results)"
+          total_count="_.len(this())"
+          qs_old="_.int(REQUEST.get('qs', 1))"
+          qs="qs_old - qs_old%batch_size + 1"
+          came_from="REQUEST.get('came_from', '')"
+          came_version_id="REQUEST.get('came_version_id', '')"
+          source_doc="came_from and object_by_uid(came_from)"
+          source="came_version_id and source_doc is not None and source_doc.getVersion(came_version_id) or source_doc"
+>
+  
+  <dtml-in sorted_results reverse_expr="sort_order" size="batch_size" start=qs>
+    <dtml-if sequence-start>
+      <dtml-comment>Entries table header</dtml-comment>
+      <dtml-in table_columns mapping>
+        <dtml-if sequence-start>
+<table class="report" cellspacing="0" cellpadding="3" width="99%">
+<tr>
+        </dtml-if>
+  <td class="report" valign="middle" align="center"><dtml-var "msg(title, add=None)"></td>
+        <dtml-if sequence-end>
+          <dtml-comment> Add-on info fields </dtml-comment>
+  <td class="report" valign="middle" align="center"><dtml-var "msg('Document')"></td>
+  <td class="report" valign="middle" align="center"><dtml-var "msg('Responsible members')"></td>
+</tr>
+        </dtml-if>
+      </dtml-in>
+    </dtml-if>
+
+    <dtml-let entry=this
+              documents="portal_catalog.searchResults(registry_ids=entry.get('ID', ''), implements='isDocument')"
+              obj="documents and documents[0].getObject()"
+              category2="obj and portal_metadata.getCategoryById(obj.Category())"
+	>
+<tr>
+      <dtml-in table_columns mapping>
+  <td class="report" <dtml-if "id in ['ID','IN_OutNumber','OUT_LinkNumber']">align="center" nowrap</dtml-if> />
+         <dtml-if "getColumnById(id).getSystemFieldType()=='Creator' or id=='Creator'">
+           <dtml-var "portal_membership.getMemberBriefName( entry.get(id) )">
+         <dtml-elif "entry.get(id)">
+           <dtml-let value_size="type=='text' and id in ['contents','instructions','forwarded_to'] and 1 or 0"
+                     x_type="type=='date' and id in ['receipt_date','IN_OutDate','OUT_Indate'] and 'date_only' or type"
+                     value="entry.get(id)"
+           >
+             <dtml-if "type in ['items']">
+               <dtml-if "category2 is not None">
+    <dtml-var "entry_field_view(category2, name=id, type=type, value=value)">
+               </dtml-if>
+             <dtml-else>
+    <dtml-var "entry_field_view(this(), name=id, type=x_type, value=value, value_size=value_size)">
+             </dtml-if>
+           </dtml-let>
+         <dtml-else>
+    &nbsp;
+         </dtml-if>
+  </td>
+      </dtml-in>
+
+  <td class="report">
+      <dtml-in documents>
+    <a target="_blank" href="<dtml-var getURL>"><dtml-var Title></a>
+      <dtml-else>
+        <dtml-if source>
+    <a href="&dtml-absolute_url;/assign?registry_id=<dtml-var "entry.get('ID')" html_quote>&came_from=&dtml-came_from;&came_version_id=&dtml-came_version_id;">&lt;&lt;&lt;</a>
+        </dtml-if>
+      </dtml-in>
+  </td>
+  <td class="report">
+      <dtml-in documents>
+        <dtml-with getObject>
+          <dtml-if followup>
+            <dtml-in "followup.getBoundTasks()">
+    <b>&dtml-title;</b>:<br>
+              <dtml-let involved_users="listInvolvedUsers() or []">
+                <dtml-in involved_users sort="id" size="5">
+    <dtml-var "member_name(this(), member=_['sequence-item'], brief=1)"><dtml-unless sequence-end>,</dtml-unless>
+                </dtml-in>
+              </dtml-let>
+              <dtml-unless sequence-end><br></dtml-unless>
+            </dtml-in>
+          </dtml-if>
+        </dtml-with>
+      </dtml-in>
+    &nbsp;
+  </td>
+</tr>
+    </dtml-let>
+
+    <dtml-if sequence-end>
+</table>
+    </dtml-if>
+  <dtml-else>
+<p>
+    <dtml-if total_count>
+<dtml-var "msg('There are no documents matching your query')">
+    <dtml-else>
+<dtml-var "msg('There are no documents yet')">
+    </dtml-if>
+</p>
+  </dtml-in>
+</dtml-let>
+
+</body>
+</html>

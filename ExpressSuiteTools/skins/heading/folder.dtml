@@ -1,0 +1,268 @@
+<script type="text/javascript">
+<!--
+var commonImages = ['doc_icon.gif','doc_icon_unregistered.gif','folder_icon.gif','fs_folder_icon.gif','fs_file.gif','registry_icon.gif','print_page.gif','image_icon.gif'];
+var image = new Image();
+image.src = '/misc_/ExternalEditor/edit_icon';
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<dtml-let context="this()"
+          instance="portal_properties.instance_name() or 'docs'"
+          batch_size="_.int(portal_membership.getInterfacePreferences('viewing_document_number'))"
+          user="portal_membership.getAuthenticatedMember()"
+          IsManager="user.IsManager()"
+          IsAdmin="user.IsAdmin()"
+          isRoot="implements('isPortalRoot') or parent().implements('isPortalRoot')"
+          sort_on="portal_membership.getCurrFolderViewParam('sort_by')"
+          sort_order="portal_membership.getCurrFolderViewParam('reverse')"
+          view_type="REQUEST.get('view_type') or portal_membership.getCurrentFolderView()"
+>
+<dtml-if sort_on>
+  <dtml-call "REQUEST.set('sort_on', sort_on)">
+  <dtml-call "REQUEST.set('sort_order', sort_order and 'reverse' or '')">
+</dtml-if>
+<dtml-call "REQUEST.set('batch_start', REQUEST.get('qs') or 1)">
+<dtml-call "REQUEST.set('batch_size', batch_size)">
+
+<dtml-let access_level="user.getMemberAccessLevel(instance)"
+          IsEditable="access_level=='W' and not getCustomDefinitions('context_disabled', context=context) or IsAdmin"
+          user_storage_type="portal_properties.storage_type()"
+          IsArchive="user_storage_type=='archive' and 1 or 0"
+          c_all="context.getContentsSize()"
+
+          res="getCustomDefinitions('folder_content', view_type=view_type, context=context, REQUEST=REQUEST)"
+          results_count="res[0]"
+          documents="res[1]"
+          directives="[]"
+>
+
+<table width="100%" border="0">
+<tr>
+  <td valign="top">
+    <h1>
+  <dtml-var gray_of.gif>
+  <dtml-if isRoot>
+    <dtml-var "msg('Recent documents')">
+  <dtml-else>
+    <font color=#800040>&dtml-title_or_id;</font>
+  </dtml-if>
+    </h1>
+  <dtml-if Description>
+    <font class="top" color=#404040><dtml-var Description newline_to_br></font>
+  </dtml-if>
+
+  <dtml-if "not isRoot">
+    <strong>
+    <br><br>
+    <dtml-if "meta_type in getCustomDefinitions('custom_incoming_folder')">
+      <dtml-msg "Total incoming documents">:&nbsp;<dtml-var "c_all">.
+      <dtml-msg "Accessible">:&nbsp;<dtml-var "results_count">
+    <dtml-elif "meta_type in ['Heading']">
+      <dtml-if "view_type != 'outgoing'">
+        <dtml-msg "Total objects">:&nbsp;<dtml-var "c_all">.
+      </dtml-if>
+      <dtml-msg "Total documents in current folder">:&nbsp;<dtml-var "results_count">. 
+    </dtml-if>
+    </strong>
+  </dtml-if>
+  </td>
+  <td class="small" align="right">
+  <dtml-let editor=editor state="portal_workflow.getInfoFor(context, 'state', '')">
+    <a class="&dtml-getStateStyle;">
+    <font color="green"><nobr><dtml-var "msg('Portal Access Level')">:&nbsp;<dtml-var "msg(getCustomDefinitions('access_level',access_level=access_level), add=0)"><nobr></font><br>
+    <dtml-if IsArchive>
+    <font color="red"><dtml-var "msg('ARCHIVE')"></font>
+    <dtml-else>
+    <dtml-var "msg(_['state'], add=0)">
+    </dtml-if>
+    </a><br>
+    <dtml-if user_roles>
+    <dtml-var "msg('Role')">:
+    <b>
+      <dtml-in user_roles>
+    <dtml-var "msg(_['sequence-item'], add=0)"><dtml-unless sequence-end>,</dtml-unless>
+      </dtml-in>
+    </b><br>
+    </dtml-if>
+    <dtml-in editor>
+      <dtml-if sequence-start>
+    <dtml-var "msg('Editor')">:
+      </dtml-if>
+      <dtml-var "member_name(context, member=_['sequence-item'])"><dtml-unless sequence-end>,</dtml-unless>
+    </dtml-in>
+  </dtml-let>
+  </td>
+</tr>
+
+  <dtml-if IsEditable>
+    <dtml-if "implements('isContentStorage')">
+      <dtml-let types="allowedContentTypes(groups=1)" container="context">
+        <dtml-if types>
+<tr>
+  <td align="right" colspan="2">
+  <form name="factory" method="post" class="inline">
+  <table>
+  <tr>
+    <td align="right" class="smallHeader"><dtml-var "msg('New object')">: </td>
+    <td>
+      <select name="factory_url">
+          <dtml-in types sort="title">
+            <dtml-if "id not in ['DTMLDocument','Business Procedure','Site Container']">
+      <option value="<dtml-var "container.absolute_url(action=getFactoryForm(), params={'type_name': getId()})">"/><dtml-var "msg(title, add=0)"></option>
+            </dtml-if>
+          </dtml-in>
+      </select>
+      <input type="button" value="<dtml-var "msg('Create')">" onclick="javascript:{openUrl(this.form.factory_url.value, target='workfield');this.disabled=true;}"/>
+    </td>
+  </tr>
+  </table>
+  </form>
+  </td>
+</tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+  </dtml-if>
+
+<div class="Desktop">
+
+  <dtml-let comments="portal_workflow.getInfoFor(context, 'comments', None)">
+    <dtml-if comments>
+<p>&dtml-comments;</p>
+    </dtml-if>
+  </dtml-let>
+
+<dtml-comment> List folder contents according to the filter settings </dtml-comment>
+
+  <dtml-let content_filter=getFolderFilter
+            hide_buttons="isRoot or view_type=='outgoing'"
+            uid=getUid
+            viewer="_.getitem('folder_view_%s' % view_type)"
+            disable_controls="1"
+            qs_old="_.int(REQUEST.get('qs', 1))"
+            qs="results_count < qs_old and 1 or qs_old - qs_old%batch_size + 1"
+  >
+
+<script type="text/javascript">
+<!--
+var isSelected = false;
+
+function submitForm( obj ) {
+    var form = document.objectItems;
+    var IsRun = 0;
+    if (obj.name=='folder_cut') {
+        form.action='&dtml-absolute_url;/folder_cut';
+        IsRun = 1;
+    } else if (obj.name=='folder_copy') {
+        form.action='&dtml-absolute_url;/folder_copy';
+        IsRun = 1;
+    } else if (obj.name=='folder_paste') {
+        form.action='&dtml-absolute_url;/folder_paste';
+        IsRun = 1;
+    } else if (obj.name=='confirm_delete') {
+        form.action='&dtml-absolute_url;/confirm_delete';
+        IsRun = 1;
+    }
+    if (IsRun) {
+        obj.disabled=true;
+        form.submit();
+    }
+}
+
+function toggleSelect() {
+    var form = document.objectItems;
+    isSelected = ! isSelected;
+    for ( var i = 0; i < form.elements.length; i++ ) {
+	var elem = form.elements[ i ];
+    	if ( elem.name.substr( 0, 4 ) == 'ids:' )
+	    elem.checked = isSelected;
+    }
+    var objSelectAll = document.all["selectAll"];
+    var txtValue = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All')">';
+    if (objSelectAll.length > 1) {
+        for ( var i = 0; i <= 1; i++ ) {
+            var obj = objSelectAll[i];
+            if (typeof(obj) == 'object') { obj.value = txtValue; }
+        }
+    } else if (typeof(form.selectAll) == 'object') {
+        form.selectAll.value = txtValue;
+    }
+    return isSelected;
+}
+//-->
+</script>
+
+<tr>
+  <td colspan="2">
+  <form name="objectItems" action="&dtml-absolute_url;" method="post" target="workfield">
+  <table cellspacing="1" cellpadding="0" width="100%" border="0">
+    <dtml-if "results_count >= 20 or (results_count > batch_size and results_count >= 10 and batch_size >= 20)">
+  <tr>
+    <td style="padding-top:5px;padding-bottom:10px;">
+      <dtml-unless hide_buttons>
+        <dtml-var folder_controls>
+      </dtml-unless>
+    </td>
+  </tr>
+    </dtml-if>
+  <tr>
+    <td>
+      <dtml-var table_pages_list>
+    </td>
+  </tr>
+  <tr>
+    <td>
+    <dtml-if "documents or directives">
+      <dtml-var viewer>
+    <dtml-else>
+      <h4><dtml-var "msg('Topic is empty')"></h4>
+    </dtml-if>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <dtml-var table_pages_list>
+    </td>
+  </tr>
+
+<dtml-comment> End of listing table </dtml-comment>
+
+  <tr>
+    <td style="padding-top:10px;">
+    <dtml-unless hide_buttons>
+      <dtml-var folder_controls>
+    </dtml-unless>
+    </td>
+  </tr>
+  </table>
+  </form>
+ 
+  <br />
+
+    <dtml-if "getSession('show_filter_form', cookie=1)">
+      <dtml-var heading_filter_form>
+    <dtml-elif content_filter>
+      <small><dtml-var "msg('This content is filtered by')">:
+  <a href="portal_membership/processFilterActions?open_filter_form=1&qs=&dtml-qs;&view_type=&dtml-view_type;">
+      <dtml-var "content_filter['name'] or '(%s)' % msg('no name')" html_quote>
+  </a>
+    </small>
+    <dtml-else>
+  <a href="portal_membership/processFilterActions?open_filter_form=1&qs=&dtml-qs;&view_type=&dtml-view_type;">
+      <dtml-var "msg('The filtering is off')">
+  </a>
+    </dtml-if>
+
+  </td>
+</tr>
+</div>
+</table>
+
+  </dtml-let>
+</dtml-let>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

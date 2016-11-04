@@ -1,0 +1,7 @@
+<dtml-try>
+  <dtml-with getObject>
+    <img src="&dtml-portal_url;/<dtml-var get_icon>" alt="" title="<dtml-var "msg(_['Type'])"><dtml-if state> (<dtml-var "msg(_['state'])">)</dtml-if>" border="0">
+  </dtml-with>
+<dtml-except>
+  <img src="&dtml-portal_url;/doc_icon_disabled.gif" alt="" border="0">
+</dtml-try>

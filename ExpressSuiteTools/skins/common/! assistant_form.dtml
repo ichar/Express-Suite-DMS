@@ -1,0 +1,150 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+<dtml-call "REQUEST.set('PageTitle', 'Assistant Form')">
+<dtml-call "REQUEST.set('BackgroundColor', '#E5E5E5')">
+
+<dtml-var simple_html_header>
+
+<dtml-let assistant_items="getPortalConfiguration().getAssistantItems(this())"
+          pointer_color_disabled="'#ADAAAD'"
+          bgcolor="'#E5E5E5'"
+          color="'white'"
+>
+
+<style type="text/css">
+a.assistant:link, a.assistant:visited, a.assistant:active {
+	color: #FFFFFF;
+	font-family:verdana;
+	font-weight:normal;
+	text-decoration: none;
+	font-size: 11px;
+}
+a.assistant:hover {
+    color: yellow;
+}
+td.page {
+	color: #D0D0D0;
+	font-family:verdana;
+	font-size: 12px;
+}
+</style>
+
+<script language="javascript">
+<!-- 
+var IsSized = false;
+
+function show_pointer(obj,mouse,mode) {
+    color = (mouse == 'over' ? (!mode ? '<dtml-var bgcolor>' : '#FF8080') : '<dtml-var pointer_color_disabled>');
+    obj.bgColor = color;
+}
+
+function openBrWindow( url, win ) {
+    var container = document.getElementById('assistant');
+    var offset_height = container.offsetHeight; 
+    var offset_width = container.offsetWidth; 
+    var left = offset_width + 34;
+    var width = offset_width + 46;
+    var u_width = 0; 
+    var u_height = 0;
+
+    if( self.screen && offset_width > 0 ) {
+      max_width = screen.width - 280;
+      if( width < max_width && offset_width < screen.width / 3 ) { 
+        u_width = screen.width - width;
+        u_height = screen.height;
+      }
+    }
+
+    var assistant_frame = null; //document.getElementById('assistant_frame');
+
+    if( assistant_frame && typeof(assistant_frame) == 'object' ) {
+        if( !IsSized ) {
+            var assistant_body = document.getElementById('assistant_body');
+            var x = assistant_body.offsetWidth;
+            window.resizeBy(screen.width, offset_height);
+            assistant_frame.width = screen.width - offset_width - 32;
+            assistant_frame.style.display = 'block';
+            assistant_body.width = x;
+            IsSized = true;
+        }
+        window.open(url, win); //assistant_frame.location.replace = url;
+    } else {
+        params='toolbar=no,top=0,left='+left+',width='+u_width+',height='+u_height+',location=yes,status=yes,menubar=no,scrollbars=yes,resizable=yes';
+        window.open(url, win, params);
+    }
+}
+-->
+</script>
+
+<table id="assistant" style="font-family:arial" bgcolor="&dtml-bgcolor;" cellspacing="0" cellpadding="0" width="100%" height="100%" border="0">
+<tr>
+  <td id="assistant_body" bgcolor="#0060A0" style="padding: 10px 10px 10px 12px;color:&dtml-color;">
+<h1 align="left" style="color:&dtml-color;;padding-bottom:5px"><dtml-var "msg('Docflow Managment System')" html_quote> <dtml-var "msg('COMPANY NAME')" html_quote></h1>
+<dtml-var "msg('Guide information')" html_quote>
+  </td>
+  <!-- <td id="assistant_frame" style="display:none" height="100%" rowspan="4"><iframe name="assistant_item" width="100%" height="100%" scrolling="auto" border="0"></iframe></td> -->
+  <td bgcolor="&dtml-bgcolor;"><img src="&dtml-portal_url;/spacer.gif" width="5"></td>
+</tr>
+
+<tr><td><img src="&dtml-portal_url;/spacer.gif" height="5"></td></tr>
+
+<tr>
+  <td bgcolor="#008ED0" style="padding: 10px 10px 10px 10px;" valign="top" height="100%">
+<dtml-in assistant_items mapping>
+  <dtml-let IsPage="id[0:4]=='page' and 1 or 0"
+            server_url="getPortalConfiguration().getCustomServerUrl(this(), port)"
+            instance_url="instance and '%s/%s' % ( server_url, instance ) or None"
+            instance_name="name and msg(name) or ''"
+            item_url="'%s/%s' % ( server_url, url )">
+    <table cellspacing="0" cellpadding="0" style="padding-bottom:10px" border="0">
+    <dtml-if IsPage>
+    <tr>
+      <td class="page" valign="top" colspan="2">
+        <span style="cursor:default"><strong><dtml-var title html_quote>:</strong></span>
+      </td>
+    </tr>
+    <dtml-else>
+    <tr>
+      <td valign="top">
+      <dtml-if instance_url>
+        <table cellspacing="2" cellpadding="4" style="border:1pt solid &dtml-color;" border="0">
+        <tr>
+          <td id="&dtml-id;" bgcolor="&dtml-pointer_color_disabled;" onmouseover="javascript:show_pointer(&dtml-id;,'over',1);" onmouseout="javascript:show_pointer(&dtml-id;,'out');">
+            <a target="_blank" href="&dtml-instance_url;" title="&dtml-instance_name;"><img src="&dtml-portal_url;/spacer.gif" height="10" width="12"></a>
+          </td>
+	    </tr>  
+        </table>
+      <dtml-else>
+        <table cellspacing="2" cellpadding="5" border="0" style="border:1pt solid &dtml-color;">
+        <tr>
+          <td id="&dtml-id;" bgcolor="&dtml-pointer_color_disabled;" onmouseover="javascript:show_pointer(&dtml-id;,'over',1);" onmouseout="javascript:show_pointer(&dtml-id;,'out');">
+            <img src="&dtml-portal_url;/spacer.gif" height="10">
+          </td>
+	    </tr>  
+        </table>
+      </dtml-if>
+      </td>
+      <td class="small" width="100%" style="padding-left:10px;" onmouseover="javascript:show_pointer(&dtml-id;,'over');" onmouseout="javascript:show_pointer(&dtml-id;,'out');">
+        <span style="cursor:default">
+        <a class="assistant" title="&dtml-action;" href="#" onClick="javascript:openBrWindow('&dtml-item_url;', 'assistant_item');">
+          <dtml-var title html_quote>
+        </a>
+        </span>
+      </td>
+    </tr>
+    </dtml-if>
+    </table>
+  </dtml-let>
+</dtml-in>
+  </td>
+</tr>
+
+<tr>
+  <td bgcolor="#008ED0" style="padding: 0 0 15px 0" align="center">
+    <input type="button" onClick="javascript:window.close()" value="<dtml-var "msg('Close')">" style="width:100px;">
+  </td>
+</tr>
+</table>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,50 @@
+<dtml-let x_wide="_.has_key('x_wide') and x_wide or 0"
+          cio="_.has_key('cio') and cio or 0"
+          today="_.DateTime()"
+>
+
+<table cellspacing="1" cellpadding="5" border="0">
+<tr>
+  <td class="header" style="padding: 20px 0 10px 0;" colspan="2" valign="top">
+    <dtml-var report_name>
+  </td>
+</tr>
+</table>
+
+<table width="<dtml-if x_wide>608px<dtml-elif cio>553px<dtml-else>430px</dtml-if>" cellspacing="1" cellpadding="5" border="0">
+<tr>
+  <td class="p_view" style="width:25%;" valign="top">
+    <strong><dtml-var "msg('Member')">:&nbsp;&nbsp;&nbsp;</strong>
+  </td>
+  <td class="p_view" style="width:75%;" colspan="6">
+    <font color="purple"><strong><dtml-var "member.getMemberNotes()"> <dtml-var "member.getMemberBriefName()"></strong></font>
+  </td>
+</tr>
+<tr>
+  <td class="p_view" nowrap>
+    <strong><dtml-var "msg('Report date')">:</strong>
+  </td>
+  <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "today.strftime('%d')"></strong></font></td>
+  <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "today.strftime('%m')"></strong></font></td>
+  <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "today.strftime('%Y')"></strong></font></td>
+  <td class="p_view" align="center" nowrap><font color="blue"><strong><dtml-var "today.strftime('%H:%M')"></strong></font></td>
+
+  <dtml-if x_wide>
+  <td class="p_view" align="center" nowrap>
+    <strong><dtml-var "msg('for a period')">:</strong>
+  </td>
+  </dtml-if>
+
+  <dtml-if "_.has_key('date_from') and date_from and period > 0">
+  <td class="p_view" align="center" nowrap>
+    <font color="blue"><strong><dtml-var "date_from.strftime('%Y/%m/%d')"></strong></font>
+    -
+    <font color="blue"><strong><dtml-var "date_till.strftime('%Y/%m/%d')"></strong></font>
+  </td>
+  <dtml-else>
+  <td class="p_view" align="left" style="width:100%;" nowrap><font color="blue"><strong><dtml-var "msg('current documents')"></strong></font></td>
+  </dtml-if>
+</tr>
+</table>
+
+</dtml-let>

@@ -1,0 +1,222 @@
+<dtml-let task_has_responses="_.has_key('task_has_responses') and task_has_responses or hasResponses()"
+          user="portal_membership.getAuthenticatedMember().getUserName()"
+          suspended_mode="SuspendedMode() and isInvolved() and not IsManager"
+          pending_users="[x for x in PendingUsers() if not suspended_mode or x==user]"
+          IsInProgress="isEnabled and pending_users or task_has_responses"
+          can_be_published="canBePublished()"
+          can_send_notifications="canSendNotifications()"
+>
+  <dtml-if IsInProgress>
+
+<script type="text/javascript">
+<!--
+function validateForm( frm, allowEmpty ) {
+	var isChecked = false;
+	var n = -1;
+
+	while ( n >= -1 ) {
+		var obj = frm.getElementsByTagName("input")[++n];
+		if( typeof(obj) != "object" ) break;
+		if( obj.checked ) { 
+			isChecked = true;
+			break;
+		}
+	}
+
+	if( !isChecked && !allowEmpty ) {
+		alert( '<dtml-var "msg('Select notificated users.')">' );
+		return false;
+	} else 
+	return true;
+}
+
+var isSelected = false;
+var isPending = false;
+
+function toggleSelect( mode ) {
+    var frm = document.objectItems;
+	
+	mode = (!mode ? 0 : 1);
+	if( mode == 0 ) { 
+        isSelected = ! isSelected; 
+    } else { 
+        if( isPending == isSelected ) { isPending = ! isPending; } else { isPending = ! isSelected; }
+    }
+	
+    for( var i = 0; i < frm.elements.length; i++ ) {
+        var elem = frm.elements[ i ];
+        if( elem.disabled ) continue;
+        if( mode == 0 ) {
+          if( elem.name.substr( 0,14 ) == 'selected_users' ||  elem.name.substr( 0,18 ) == 'selected_responses' ) { elem.checked = isSelected; }
+        } else {
+          if( elem.id == 'pending_users' ) { elem.checked = isPending; }
+        }
+    }
+	
+    changeSelectedUser();
+    changeSelectedResponse();
+
+    switch( mode ) {
+    case 0:
+        var objSelectAll = document.all["selectAll"];
+        var txtValue = isSelected ? '<dtml-var "msg('Deselect All')">' : '<dtml-var "msg('Select All users')">';
+        break;
+    case 1:
+        var objSelectAll = null;
+        return;
+    }
+	
+    if( objSelectAll.length > 1 ) {
+        for( var i = 0; i <= 1; i++ ) {
+            var obj = objSelectAll[i];
+            if( typeof(obj) == 'object' ) { obj.value = txtValue; }
+        }
+    } else if( typeof(objSelectAll) == 'object' ) {
+        objSelectAll.value = txtValue;
+    }
+    return isSelected;
+}
+
+function ProgressDisableForm(frm) {
+    if( typeof(frm.rejectReport) == 'object' ) frm.OK.disabled=true;
+    if( typeof(frm.rejectReport) == 'object' ) frm.rejectReport.disabled=true;
+}
+
+function ProgressSubmitForm(frm) {
+    if( validateForm(frm, false) ) {
+        ProgressDisableForm(frm);
+        frm.submit();
+    }
+}
+
+function NotifySubmitForm() {
+    var frm = document.objectItems;
+    frm.action += '/task_kick_form';
+    ProgressSubmitForm(frm);
+}
+
+function RejectReportSubmitForm() {
+    var frm = document.objectItems;
+    frm.action += '/task_reject_report_form';
+    ProgressSubmitForm(frm);
+}
+
+function changeSelectedUser() {
+    var frm = document.objectItems;
+    if( typeof(frm.OK) != 'object' ) return;
+    for( var i = 0; i < frm.elements.length; i++ ) {
+        var elem = frm.elements[ i ];
+        if( elem.name.substr( 0,14 ) == 'selected_users' && elem.checked ) {
+            frm.OK.disabled=false;
+            return;
+        }
+    }
+    frm.OK.disabled=true;
+}
+
+function changeSelectedResponse() {
+    var frm = document.objectItems;
+    if( typeof(frm.rejectReport) != 'object' ) return;
+    for( var i = 0; i < frm.elements.length; i++ ) {
+        var elem = frm.elements[ i ];
+        if( elem.name.substr( 0,18 ) == 'selected_responses' && elem.checked ) {
+            frm.rejectReport.disabled=false;
+            return;
+        }
+    }
+    frm.rejectReport.disabled=true;
+}
+//-->
+</script>
+
+<table width="100%" border="0">
+<form name="objectItems" action="&dtml-absolute_url;" method="post">
+
+    <dtml-if task_has_responses>
+<tr>
+  <td>
+      <dtml-in "listResponseTypes(sort=1)" mapping>
+        <dtml-if sequence-start>
+    <table cellpadding=2 width="100%">
+        </dtml-if>
+    <tr class="task_title">
+      <td class="smallHeader"><dtml-var "msg(progresslist_title, add=0)">:</td>
+    </tr>
+    <tr>
+      <td>
+        <dtml-let status=id
+                  responses="searchResponses(view=1, status=status) or [] # suspended_mode and searchResponses(view=1, status=status, member=user) or not suspended_mode and "
+                  task_links="portal_links.searchLinks(source_uid=getUid())"
+                  task_id=getId
+        >
+          <dtml-in responses sort=date reverse mapping>
+            <dtml-var task_progress_entry>
+          <dtml-else>
+            <dtml-var "msg('No reports')">
+          </dtml-in>
+        </dtml-let>
+      </td>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+        </dtml-if>
+      </dtml-in>
+  </td>
+</tr>
+    </dtml-if>
+
+    <dtml-if "can_be_published and pending_users">
+<tr>
+  <td>
+      <dtml-in "portal_membership.listSortedUserNames(pending_users)" mapping>
+        <dtml-if sequence-start>
+  <table width="100%" cellpadding="2" border="0">
+  <tr class="task_title">
+    <td class="smallHeader"><dtml-var "msg('Pending reply from')">:</td>
+  </tr>
+  <tr>
+    <td>
+      <table cellspacing="6" cellpadding="2" border="0">
+      <tr>
+        <td class="small">
+        </dtml-if>
+        <dtml-if can_send_notifications>
+          <input type="checkbox" name="selected_users:list" value="&dtml-user_id;" id="pending_users" <dtml-if "user_id == user">disabled</dtml-if> onclick="javascript:changeSelectedUser();">
+        </dtml-if>
+        <dtml-var "member_name(this(), member=user_id)">&nbsp;<br>
+
+        <dtml-comment>
+        <dtml-if "(_['sequence-length'] > 10) and _['sequence-index'] == _['sequence-length'] / 2">
+        </td> 
+        <td width="1"><dtml-var spacer.gif></td>
+        <td class="small">
+        </dtml-if>
+        </dtml-comment>
+
+        <dtml-if sequence-end>
+        </td>
+      </tr>
+      </table>
+    </td>
+  </tr>
+  </table>
+        </dtml-if>
+      </dtml-in>
+
+      <dtml-if can_send_notifications>
+    <input disabled type="button" name="OK" value="<dtml-var "msg('Notify')"> &gt;&gt;" onclick="javascript:NotifySubmitForm();" style="width:230px;">
+        <dtml-if "brains_type=='directive' and task_has_responses">
+    <input disabled type="button" name="rejectReport" value="<dtml-var "msg('Reject report')"> &gt;&gt;" onclick="javascript:RejectReportSubmitForm();" style="width:160px;">
+        </dtml-if>
+    <input type="button" name="selectAll" value="<dtml-var "msg('Select All users')">" onclick="toggleSelect(0)" style="width:140px;">
+    <input type="button" name="selectPending" value="<dtml-var "msg('Select Pending users')">" onclick="toggleSelect(1)" style="width:160px;">
+      </dtml-if>
+  </td>
+</tr>
+    </dtml-if>
+
+</form>
+</table>
+
+  </dtml-if>
+</dtml-let>

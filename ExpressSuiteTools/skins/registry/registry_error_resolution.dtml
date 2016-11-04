@@ -1,0 +1,41 @@
+<dtml-var simple_html_header>
+
+<h1> <dtml-var title_or_id> </h1>
+<dtml-let came_from="REQUEST.get('came_from', '')">
+
+<form name='registry' method="post" action="&dtml-absolute_url;/resolveErrors">
+  <dtml-in "getSession('data', {}).items()" prefix="d">
+    <dtml-if "_.hasattr(d_item, 'items')">
+      <dtml-in "d_item.items()" prefix="dd"> 
+<input type=hidden id="<dtml-var "d_key" html_quote>_<dtml-var "dd_key" html_quote>" name="<dtml-var "d_key" html_quote>.<dtml-var "dd_key" html_quote>:record" value="<dtml-var "dd_item" html_quote>">
+      </dtml-in>
+    <dtml-else>
+<input type="hidden" name="<dtml-var "d_key" html_quote>" value="<dtml-var "d_item" html_quote>">
+    </dtml-if>
+  </dtml-in>
+  <dtml-call "REQUEST.delete('data')">
+
+<table>
+<tr class="row_title">
+  <td colspan="2" class="smallHeader">
+    <dtml-var "msg('Possible actions')">:
+  </td>
+</tr>
+<tr class="row_even">
+  <td colspan="2" class="small">
+    <input type="radio"  name="user_action" value="" checked><dtml-var "msg('Abandon registration.')"><br>
+    <input type="radio"  name="user_action" value="both"><dtml-var "msg('Register in both registries under the number of the parent registry.')"><br>
+    <input type="radio"  name="user_action" value="child"><dtml-var "msg('Register under the number of the selected registry (do not register in the parent registry).')"><br>
+  </td>
+</tr>
+<tr>
+  <td colspan="2"> <br>
+    <input type=submit name="apply" value="<dtml-var "msg('Choose')">">
+  </td>
+</tr>
+</table>
+</form>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

@@ -1,0 +1,8 @@
+<dtml-revision $Revision: 1.1 $>
+
+<table cellspacing="2" cellpadding="2"> 
+  <tr class="row_even">
+    <td class="smallHeader"><dtml-var "msg('Message text')">:</td>
+    <td><dtml-var "task_definition['message']"></td>
+  </tr>
+</table>

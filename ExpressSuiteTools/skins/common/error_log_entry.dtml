@@ -1,0 +1,112 @@
+<dtml-revision $Revision: 1.3 $>
+
+<dtml-call "REQUEST.set( 'OpenInFrame', '' )">
+<dtml-var simple_html_header>
+
+<dtml-let entry="portal_errorlog.getLogEntryById( REQUEST['id'] )">
+<dtml-if entry>
+<dtml-with entry mapping>
+
+<dtml-if "_.SecurityCheckPermission( 'Log Site Errors', this() )">
+
+<h2><dtml-var "msg('Report error to the application support service')"></h2>
+
+<form name="error_report_form" action="&dtml-portal_url;/portal_errorlog/sendErrorReport" method="post">
+
+<input type="hidden" name="id" value="&dtml-id;" />
+<input type="hidden" name="support:boolean" value="1" />
+
+<p>
+<strong><dtml-var "msg('Comment')">:</strong><br />
+<textarea name="comment:text" tabindex="1" wrap="soft" rows="8" style="width: 100%"
+          ><dtml-var comment_adm html_quote>
+</textarea>
+</p>
+
+<p><input type="submit" name="report" value=" <dtml-var "msg('Send')"> " tabindex="2" /></p>
+
+</form>
+
+<hr size="1">
+
+</dtml-if>
+
+<h2>System information</h2>
+
+<table class="error">
+  <tr>
+    <th align="left">Express Suite DMS Version</th>
+    <td><dtml-var version></td>
+  </tr>
+  <tr>
+    <th align="left">Zope Version</th>
+    <td><dtml-var zope_info></td>
+  </tr>
+  <tr>
+    <th align="left">Python Version</th>
+    <td><dtml-var python_info></td>
+  </tr>
+  <tr>
+    <th align="left">System Platform</th>
+    <td><dtml-var system_info></td>
+  </tr>
+</table>
+
+<h2>Exception information</h2>
+
+<table class="error">
+  <tr>
+    <th align="left">Error ID</th>
+    <td><a href="&dtml-portal_url;/portal_errorlog/error_log_entry?id=&dtml-id;"><dtml-var id></a></td>
+  </tr>
+  <tr>
+    <th align="left">Time</th>
+    <td><dtml-var "ZopeTime(time)"></td>
+  </tr>
+  <tr>
+    <th align="left">User Name</th>
+    <td>&dtml-userid; (&dtml-username;)</td>
+  </tr>
+  <tr>
+    <th align="left">Request URL</th>
+    <td><a href="&dtml-url;">&dtml-url;</a></td>
+  </tr>
+  <tr>
+    <th align="left">Exception Type</th>
+    <td>&dtml-type;</td>
+  </tr>
+  <tr>
+    <th align="left">Exception Value</th>
+    <td>&dtml-value;</td>
+  </tr>
+</table>
+
+<h2>Exception traceback</h2>
+
+<dtml-if tb_html>
+<dtml-var tb_html>
+<dtml-else>
+<pre><dtml-var tb_text html_quote></pre>
+</dtml-if>
+
+<dtml-if req_html>
+<h2>REQUEST</h2>
+
+<div class="error">
+<dtml-var req_html>
+</div>
+</dtml-if>
+
+<hr size="1">
+
+<h2><a href="&dtml-portal_url;/portal_errorlog/getLogEntryAsText?id=&dtml-id;"><dtml-var "msg('View this entry as text')"></a></h2>
+
+</dtml-with>
+<dtml-else>
+
+<p><dtml-var "msg('Log entry [%(id)s] not found or expired.') % REQUEST"></p>
+
+</dtml-if>
+</dtml-let>
+
+<dtml-var simple_html_footer>

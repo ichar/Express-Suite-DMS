@@ -1,0 +1,353 @@
+<dtml-call "HasBeenSeenByFor(REQUEST=REQUEST)">
+<dtml-call "REQUEST.set('PageTitle', this().Title())">
+
+<script type="text/javascript">
+<!--
+var commonImages = ['misc_/Photo/photo.gif'];
+//-->
+</script>
+
+<dtml-var simple_html_header>
+
+<dtml-let container="this().getBase()"
+          IsPortalRoot="container.implements('isPortalRoot') and 1 or 0"
+          versionable_base="container.implements('isVersionable')"
+          document_version="versionable_base and container.getVersion().id or None"
+          task_version="this().version_id"
+          qs="REQUEST.get('qs') or ''"
+          batch_size="REQUEST.get('batch_size') or ''"
+>
+  <dtml-if "task_version and document_version != task_version">
+    <dtml-let url_to_doc="versionable_base and container.absolute_url()+'/version/'+task_version+'/followup/'+getId() or ''">
+      <dtml-comment>redirect to task's version of document context</dtml-comment>
+      <dtml-call "REQUEST['RESPONSE'].redirect( url_to_doc )">
+    </dtml-let>
+  </dtml-if>
+
+<script type="text/javascript">
+<!--
+function DoImgClick() {
+  if(typeof(document.all.task_result_info) != 'object') return;
+  var s=(document.all.task_result_info.style.display == 'none' ? 'block' : 'none');
+  set_display( document.all.task_result_info,s );
+}
+function set_display( obj,state ) {
+  if(typeof(obj) == 'object') obj.style.display = state;
+}
+-->
+</script>
+
+  <dtml-let user="portal_membership.getAuthenticatedMember()"
+            IsManager="user.IsManager()"
+            IsAdmin="user.IsAdmin()"
+            is_manager="isCreator() or isSupervisor() or IsManager"
+            is_in_turn="isInTurn()"
+            is_enabled="isEnabled()"
+            top_action="IsPortalRoot and 'followup_tasks_form' or 'document_follow_up_form'"
+            ext_params="qs and batch_size and 'qs=%s&batch_size=%s' % (qs, batch_size) or ''"
+            brains_type=BrainsType
+  >
+
+<div class="Desktop" id="task_view_container">
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr>
+  <td valign=top width=21><dtml-var actn032.gif>&nbsp;</td>
+  <td align=left><h3><dtml-var "aboveInThread(top_action=top_action, ext_params=ext_params)"></h3></td>
+</tr>
+</table>
+
+<dtml-var task_info>
+
+<dtml-var task_controls>
+
+    <dtml-let result="isFinalized() and getResultById(ResultCode())"
+              result_title="result and result.get('title') or ''"
+              default_settings="_.has_key('finalize_settings') and finalize_settings"
+              type="default_settings and default_settings.has_key('type') and default_settings['type'] or 'all'"
+              finalize_title="portal_properties.task_finalize_settings(id=type)"
+              auto_finalize="hasAutoFinalized(check=1)"
+              delegation_of_authority="hasDelegationOfAuthority()"
+              suspended_mode="SuspendedMode()"
+              suspended_users="SuspendedUsers()"
+              managed_by_supervisor="Supervisors() and isManagedBySupervisor() or None"
+              display="result and 'none' or 'block'"
+    >
+      <dtml-if result><br></dtml-if>
+
+<table width="100%" cellspacing="0" cellpadding="0" bgcolor="#E5E5E5" border="0">
+      <dtml-if result>
+<tr>
+  <td class="smallHeader" align="left" nowrap>
+        <dtml-if "brains_type in ['request','signature_request']">
+          <dtml-if "result_title in ['failed','document was not signed']">
+    <dtml-var "msg('Resolution on the document')">:&nbsp;
+            <dtml-if "brains_type=='request'">
+    <font color="red"><dtml-var "msg('Request was failed')">.</font>
+            <dtml-else>
+    <font color="red"><dtml-var "msg('Request was rejected')">.</font>
+            </dtml-if>
+          <dtml-elif "result_title=='success'">
+    <dtml-var "msg('Resolution on the document')">:&nbsp;
+    <font color="green"><dtml-var "msg('Request was approved')">.</font>
+          <dtml-elif "result_title=='document signed'">
+    <dtml-var "msg('Resolution on the document')">:&nbsp;
+    <font color="green"><dtml-var "msg(result_title, add=0)">.</font>
+          <dtml-else>
+    <font color="black"><dtml-var "msg('Task result')"> - <dtml-var "msg(result_title, add=0)">.</font>
+          </dtml-if>
+        <dtml-else>
+    <dtml-var "msg('Finalized task')">.&nbsp;<dtml-var "msg('Task result')"> - <dtml-var "msg(result_title, add=0)">.
+        </dtml-if>
+  </td>
+        <dtml-if finalize_title>
+  <td class="smallHeader" style="padding-right:7px;" align="right">
+    <img src="&dtml-portal_url;/doc_icon_fixed_reviewed_gray.gif" width="16" height="16" onclick="javascript:DoImgClick();" 
+     onmouseover="this.style.cursor='hand'" onmouseout="this.style.cursor='auto'">
+  </td>
+        </dtml-if>
+</tr>
+      </dtml-if>
+
+<tr id="task_result_info" valign="top" style="display:&dtml-display;">
+  <td align="left" style="padding: 5px 0 0 1px;" colspan="2">
+      <dtml-if delegation_of_authority>
+    <dtml-msg "Delegate members authority">.<br>
+      <dtml-else>
+    <dtml-msg "Finalize the task in case if will respond">&nbsp;<dtml-var "msg(finalize_title, add=0)">.<br>
+      </dtml-if>
+      <dtml-if auto_finalize><dtml-msg "auto finalize if response will be missed">.<br></dtml-if>
+      <dtml-if "managed_by_supervisor=='default'">
+    <dtml-msg "Supervisor by default">.<br>
+      <dtml-elif "managed_by_supervisor=='request'">
+    <dtml-msg "Send to supervisor after commission was realized">.<br>
+      <dtml-elif "managed_by_supervisor=='info'">
+    <dtml-msg "Inform supervisor about commission">.<br>
+	  </dtml-if>
+      <dtml-if suspended_mode>
+    <nobr><dtml-msg "suspended mail mode"> [ <dtml-if suspended_users><dtml-msg "in turn">: <dtml-var "_.len(suspended_users)"><dtml-else><dtml-msg "distribution has been finalized completely"></dtml-if> ].</nobr><br>
+      </dtml-if>
+  </td>
+</tr>
+</table>
+    </dtml-let>
+
+    <dtml-in getHistoryInTurn mapping>
+      <dtml-if sequence-start>
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+<tr><td height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+<tr><td class="smallHeader" style="color:#CC0000"><dtml-var "msg('You did not answer to the following notifications in turn')">:</td></tr>
+     </dtml-if>
+<tr>
+  <td class="small" style="padding: 3px 0 0 3px">
+    <dtml-var date fmt="%Y-%m-%d %H:%M">
+    <b><dtml-var "member_name(this(), member=actor, brief=1)"></b>
+    <br>
+    <dtml-var "msg('Sent to users')">:
+    <b><dtml-in rcpt><dtml-var "member_name(this(), member=_['sequence-item'], brief=1).strip()"><dtml-unless sequence-end>, </dtml-unless></dtml-in></b>
+    <br>
+    <em style="color:blue;"><dtml-var text newline_to_br></em>
+  </td>
+</tr>
+      <dtml-if sequence-end>
+</table>
+      </dtml-if>
+    </dtml-in>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+    <dtml-if is_in_turn>
+      <dtml-let failed_only="1"
+                responses_in_turn="searchResponsesInTurn(failed_only=failed_only)">
+        <dtml-if responses_in_turn>
+<tr><td><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+<tr>
+  <td>
+          <dtml-if failed_only>
+    <h3 style="color:#CC0000"><dtml-var "msg('Failed revised in turn report')">:</h3>
+          <dtml-else>
+    <h3><dtml-var "msg('Revised in turn report')">:</h3>
+          </dtml-if>
+    <dtml-var task_revised_in_turn>
+  </td>
+</tr>
+        </dtml-if>
+      </dtml-let>
+    </dtml-if>
+
+    <dtml-let task_has_responses="hasResponses()">
+      <dtml-if "task_has_responses or (is_manager and not is_in_turn) or not is_enabled">
+<tr><td><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+<tr>
+  <td>
+        <dtml-if "not is_enabled">
+    <h3><font color="#ff0000"><dtml-var "msg('Not effective')"></font></h3>
+        <dtml-else>
+    <h3><dtml-var "msg('Progress report')">:</h3>
+          <dtml-if isAutoFinalized>
+    <span style="padding-left:2px;"><dtml-msg "the task was finalized by system process">.</span>
+         </dtml-if>
+    <dtml-var task_progress>
+        </dtml-if>
+  </td>
+</tr>
+      </dtml-if>
+    </dtml-let>
+
+<tr><td><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+<tr>
+  <td>
+<dtml-var viewTasksTree>
+  </td>
+</tr>
+    <dtml-if followup>
+      <dtml-if "followup.getBoundTasks()">
+<tr><td height="10px"><hr style="border:thin dotted White;" noshade width="100%" size="1"></td></tr>
+      </dtml-if>
+    </dtml-if>
+</table>
+
+    <dtml-in getHistory mapping reverse>
+      <dtml-if sequence-start>
+<table cellspacing="3">
+<tr><td class="smallHeader"><dtml-var "msg('Notifications log')"></td></tr>
+     </dtml-if>
+<tr>
+  <td class="small">
+    <dtml-var date fmt="%Y-%m-%d %H:%M">
+    <b><dtml-var "member_name(this(), member=actor, brief=1)"></b>
+    <br>
+    <dtml-var "msg('Sent to users')">:
+    <b><dtml-in rcpt><dtml-var "member_name(this(), member=_['sequence-item'], brief=1).strip()"><dtml-unless sequence-end>, </dtml-unless></dtml-in></b>
+    <br>
+    <em style="color:blue;"><dtml-var "getFormattedComments(text)" newline_to_br></em>
+  </td>
+</tr>
+      <dtml-if sequence-end>
+</table>
+      </dtml-if>
+    </dtml-in>
+</div>
+    <dtml-if "container.implements('isDocument')"> 
+<table width="100%" bgcolor="#F2F2F2" border="0">
+<tr class="task_title"><td class="smallHeader"><dtml-var "msg('Document text')"></td></tr>
+<tr>
+  <td width="100%" bgcolor="#FFFFFF"><dtml-var "container.CookedBody(view=1, resolution='none')"></td>
+</tr>
+</table>
+
+<div class="Desktop">
+      <dtml-in "container.listAttachments()">
+        <dtml-if sequence-start>
+<br>
+<table width="500" cellpadding="0" cellspacing="1" bgcolor="#000000" border="0">
+<tr>
+  <td>
+    <table class="List" cellpadding="2" cellspacing="0" width="100%" border="0">
+    <tr class="row_title">
+      <td colspan="3">&nbsp;
+        <b><dtml-var "msg('Attached files')"></b>
+      </td>
+    </tr>
+        </dtml-if>
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td width="20px">
+        <dtml-let icon="icon or (meta_type == 'Image Attachment' and 'misc_/Photo/photo.gif')">
+          <dtml-if icon>
+            <a href="<dtml-var "container.relative_url(action=getId())" >" target="_blank">
+              <img src="&dtml-BASEPATH1;/&dtml-icon;" alt="&dtml-meta_type;" title="&dtml-meta_type;" border="0">
+            </a>
+          </dtml-if>
+        </dtml-let>
+      </td>
+      <td width="100%" align="left">
+        <a href="<dtml-var "container.relative_url(action=getId())" >" target="_blank" class="navigate">
+          &dtml-title_or_id;
+        </a> (<dtml-var "'%.1f' % (get_size() / 1024.0)"> Kb)
+      </td>
+      <td align="right" valign="middle" nowrap>
+        <dtml-if "_.SecurityCheckPermission( 'Modify portal content', this() )">
+          <dtml-if "_.hasattr(this(),'externalEditLink_')">
+             <dtml-if wl_isLocked>
+               <dtml-let locks="wl_lockValues(killinvalids=1)"
+                         creator_id="_.len(locks) and getLockCreator(locks[0])">
+        <span class="resolution" style="font-size:8pt;font-weight:normal;">&nbsp;<dtml-var "msg('Be carefull! Document is editing by')">&nbsp;<dtml-var "member_name(this(), member=creator_id)">&nbsp;</span>
+        <dtml-comment><dtml-var "msg('Editing by')">&nbsp;</dtml-comment>
+               </dtml-let>
+             <dtml-else>
+        <dtml-var "externalEditLink_(this())">
+             </dtml-if>
+          </dtml-if>
+        </dtml-if>
+      </td>
+    </tr>
+        <dtml-if sequence-end>
+    </table>
+  </td>
+</tr>
+</table>
+        </dtml-if>
+      </dtml-in>
+
+      <dtml-let this_uid="container.getUid()"
+                version_id="container.implements('isDocument') and container.getCurrentVersionId()"
+                links_from="portal_links.searchLinks(source_uid=this_uid, source_ver_id=version_id)"
+      >
+        <dtml-if links_from>
+<br>
+<table width="500" cellpadding="0" cellspacing="1" bgcolor="#000000" border="0">
+<tr>
+  <td>
+    <table class="List" cellpadding="2" cellspacing="0" width="100%" border="0">
+    <tr class="row_title">
+      <td colspan="2" valign="top">&nbsp;
+        <b><dtml-var "msg('Links from this document')"></b>
+      </td>
+    </tr>
+          <dtml-in links_from prefix="links">
+            <dtml-let link=getObject
+                      destination="link and link.getDestinationObject()"
+                      link_name="link and link.getDestinationMetadata('Title')">
+              <dtml-if "destination is not None">
+                <dtml-let ver_id="link.Extra('destination_ver_id')"
+                          version="ver_id and destination.getVersion(ver_id)"
+                          IsVersion="version and destination.implements('isVersionable')"
+                          link_url="IsVersion and version.absolute_url() or destination.absolute_url()"
+                          link_version_number="IsVersion and ' ('+msg('Version')+version.getVersionNumber()+')' or ''"
+                          link_title="destination.TitleOrId()+link_version_number"
+                >
+    <tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+      <td width="20px">
+        <a href="&dtml-link_url;?expand=1" target="_top"><img src="&dtml-portal_url;/link-icon.gif" border="0"></a>
+      </td>
+      <td width="100%" align="left">
+        <a class="navigate" href="&dtml-link_url;?expand=1" target="_blank">&dtml-link_title;</a>
+      </td>
+    </tr>
+                </dtml-let>
+              </dtml-if>
+            </dtml-let>
+          </dtml-in>
+    </table>
+  </td>
+</tr>
+</table>
+        </dtml-if>
+      </dtml-let>
+</div>
+    </dtml-if>
+  </dtml-let>
+
+<script type="text/javascript">
+<!--
+  window.onload =
+    function () {
+      if (typeof(resolution_body) != 'object') return;
+      resolution_body.style.top += task_view_container.offsetHeight + 60;
+      resolution_body.style.display = 'block';
+    };
+//-->
+</script>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

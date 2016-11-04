@@ -1,0 +1,65 @@
+<dtml-var simple_html_header>
+
+<h2><dtml-var "msg('Document categories management')"></h2>
+
+<dtml-let category_title="_.has_key('use_default_values') and category_title or ''"
+          IsAdmin="portal_membership.getAuthenticatedMember().IsAdmin()"
+>
+
+<form action="manage_categories" method="post">
+  <dtml-in "portal_metadata.getCategories()" sort="title">
+    <dtml-if sequence-start>
+<table width="90%" cellspacing="1">
+<tr class="row_title">
+  <td colspan="3"><dtml-var "msg('Categories list')"></td>
+</tr>
+    </dtml-if>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>"> <!--  onDblClick="location.href='portal_metadata/getXML?c_id=<dtml-var getId>'" -->
+    <dtml-if IsAdmin>
+  <td width="1%"><input type="checkbox" name="selected_categories:list" value="<dtml-var getId>"></td>
+    <dtml-else>
+  <td width="1%" style="padding: 5px 0 5px 0;">&nbsp;</td>
+    </dtml-if>
+  <td valign="middle"><a href="&dtml-absolute_url;"><dtml-var getId></a></td>
+  <td valign="middle"><dtml-var "msg(Title(), add=None)"></td>
+</tr>
+    <dtml-if sequence-end>
+      <dtml-if IsAdmin>
+<tr>
+  <td colspan="3">
+    <input type="submit" name="deleteCategories" value="<dtml-var "msg('Remove')">">
+  </td>
+</tr>
+      </dtml-if>
+</table>
+    </dtml-if>
+  </dtml-in>
+</form>
+
+<br>
+
+<dtml-if IsAdmin>
+<form action="&dtml-absolute_url;/manage_categories" method="post" onSubmit="javascript:return validateIdentifier(category_id, '<dtml-var "msg('Category id is invalid')">')">
+<table>
+<tr>
+  <td colspan=2><strong><dtml-var "msg('New category')"></strong></td>
+</tr>
+<tr>
+  <td><dtml-var "msg('Id')">:</td>
+  <td><input type="text" size="80" name="category_id"></td>
+</tr>
+<tr>
+  <td><dtml-var "msg('Title')">:</td>
+  <td><input type="text" size="80" name="category_title" value="&dtml-category_title;"></td>
+</tr>
+<tr>
+  <td>&nbsp;</td>
+  <td align=left><input type="submit" name="addCategory" value="<dtml-var "msg('Add category')">"></td>
+</tr>
+</table>
+</form>
+</dtml-if>
+
+</dtml-let>
+
+<dtml-var simple_html_footer>

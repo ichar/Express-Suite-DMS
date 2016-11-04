@@ -1,0 +1,211 @@
+<dtml-var simple_html_header>
+
+<script type="text/javascript">
+<!--
+var DOCUMENT_BODY = '';
+var leaveText = '<dtml-msg "If you click OK now, your changes will be lost!">'
+var IsAutoSubmit = false;
+var IsSubmit = false;
+
+window.onload = windowOnload;
+
+function windowOnload() {
+    showHideButton();
+    var document_body = document.all['document_body'];
+    if( typeof( document_body ) == 'object' ) {
+        DOCUMENT_BODY = document_body.innerHTML;
+    }
+    this.focus();
+};
+
+window.onbeforeunload = checkModifiedOnUnload;
+
+function checkModifiedOnUnload() {
+    if( IsSubmit ) return;
+    var document_body = document.all['document_body'];
+    if( typeof( document_body ) == 'object' ) {
+        if( document_body.innerHTML == DOCUMENT_BODY ) return;
+        if( IsAutoSubmit )
+            SubmitForm(); 
+        else 
+            window.event.returnValue = window.leaveText;
+    }
+}
+
+function Validate(frm) {
+    return true;
+}
+
+function DisableForm(frm) {
+    frm.save_changes.disabled=true;
+}
+
+function SubmitForm() {
+    var frm = document.wysiwyg_maker;
+    if( Validate(frm) ) {
+        DisableForm(frm);
+        IsSubmit = true;
+        frm.text.value = "" + document.all['document_body'].innerHTML + "";
+        return true; //frm.submit();
+    } else return false;
+}
+//-->
+</script>
+
+<form name="wysiwyg_maker" action="&dtml-absolute_url;/document_edit" method="post" enctype="multipart/form-data" onsubmit="return SubmitForm();">
+<textarea id="text" name="text" style="display:none"></textarea>
+<input type="hidden" name="text_format" value="html">
+
+<script type="text/javascript">
+<!--
+function showHideButton() {
+  var tbody = document.getElementById('facsimile_table');
+  if (! tbody) {
+    facsimile_containment.style.display="none";
+  } else {
+    var tr_name = tbody.rows.length;
+    if (tr_name == 1) wysiwyg_maker.facsimile_delete_button.disabled = true;
+  }
+}
+
+function showObject(obj) { obj.style.display="inline"; }
+function hideObject(obj) { obj.style.display="none"; }
+
+function InsertFacsimile() {
+  if (document.getElementById('facsimile_table')) {
+    showObject(facsimile_template);
+    hideObject(editor_toolbar_table);
+    wysiwyg_maker.save_changes.disabled = true;
+    wysiwyg_maker.appointment.focus();
+  }
+}
+
+function DeleteFacsimile() {
+  var sContents = document;
+  var tbody = sContents.getElementById('facsimile_table');
+  //.getElementsByTagName('TBODY')[0];
+  var tr_name = tbody.rows.length;
+  if (tr_name > 1) {
+    tbody.deleteRow(tr_name - 1);
+    if( tr_name == 2 ) wysiwyg_maker.facsimile_delete_button.disabled = true;
+  } else {
+    wysiwyg_maker.facsimile_delete_button.disabled = true;
+  }
+}
+
+function validate_facsimile_input() {
+  var appointment = document.getElementById('appointment').value;
+  var fio = document.getElementById('fio').value;
+  if( !appointment || !fio ) {
+    alert('<dtml-msg "Should be defined appointment and fio attributes. Repeat it please.">')
+    if( !appointment ) wysiwyg_maker.appointment.focus(); else wysiwyg_maker.fio.focus();
+  } else {
+    hideObject(facsimile_template);
+    InsertFacsimileInHTML(appointment, fio);
+    showObject(editor_toolbar_table);
+    wysiwyg_maker.save_changes.disabled = false;
+    this.focus();
+  }
+}
+
+function cancel_facsimile_input() {
+  hideObject(facsimile_template);
+  showObject(facsimile_containment);
+  showObject(editor_toolbar_table);
+  wysiwyg_maker.save_changes.disabled = false;
+  this.focus();
+}
+
+function InsertFacsimileInHTML( appointment, fio ) {
+  var template1 = "<!-- Кем подписан --><br><br><FONT face=times size=3><StrONG><SPAN>" + appointment + "</SPAN></StrONG></FONT><br><font color=\"#808080\" face=times style=\"font:x-small\"><span id=com>[кем подписан, должность]</span></font>";
+  var template2 = "<DIV name=\"FACSIMILE:makeTaskToSign:SelfSignature\"><table cellSpacing=0 cellPadding=0 align=left valign=\"top\" border=0><TBODY><tr><td style=\"width:150px\">&nbsp;</td><td style=\"padding-right:40px\" noWrap align=left><FONT face=times size=3><StrONG><SPAN>" + fio + "</SPAN></StrONG></FONT><br><font color=\"#808080\" face=times style=\"font:x-small\"><span id=com>[ФИО]</span></font></td></tr></TBODY></table></DIV>";
+  var sContents = document;
+  var tbody = sContents.getElementById('facsimile_table').getElementsByTagName('TBODY')[0];
+  var row = sContents.createElement("tr");
+  tbody.appendChild(row);
+  var td1 = sContents.createElement("td");
+  var td2 = sContents.createElement("td");
+  row.appendChild(td1);
+  row.appendChild(td2);
+  var tr_name = tbody.rows.length;
+  row.name = new Number (tr_name);
+  td1.vAlign = "middle";
+  td2.vAlign = "top";
+  //td2.style.width = "50%"; 
+  td2.style.paddingTop = "40px"; 
+  td2.style.paddingLeft = "40px";
+  td1.innerHTML = template1;
+  td2.innerHTML = template2;
+  if (document.getElementById('facsimile_delete_button').disabled == true) {
+    var delButton = document.getElementById('facsimile_delete_button');
+    delButton.disabled = false;
+  }
+}
+//-->
+</script>
+ 
+<table width="100%" cellspacing="0" cellpadding="0" bgcolor="#F2F2F2" border="0">
+<tr>
+  <td align="right" style="padding: 3px 10px 8px 0;">
+    <div id="facsimile_template" style="display:none">
+    <table border="0" cellspacing="3" cellpadding="0">
+    <tr>
+      <td align="right" style="padding-top:20px"><h3><dtml-msg "Add person's facsimile">:</h3></td>
+      <td>
+        <table>
+        <tr>
+          <td><strong><dtml-msg "Appointment"></strong></td>
+          <td><textarea name="appointment" cols="50" rows="3"></textarea></td>
+        </tr>
+        <tr>
+          <td><strong><dtml-msg "FIO"></strong></td>
+          <td><input type="text" name="fio" size="50"></td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td>&nbsp;</td>
+      <td>
+        <input type="button" value="OK" style="width:80px;" onClick="javascript:validate_facsimile_input();">&nbsp;
+        <input type="button" value="<dtml-msg "Cancel">" onClick="javascript:cancel_facsimile_input();">
+      </td>
+    </tr>
+    </table>
+    </div>
+
+    <div id="editor_toolbar_table">
+    <table cellspacing="0" cellpadding="0" border="0">
+    <tr>
+    <dtml-if "_.SecurityCheckPermission('Modify portal content', this())">
+      <td id="facsimile_containment" align="right" width="100%" nowrap>
+        <table cellspacing="5" cellpadding="0" border="0">
+        <tr>
+          <td style="padding: 3px 3px 0 0"><h3><dtml-msg "Facsimile action">:</h3></td>
+          <td><input type="button" value=" << " title="<dtml-var "msg('Delete facsimile')">" onClick="javascript:DeleteFacsimile();" name="facsimile_delete_button"></td>
+          <td><input type="button" value=" >> " title="<dtml-var "msg('Insert facsimile')">" onClick="javascript:InsertFacsimile();" name="facsimile_insert_button"></td>
+        </tr>
+        </table>
+      </td>
+    </dtml-if>
+      <td><input type="submit" name="save_changes" value="<dtml-var "msg('Save changes')">" style="width:180px;"></td>
+    </tr>
+    </table>
+    </div>
+  </td>
+</tr>
+
+<tr>
+  <td valign="top">
+    <table cellspacing="0" cellpadding="10" width="100%" border="1">
+    <tr>
+      <td width="100%" bgcolor="#FFFFFF"><div id="document_body"><dtml-var "EditableBody()"></div></td>
+    </tr>
+    </table>
+  </td>
+</tr>
+
+</form>
+</table>
+
+<dtml-var simple_html_footer>

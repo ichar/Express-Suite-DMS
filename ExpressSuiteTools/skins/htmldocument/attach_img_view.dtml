@@ -1,0 +1,77 @@
+<html>
+<body>
+<dtml-let min_frame="0"
+          max_frame="getFramesNumber() - 1"
+          frame_no="_.int(frame)">
+
+  <dtml-if "min_frame <= frame_no <= max_frame">
+    <table width="100%">
+      <tr align="center">
+        <td>
+          <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "min_frame">" title="<dtml-var "msg('First page')">"> << </a>
+        </td>
+        <td>
+          <dtml-if "frame_no > min_frame">
+            <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "frame_no-1">" title="<dtml-var "msg('Previous page')">"> <- </a>
+          <dtml-else>
+            &nbsp;
+          </dtml-if>
+        </td>
+        <td>&nbsp;</td>
+        <td>
+          <dtml-if "frame_no < max_frame">
+            <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "frame_no+1">" title="<dtml-var "msg('Next page')">"> -> </a>
+          <dtml-else>
+            &nbsp;
+          </dtml-if>
+        </td>
+        <td>
+          <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "max_frame">" title="<dtml-var "msg('Last page')">"> >> </a>
+        </td>
+        <td>
+          <a href="javascript:window.close()"><dtml-var "msg('Close')"></a>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="6">
+         <dtml-var "msg('Page')"> <dtml-var "frame_no+1"> ( <dtml-var "msg('Total')">: <dtml-var "max_frame+1">)
+        </td>
+      </tr>
+      <tr>
+        <td colspan="6">
+          <img border=0 src="<dtml-var absolute_url>?display=frame<dtml-var frame>">
+        </td>
+      </tr>
+      <tr align="center">
+        <td>
+          <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "min_frame">" title="<dtml-var "msg('First page')">"> << </a>
+        </td>
+        <td>
+          <dtml-if "frame_no > min_frame">
+            <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "frame_no-1">" title="<dtml-var "msg('Previous page')">"> <- </a>
+          <dtml-else>
+            &nbsp;
+          </dtml-if>
+        </td>
+        <td>&nbsp;</td>
+        <td>
+          <dtml-if "frame_no < max_frame">
+            <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "frame_no+1">" title="<dtml-var "msg('Next page')">"> -> </a>
+          <dtml-else>
+            &nbsp;
+          </dtml-if>
+        </td>
+        <td>
+          <a href="<dtml-var absolute_url>/attach_img_view?frame=<dtml-var "max_frame">" title="<dtml-var "msg('Last page')">"> >> </a>
+        </td>
+        <td>
+          <a href="javascript:window.close()"><dtml-var "msg('Close')"></a>
+        </td>
+      </tr>
+    </table>
+  <dtml-else>
+    <dtml-var "msg('There is no page number')"> <dtml-var frame>.
+  </dtml-if>
+</dtml-let>
+</body>
+</html>

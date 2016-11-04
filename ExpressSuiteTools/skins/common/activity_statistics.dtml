@@ -1,0 +1,43 @@
+<dtml-call "REQUEST.set('OpenInFrame', '')">
+
+<script type="text/javascript" src="&dtml-portal_url;/callback.js"></script>
+
+<dtml-var simple_html_header>
+
+<dtml-let users_statistics="portal_membership.UsersActivityStatistics(period)"
+          total="_.int(period) and _.len(users_statistics) or 0"
+>
+  <dtml-if total>
+<script type="text/javascript">
+<!--
+registerCallback(window, 'onLoad', function (ev) { 
+  var counter = window.parent.document.getElementById('counter');
+  if( typeof(counter) == 'object' ) {
+    counter.innerHTML = parseInt('<dtml-var total>');
+  }
+});
+// -->
+</script>
+  </dtml-if>
+<dtml-in users_statistics mapping sort="login_time" reverse>
+  <dtml-if sequence-start>
+<table width="100%" cellspacing="1" cellpadding="5" bgcolor="#FFFFFF" border="0">
+<tr class="row_title">
+  <td width="100%"><strong><dtml-var "msg('Member')"></strong></td>
+  <td style="padding: 0 5px 0 5px"><strong><dtml-var "msg('Activity')"></strong></td>
+  <td nowrap><strong><dtml-var "msg('Login time')"></strong></td>
+</tr>
+  </dtml-if>
+<tr class="<dtml-if sequence-odd>row_odd<dtml-else>row_even</dtml-if>">
+  <td align="left"><a style="font-size:xx-small" href="javascript:OpenUserInfoWnd('&dtml-user_id;','toolbar=no,scrollbars=no,status=yes,top=100,left=350,width=450,height=520,resizable=no')"><dtml-var user_name></a></td>
+  <td align="middle" valign="middle">&dtml-activity;</td>
+  <td align="left" valign="middle" nowrap><dtml-var login_time fmt="%Y/%m/%d %H:%M:%S"></td>
+</tr>
+  <dtml-if sequence-end>
+</table>
+  </dtml-if>
+</dtml-in>
+  
+</dtml-let>
+
+<dtml-var simple_html_footer>

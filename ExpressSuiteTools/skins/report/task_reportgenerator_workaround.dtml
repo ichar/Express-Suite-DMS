@@ -1,0 +1,140 @@
+<dtml-revision $Revision: 1.0.0.0 $>
+
+<dtml-call "REQUEST.set('report_name', 'Workaround report')">
+
+<style type="text/css">
+div.xxx table.report {
+    font-family: Arial, Verdana, sans-serif;
+    border-bottom: 1px solid black;
+    border-left: 1px solid black;
+    font-size: 11px;
+}
+
+div.xxx td.report {
+    font-family: Verdana, Arial, sans-serif;
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+    font-size: 11px;
+}
+</style>
+
+<DIV class=xxx>
+
+<table class="report" cellspacing="0" cellpadding="3" width="100%">
+<tr>
+  <td class="report" bgcolor="#FFFFFF" align="center"> <b><dtml-var "msg('Date')"></b> </td>
+  <td class="report" bgcolor="#FFFFFF" align="left" style="width:90%"> <b><dtml-var "msg('Workaround report')"></b> </td>
+</tr>
+
+<dtml-let sorted_responses="[]">
+
+<dtml-in selected_tasks>
+  <dtml-let task_id=sequence-item
+            task="followup.getTask(task_id)"
+            brains_type="task.BrainsType()"
+            task_index="_['sequence-index'] + 1"
+            task_title="task.Title()"
+            task_creator="portal_membership.getMemberBriefName(task.Creator())"
+            task_date="task.effective_date"
+            response_request_code="'%s_responses' % task_id"
+            selected_responses="REQUEST.has_key(response_request_code) and _[response_request_code] or []"
+            pending_code="'%s_pending' % task_id"
+            selected_pending="REQUEST.has_key(pending_code) and _[pending_code] or []"
+            success_status="task.SuccessStatus()"
+            finalized="task.isFinalized() and task.result=='success'"
+            delegation_of_authority="finalized and task.hasDelegationOfAuthority()"
+  >
+  <dtml-if "selected_responses or selected_pending">
+  
+  <dtml-call "REQUEST.set('response_datetime', None)">
+  <dtml-in selected_responses>
+    <dtml-let code=sequence-item
+              x="code.split('|')"
+              status="x[0]"
+              user="x[1]"
+              response_datetime="_.len(x) > 1 and x[2]"
+              responses="task.searchResponses(member=user, status=status)"
+    >
+      <dtml-in responses mapping>
+        <dtml-if "not response_datetime or _.str(date)==response_datetime">
+          <dtml-let sortkey="status=='review' and '00' or _.str(date)">
+            <dtml-call expr="sorted_responses.append({ 'user':user, 'text':text, 'date':date, 'status':status, 'layer':layer, 'sortkey':sortkey, 'delegation_of_authority':0 })">
+          </dtml-let>
+          <dtml-call "REQUEST.set('response_datetime', date)">
+        </dtml-if>
+      </dtml-in>
+    </dtml-let>
+  </dtml-in>
+
+  <dtml-in selected_pending>
+    <dtml-let code=sequence-item
+              x="code.split('|')"
+              status="delegation_of_authority and success_status or 'pending'"
+              user="x[1]"
+              response_datetime="delegation_of_authority and REQUEST.get('response_datetime')"
+              date="response_datetime or ZopeTime()"
+              sortkey="_.str(date)"
+    >
+      <dtml-call expr="sorted_responses.append({ 'user':user, 'text':None, 'date':date, 'status':status, 'layer':None, 'sortkey':sortkey, 'delegation_of_authority':delegation_of_authority })">
+    </dtml-let>
+  </dtml-in>
+
+  </dtml-if>
+  </dtml-let>
+</dtml-in>
+
+<dtml-if sorted_responses>
+  <dtml-in sorted_responses sort="sortkey" reverse mapping>
+    <dtml-let member="portal_membership.getMemberById(user)">
+    <dtml-if "member is not None">
+      <dtml-let name="member.getMemberBriefName()"
+                facsimile="member.getMemberFacsimile()"
+                notes="member.getMemberNotes()"
+                common_url="portal_properties.common_url()"
+      >
+    <tr>
+      <td class="report" bgcolor="#FFFFFF" style="padding-left:5px;" valign="top">
+        <b><dtml-var "date" fmt="%d.%m.%Y %H:%M"></b>
+      </td>
+      <td class="report" bgcolor="#FFFFFF" style="padding-right:5px; width:100%">
+      <dtml-if "status in ['informed','commit','sign','satisfy']">
+        <font color="green">
+      <dtml-elif "status in ['failure','reject','pending']">
+        <font color="red">
+      <dtml-elif "status in ['review']">
+        <font color="blue">
+      <dtml-else>
+        <font color="black">
+      </dtml-if>
+      <dtml-if "status == 'review'">
+          <dtml-var "msg('signing review')">
+      <dtml-elif "status == 'pending'">
+          <dtml-var "msg('NOT PRESENT')">
+      <dtml-else>
+          <dtml-var "msg(status, add=0)">
+      </dtml-if>
+        </font>
+        <br>
+      <dtml-if "text and status != 'pending'">
+        <font style="color:blue;"><dtml-var "msg('Comment')">:&nbsp;<dtml-var task_progress_entry_text></font>
+        <br>
+      </dtml-if>
+	  <br><b><dtml-var notes></b><br>
+      <dtml-if "facsimile and status in ['informed','commit','sign','satisfy']">
+        <img src="&dtml-common_url;&dtml-facsimile;" border=0>
+      <dtml-else>
+        <b><dtml-var name></b>
+      </dtml-if>
+      </td>
+    </tr>
+      </dtml-let>
+    </dtml-if>
+    </dtml-let>
+  </dtml-in>
+</dtml-if>
+
+</dtml-let>
+
+</table>
+
+</DIV>
